@@ -324,11 +324,12 @@ let quadrupled_z_again : int = twice double z  (* pass double to twice *)
   makes the first case of part1_tests "Problem 1" succeed. See the
   gradedtests.ml file.
 *)
-let pieces : int = -1
+let pieces : int = 8
 
 (* Implement a function cube that takes an int value and produces its cube. *)
 let cube : int -> int =
-	fun _ -> failwith "cube unimplemented"
+  fun (x:int) -> (x * x * x)
+	(*fun _ -> failwith "cube unimplemented";; *)
 
 
 (* Problem 1-2 *)
@@ -340,7 +341,8 @@ let cube : int -> int =
   and computes the total value in centimes:
 *)
 let centimes_of : int -> int -> int =
-  fun _ -> failwith "centimes_of unimplemented"
+  fun (rp:int) (fr:int) -> (rp + 100 * fr)
+  (*fun _ -> failwith "centimes_of unimplemented" *)
 
 
 (* Problem 1-3 *)

@@ -30,5 +30,5 @@
 # Target: main.cmx, tags: { compile, extension:cmx, extension:ml, file:main.cmx, file:main.ml, implem, native, ocaml, quiet }
 /home/leon/.opam/4.06.0/bin/ocamlopt.opt -c -I util -o main.cmx main.ml
 # Target: main.native, tags: { dont_link_with, extension:native, file:main.native, link, native, ocaml, program, quiet }
-/home/leon/.opam/4.06.0/bin/ocamlopt.opt unix.cmxa -I util hellocaml.cmx util/assert.cmx gradedtests.cmx providedtests.cmx main.cmx -o main.native
+/home/leon/.opam/4.06.0/bin/ocamlopt.opt unix.cmxa str.cmxa -I util hellocaml.cmx util/assert.cmx gradedtests.cmx providedtests.cmx main.cmx -o main.native
 # Compilation successful.
