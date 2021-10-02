@@ -690,7 +690,10 @@ let rec mylist_to_list (l:'a mylist) : 'a list =
   the inverse of the mylist_to_list function given above.
 *)
 let rec list_to_mylist (l:'a list) : 'a mylist =
-  failwith "list_to_mylist unimplemented"
+  begin match l with
+    | [] -> Nil
+    | (h :: tl) -> Cons(h, (list_to_mylist tl))
+  end
 
 
 (*
@@ -707,8 +710,10 @@ let rec list_to_mylist (l:'a list) : 'a mylist =
   append.  So (List.append [1;2] [3]) is the same as  ([1;2] @ [3]).
 *)
 let rec append (l1:'a list) (l2:'a list) : 'a list =
-  failwith "append unimplemented"
-
+  begin match l1 with
+    | [] -> l2
+    | (h :: tl) -> (h :: (append tl l2))
+  end
 (*
   Problem 3-3
 
@@ -716,7 +721,10 @@ let rec append (l1:'a list) (l2:'a list) : 'a list =
   you might want to call append.  Do not use the library function.
 *)
 let rec rev (l:'a list) : 'a list =
-  failwith "rev unimplemented"
+  begin match l with
+    | [] -> []
+    | (h :: tl) -> (append (rev tl) [h])
+  end
 
 (*
   Problem 3-4
@@ -730,7 +738,8 @@ let rec rev (l:'a list) : 'a list =
 let rev_t (l: 'a list) : 'a list =
   let rec rev_aux l acc =
     begin match l with
-      | _ -> failwith "rev_t unimplemented"
+      | [] -> acc
+      | (h :: tl) -> (rev_aux tl (h :: acc))
     end
   in
   rev_aux l []
@@ -750,7 +759,11 @@ let rev_t (l: 'a list) : 'a list =
   evaluates to true or false.
 *)
 let rec insert (x:'a) (l:'a list) : 'a list =
-  failwith "insert unimplemented"
+  begin match l with
+    | [] -> [x]
+    | (h :: tl) -> if (h = x) then (h :: tl) else
+                   (if h > x then (x :: h :: tl) else (h::(insert x tl)))
+  end
 
 
 (*
@@ -761,8 +774,10 @@ let rec insert (x:'a) (l:'a list) : 'a list =
   Hint: you might want to use the insert function that you just defined.
 *)
 let rec union (l1:'a list) (l2:'a list) : 'a list =
-  failwith "union unimplemented"
-
+  begin match l1 with
+    | [] -> l2
+    | (h :: tl) -> union tl (insert h l2)
+  end
 
 
 
