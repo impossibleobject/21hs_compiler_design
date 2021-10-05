@@ -867,8 +867,14 @@ let e3 : exp = Mult(Var "y", Mult(e2, Neg e2))     (* "y * ((x+1) * -(x+1))" *)
   Hint: you probably want to use the 'union' function you wrote for Problem 3-5.
 *)
 let rec vars_of (e:exp) : string list =
-  failwith "vars_of unimplemented"
-
+  begin match e with
+    | Var x -> [x]
+    | Const c -> []
+    | Add (e1, e2) -> union (vars_of e1) (vars_of e2)
+    | Mult (e1, e2) -> union (vars_of e1) (vars_of e2)
+    | Neg e -> vars_of e
+  end
+  
 
 (*
    Problem 4-2
@@ -886,7 +892,13 @@ let rec vars_of (e:exp) : string list =
 *)
 
 let rec string_of (e:exp) : string =
-  failwith "string_of unimplemented"
+  begin match e with
+    | Var x -> x
+    | Const c -> Int64.to_string c
+    | Add (e1, e2) -> "(" ^ (string_of e1) ^ " + " ^ (string_of e2) ^ ")"
+    | Mult (e1, e2) -> "(" ^ (string_of e1) ^ " * " ^ (string_of e2) ^ ")"
+    | Neg e -> "-(" ^ (string_of e) ^ ")"
+  end
 
 (*
   How should we _interpret_ (i.e. give meaning to) an expression?
@@ -947,7 +959,10 @@ let ctxt2 : ctxt = [("x", 2L); ("y", 7L)]  (* maps "x" to 2L, "y" to 7L *)
   such value, it should raise the Not_found exception.
 *)
 let rec lookup (x:string) (c:ctxt) : int64 =
-  failwith "unimplemented"
+  begin match c with
+    | [] -> raise Not_found
+    | (v, i)::tl -> if (v = x) then i else lookup x tl
+  end
 
 
 (*
@@ -974,7 +989,13 @@ let rec lookup (x:string) (c:ctxt) : int64 =
 *)
 
 let rec interpret (c:ctxt) (e:exp) : int64 =
-  failwith "unimplemented"
+  begin match e with
+    | Var x -> lookup x c 
+    | Const i -> i 
+    | Add (e1, e2) -> Int64.add (interpret c e1) (interpret c e2)
+    | Mult (e1, e2) -> Int64.mul (interpret c e1) (interpret c e2)
+    | Neg e -> Int64.neg (interpret c e)
+  end
 
 
 (*
@@ -1018,9 +1039,38 @@ let rec interpret (c:ctxt) (e:exp) : int64 =
 
   Hint: what simple optimizations can you do with Neg?
 *)
+(* custom flip function for swapping the order of tuples
+let flip ((a, b) : ('a, 'b)) : ('b, 'a) = (b, a) *)
 
 let rec optimize (e:exp) : exp =
-  failwith "optimize unimplemented"
+  begin match e with
+    | Var x -> Var x
+    | Const c -> Const c 
+    | Add (e1, e2) -> 
+        begin match (e1, e2) with
+          | (Var x, Const 0L) | (Const 0L, Var x) -> Var x
+          | (Const c1, Const c2) -> Const (Int64.add c1 c2)
+          | (Var x, Neg n) -> if (n = Var x) then Const 0L else Add (Var x, Neg n)
+          | (Var x, Var y) -> Add (Var x, Var y)
+          | _ -> optimize (Add ((optimize e1), (optimize e2)))
+        end
+    | Mult (e1, e2) -> 
+        begin match (e1, e2) with
+          | (Var x, Const 1L) | (Const 1L, Var x) -> Var x
+          | (Var x, Const 0L) | (Const 0L, Var x) -> Const 0L
+          | (Const c1, Const c2) -> Const (Int64.mul c1 c2)
+          | (Var x, Var y) -> Mult (Var x, Var y)
+          | _ -> optimize (Mult ((optimize e1), (optimize e2)))
+        end
+    | Neg e ->
+        begin match e with
+          | Const 0L -> Const 0L
+          | Const c -> Const (Int64.neg c)
+          | Neg (Neg e) -> optimize e
+          | Neg (Var x) -> Neg (Var x)
+          | _ -> optimize (Neg (optimize e))
+        end
+  end
 
 
 (******************************************************************************)
