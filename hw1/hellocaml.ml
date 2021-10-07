@@ -1068,10 +1068,8 @@ let rec optimize (e:exp) : exp =
         end
     | Neg e ->
         begin match e with
-          | Const 0L -> Const 0L
           | Const c -> Const (Int64.neg c)
-          | Neg (Neg e) -> optimize e
-          | Neg (Var x) -> Neg (Var x)
+          | Neg e -> optimize e
           | _ -> optimize (Neg (optimize e))
         end
   end
