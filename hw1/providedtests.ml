@@ -14,7 +14,6 @@ let provided_tests : suite = [
   ]);
 
   Test ("Student-Provided Tests For Problem 4-4", 
-    let e4 : exp = Add(Var "b", Neg(e2)) in
     let e5 : exp = Mult(Neg(Var "b"), Neg(Var "l")) in
     let e6 : exp = Mult((Var "x"), (Var "y")) in
     let c1 : ctxt = [("b", 2L); ("l", 7L)] in [
