@@ -1051,6 +1051,8 @@ let rec optimize (e:exp) : exp =
           | (Var x, Const 0L) | (Const 0L, Var x) -> Var x
           | (Const c1, Const c2) -> Const (Int64.add c1 c2)
           | (Var x, Neg n) -> if (n = Var x) then Const 0L else Add (Var x, Neg n)
+          | (Const c1, Var x) -> Add (Const c1, Var x)
+          | (Var x, Const c1) -> Add (Var x, Const c1)
           | (Var x, Var y) -> Add (Var x, Var y)
           | _ -> optimize (Add ((optimize e1), (optimize e2)))
         end
@@ -1059,6 +1061,8 @@ let rec optimize (e:exp) : exp =
           | (Var x, Const 1L) | (Const 1L, Var x) -> Var x
           | (Var x, Const 0L) | (Const 0L, Var x) -> Const 0L
           | (Const c1, Const c2) -> Const (Int64.mul c1 c2)
+          | (Const c1, Var x) -> Mult (Const c1, Var x)
+          | (Var x, Const c1) -> Mult (Var x, Const c1)
           | (Var x, Var y) -> Mult (Var x, Var y)
           | _ -> optimize (Mult ((optimize e1), (optimize e2)))
         end
@@ -1214,7 +1218,14 @@ let ans1 = run [] p1
    - You should test the correctness of your compiler on several examples.
 *)
 let rec compile (e:exp) : program =
-  failwith "compile unimplemented"
+  begin match e with
+    | Var x -> [IPushV x]
+    | Const c -> [IPushC c]
+    | Add (e1, e2) -> List.append (List.append (compile e1) (compile e2)) [IAdd]
+    | Mult (e1, e2) -> List.append (List.append (compile e1) (compile e2)) [IMul]
+    | Neg e -> List.append (compile e) [INeg]
+  end
+  (*failwith "compile unimplemented"*)
 
 
 
