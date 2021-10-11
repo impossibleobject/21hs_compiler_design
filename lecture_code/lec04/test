@@ -1,0 +1,49 @@
+	.text
+	.globl	program
+program:
+	pushq	%rbp
+	movq	%rsp, %rbp
+	pushq	%rdi
+	pushq	%rsi
+	pushq	%rdx
+	pushq	%rcx
+	pushq	%r8 
+	pushq	%r9 
+	pushq	16(%rbp)
+	pushq	24(%rbp)
+	pushq	$341
+	popq	%rax
+	popq	%r10
+	addq	%r10, %rax
+	pushq	%rax
+	popq	%rax
+	popq	%r10
+	addq	%r10, %rax
+	pushq	%rax
+	popq	%rax
+	popq	%r10
+	addq	%r10, %rax
+	pushq	%rax
+	popq	%rax
+	popq	%r10
+	addq	%r10, %rax
+	pushq	%rax
+	popq	%rax
+	popq	%r10
+	addq	%r10, %rax
+	pushq	%rax
+	popq	%rax
+	popq	%r10
+	addq	%r10, %rax
+	pushq	%rax
+	popq	%rax
+	popq	%r10
+	addq	%r10, %rax
+	pushq	%rax
+	popq	%rax
+	popq	%r10
+	addq	%r10, %rax
+	pushq	%rax
+	popq	%rax
+	popq	%rbp
+	retq	
