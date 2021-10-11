@@ -160,18 +160,21 @@ let map_addr (addr:quad) : int option =
     (Some (Int64.to_int (Int64.sub addr mem_bot))) 
   else None
 
+(*F: unpack immediate to quad*)
 let imm_to_quad (i:imm) : quad = 
   begin match i with 
     | Lit q -> q
     | _ -> failwith "label in Imm"
   end
 
+(*F: unpack sbyte to char*)
 let sbyte_to_char (s:sbyte) : char = 
     begin match s with
       | Byte c -> c
       | _ -> failwith "sbyte is not char"
     end
 
+(*F: unpack int option from map_addr*)
 let map_addr_safe (q:quad) : int =
   let i = map_addr q in
   begin match i with
@@ -200,6 +203,24 @@ let get_addr (o:operand) (r:regs) : int =
     | _ -> failwith "get_addr should not be called with reg"
   end
 
+(*F: put byte list into mem*)
+let byte_list_into_mem (bls:sbyte list) (mem:mem) (addr:int) : unit =
+  let rec aux b m a cnt =
+    begin match cnt with
+      | 0 -> ()
+      | _ -> (Array.set m a (list.hd b))
+              aux (List.tl b) m (addr+1) (cnt-1)
+    end
+
+(*F: pattern matching for movq*)
+let movq_helper (op1:operand) (op2:operand) (r:regs) (m:mem) : unit =
+  begin match op2 with
+    | Reg reg -> (Array.set (m.regs) (rind reg) (interp_op op1 m.regs m.mem))
+    | (Imm x | Ind1 x) -> Array.set m.mem (get_addr (Imm x) m.regs) (interp_op op1 m.regs m.mem)
+    | Ind2 x -> Array.set m.mem (get_addr (Ind2 x) m.regs) (interp_op op1 m.regs m.mem)
+    | Ind3 x -> Array.set m.mem (get_addr (Ind3 x) m.regs) (interp_op op1 m.regs m.mem)
+  end
+
 (* Simulates one step of the machine:
     - fetch the instruction at %rip
     - compute the source and/or destination information from the operands
@@ -220,12 +241,6 @@ let step (m:mach) : unit =
   let op2 = List.nth ls 1 in
   begin match opcode with
     | Movq -> 
-      begin match op2 with
-        | Reg reg -> (Array.set (m.regs) (rind reg) (interp_op op1 m.regs m.mem))
-        | (Imm x | Ind1 x) -> Array.set m.mem (get_addr (Imm x) m.regs) (interp_op op1 m.regs m.mem)
-        | Ind2 x -> Array.set m.mem (get_addr (Ind2 x) m.regs) (interp_op op1 m.regs m.mem)
-        | Ind3 x -> Array.set m.mem (get_addr (Ind3 x) m.regs) (interp_op op1 m.regs m.mem)
-      end
     | _ -> failwith "not yet implemented"
   end
 
