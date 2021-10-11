@@ -38,5 +38,5 @@ ocamlfind ocamlopt -c -I util -I x86 -o studenttests.cmx studenttests.ml
 # Target: main.cmx, tags: { compile, extension:cmx, extension:ml, file:main.cmx, file:main.ml, implem, native, ocaml, quiet }
 ocamlfind ocamlopt -c -I util -I x86 -o main.cmx main.ml
 # Target: main.native, tags: { dont_link_with, extension:native, file:main.native, link, native, ocaml, program, quiet }
-ocamlfind ocamlopt unix.cmxa str.cmxa -linkpkg -I x86 -I util x86/x86.cmx simulator.cmx util/assert.cmx gradedtests.cmx studenttests.cmx main.cmx -o main.native
+ocamlfind ocamlopt unix.cmxa str.cmxa nums.cmxa -linkpkg -I x86 -I util x86/x86.cmx simulator.cmx util/assert.cmx gradedtests.cmx studenttests.cmx main.cmx -o main.native
 # Compilation successful.

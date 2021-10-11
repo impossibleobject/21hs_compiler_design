@@ -160,8 +160,25 @@ let map_addr (addr:quad) : int option =
     (Some (Int64.to_int (Int64.sub addr mem_bot))) 
   else None
 
-
-(*let interpret_op (op:operand) : (unknown_type_placeholder) = failwith "interpret_op unimplemented"*)
+(*L: Assignment 2 info -> no lbls for Instruction operands*)
+let interp_op (op:operand) (r:regs) (m:mem) : quad = 
+  let imm_to_quad i = 
+    begin match i with 
+      | Lit q -> q
+      | _ -> failwith "label in Imm"
+    end in
+  let sbyte_to_char s = 
+    begin match s with
+      | Byte c -> c
+      | _ -> failwith "sbyte is not char"
+    end in
+  begin match op with
+    | Imm i -> imm_to_quad i
+    | Reg x -> r.(rind x)
+    | Ind1 i -> imm_to_quad i
+    | Ind2 i -> Int64.of_int (Char.code (sbyte_to_char m.(Int64.to_int (r.(rind i)))))
+    | Ind3 (i1, i2) -> Int64.of_int (Char.code (sbyte_to_char m.(Int64.to_int (Int64.add r.(rind i2) (imm_to_quad i1)))))
+  end
 
 (* Simulates one step of the machine:
     - fetch the instruction at %rip
