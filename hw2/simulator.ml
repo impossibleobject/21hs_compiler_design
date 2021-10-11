@@ -160,24 +160,44 @@ let map_addr (addr:quad) : int option =
     (Some (Int64.to_int (Int64.sub addr mem_bot))) 
   else None
 
-(*L: Assignment 2 info -> no lbls for Instruction operands*)
-let interp_op (op:operand) (r:regs) (m:mem) : quad = 
-  let imm_to_quad i = 
-    begin match i with 
-      | Lit q -> q
-      | _ -> failwith "label in Imm"
-    end in
-  let sbyte_to_char s = 
+let imm_to_quad (i:imm) : quad = 
+  begin match i with 
+    | Lit q -> q
+    | _ -> failwith "label in Imm"
+  end
+
+let sbyte_to_char (s:sbyte) : char = 
     begin match s with
       | Byte c -> c
       | _ -> failwith "sbyte is not char"
-    end in
+    end
+
+let map_addr_safe (q:quad) : int =
+  let i = map_addr q in
+  begin match i with
+    | None -> failwith "not a valid address"
+    | Some i -> i
+  end
+
+
+(*L: Assignment 2 info -> no lbls for Instruction operands*)
+let interp_op (op:operand) (r:regs) (m:mem) : quad = 
   begin match op with
     | Imm i -> imm_to_quad i
     | Reg x -> r.(rind x)
     | Ind1 i -> imm_to_quad i
-    | Ind2 i -> Int64.of_int (Char.code (sbyte_to_char m.(Int64.to_int (r.(rind i)))))
-    | Ind3 (i1, i2) -> Int64.of_int (Char.code (sbyte_to_char m.(Int64.to_int (Int64.add r.(rind i2) (imm_to_quad i1)))))
+    | Ind2 i -> Int64.of_int (Char.code (sbyte_to_char m.(map_addr_safe (r.(rind i)))))
+    | Ind3 (i1, i2) -> Int64.of_int (Char.code (sbyte_to_char m.(map_addr_safe (Int64.add r.(rind i2) (imm_to_quad i1)))))
+  end
+
+(*F: Helper function to index into mem array*)
+let get_addr (o:operand) (r:regs) : int =
+  begin match o with
+    | Imm imm -> map_addr_safe (imm_to_quad imm)
+    | Ind1 imm -> map_addr_safe (imm_to_quad imm)
+    | Ind2 reg -> map_addr_safe (r.(rind reg))
+    | Ind3 (i1, i2) -> map_addr_safe (Int64.add r.(rind i2) (imm_to_quad i1))
+    | _ -> failwith "get_addr should not be called with reg"
   end
 
 (* Simulates one step of the machine:
@@ -188,7 +208,27 @@ let interp_op (op:operand) (r:regs) (m:mem) : quad =
     - set the condition flags
 *)
 let step (m:mach) : unit =
-failwith "step unimplemented"
+  let get_ins rip rarray marray =
+    let memcontent = marray.(Int64.to_int (rarray.(rind rip))) in
+    begin match memcontent with
+      | InsB0 instr -> instr
+      | _ -> failwith "not an InsB0"
+    end 
+  in
+  let opcode,ls = get_ins Rip m.regs m.mem in
+  let op1 = List.hd ls in
+  let op2 = List.nth ls 1 in
+  begin match opcode with
+    | Movq -> 
+      begin match op2 with
+        | Reg reg -> (Array.set (m.regs) (rind reg) (interp_op op1 m.regs m.mem))
+        | (Imm x | Ind1 x) -> Array.set m.mem (get_addr (Imm x) m.regs) (interp_op op1 m.regs m.mem)
+        | Ind2 x -> Array.set m.mem (get_addr (Ind2 x) m.regs) (interp_op op1 m.regs m.mem)
+        | Ind3 x -> Array.set m.mem (get_addr (Ind3 x) m.regs) (interp_op op1 m.regs m.mem)
+      end
+    | _ -> failwith "not yet implemented"
+  end
+
 
 (* Runs the machine until the rip register reaches a designated
    memory address. Returns the contents of %rax when the 
