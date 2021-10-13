@@ -167,6 +167,8 @@ let imm_to_quad (i:imm) : quad =
     | _ -> failwith "label in Imm"
   end
 
+let quad_to_imm (q:quad) : operand = Imm (Lit q)
+
 (*F: unpack sbyte to char*)
 let sbyte_to_char (s:sbyte) : char = 
   begin match s with
@@ -221,6 +223,12 @@ let movq_helper (op1:operand) (op2:operand) (r:regs) (m:mem) : unit =
     | Ind3 x -> quad_sbyte_list_into_mem (sbytes_of_int64 (interp_op op1 r m)) m (get_addr (Ind3 x) r)
   end
 
+let pushq_helper (op:operand) (r:regs) (m:mem) : unit =
+  let rsp_new_val = Int64.sub r.(rind Rsp) 8L in
+    r.(rind Rsp) <- rsp_new_val;
+    movq_helper op (quad_to_imm (r.(rind Rsp))) r m
+
+
 (* Simulates one step of the machine:
     - fetch the instruction at %rip
     - compute the source and/or destination information from the operands
@@ -236,11 +244,10 @@ let step (m:mach) : unit =
       | _ -> failwith "not an InsB0"
     end 
   in
-  let opcode,ls = get_ins Rip m.regs m.mem in
-  let op1 = List.hd ls in
-  let op2 = List.nth ls 1 in
-  begin match opcode with
-    | Movq -> movq_helper op1 op2 m.regs m.mem
+  let (opcode, ls) = get_ins Rip m.regs m.mem in
+  begin match (opcode, ls) with
+    | (Movq, [op1; op2]) -> movq_helper op1 op2 m.regs m.mem
+    | (Pushq, [op]) -> pushq_helper op m.regs m.mem
     | _ -> failwith "not yet implemented"
   end
 
