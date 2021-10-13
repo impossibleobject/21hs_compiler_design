@@ -169,10 +169,10 @@ let imm_to_quad (i:imm) : quad =
 
 (*F: unpack sbyte to char*)
 let sbyte_to_char (s:sbyte) : char = 
-    begin match s with
-      | Byte c -> c
-      | _ -> failwith "sbyte is not char"
-    end
+  begin match s with
+    | Byte c -> c
+    | _ -> failwith "sbyte is not char"
+  end
 
 (*F: unpack int option from map_addr*)
 let map_addr_safe (q:quad) : int =
@@ -204,21 +204,21 @@ let get_addr (o:operand) (r:regs) : int =
   end
 
 (*F: put byte list into mem*)
-let byte_list_into_mem (bls:sbyte list) (mem:mem) (addr:int) : unit =
-  let rec aux b m a cnt =
-    begin match cnt with
-      | 0 -> ()
-      | _ -> (Array.set m a (list.hd b))
-              aux (List.tl b) m (addr+1) (cnt-1)
-    end
+let quad_sbyte_list_into_mem (bls:sbyte list) (mem:mem) (addr:int) : unit =
+  for i = 0 to 7 do
+    mem.(addr) <- List.nth bls i
+  done
+
+let quad_into_reg (q:quad) (regs:regs) (r:reg) : unit =
+  Array.set regs (rind r) q
 
 (*F: pattern matching for movq*)
 let movq_helper (op1:operand) (op2:operand) (r:regs) (m:mem) : unit =
   begin match op2 with
-    | Reg reg -> (Array.set (m.regs) (rind reg) (interp_op op1 m.regs m.mem))
-    | (Imm x | Ind1 x) -> Array.set m.mem (get_addr (Imm x) m.regs) (interp_op op1 m.regs m.mem)
-    | Ind2 x -> Array.set m.mem (get_addr (Ind2 x) m.regs) (interp_op op1 m.regs m.mem)
-    | Ind3 x -> Array.set m.mem (get_addr (Ind3 x) m.regs) (interp_op op1 m.regs m.mem)
+    | Reg reg -> quad_into_reg (interp_op op1 r m) r reg
+    | (Imm x | Ind1 x) -> quad_sbyte_list_into_mem (sbytes_of_int64 (interp_op op1 r m)) m (get_addr (Imm x) r)
+    | Ind2 x -> quad_sbyte_list_into_mem (sbytes_of_int64 (interp_op op1 r m)) m (get_addr (Ind2 x) r)
+    | Ind3 x -> quad_sbyte_list_into_mem (sbytes_of_int64 (interp_op op1 r m)) m (get_addr (Ind3 x) r)
   end
 
 (* Simulates one step of the machine:
@@ -240,7 +240,7 @@ let step (m:mach) : unit =
   let op1 = List.hd ls in
   let op2 = List.nth ls 1 in
   begin match opcode with
-    | Movq -> 
+    | Movq -> movq_helper op1 op2 m.regs m.mem
     | _ -> failwith "not yet implemented"
   end
 
