@@ -324,23 +324,38 @@ let step (m:mach) : unit =
       | _ -> quad_sbyte_list_into_mem (sbytes_of_int64 v) mem (get_mem_idx op)
     end 
   in
-  let bin_arithm (op1:operand) (op2:operand) (func: int64 -> int64 -> int64) : unit =
-    set_mem op2 (func (get_mem op1) (get_mem op2)) in
-  let bin_arithm_shift (op1:operand) (op2:operand) (func: int64 -> int -> int64) : unit =
-    set_mem op2 (func (get_mem op2) (Int64.to_int (get_mem op1))) in
-  let un_arithm (op:operand) (func: int64 -> int64) : unit = 
-    set_mem op (func (get_mem op)) in
+  let bin_arithm_shift (op1:operand) (op2:operand) (func: int64 -> int -> int64) (variant:int): unit =
+    let shift = Int64.to_int (get_mem op1) in
+    let original = get_mem op2 in
+    let res = func original shift in
+    set_mem op2 res;
+    (*L: idea: AND it with 0b110...0 and then XOR it with that number, still wrong*)
+    let one_one_zeros : int64 = Int64.shift_right Int64.min_int 1 in
+    let first_two_bits_diff : bool = 
+      ((Int64.logxor (Int64.logand original one_one_zeros) one_one_zeros) <> 0L) in
+    if(shift <> 0) then 
+      if(res = 0L)  then flags.fz <- true;
+      if(res < 0L)  then flags.fs <- true;
+      if(shift = 1) then 
+        begin match variant with
+          | 1 -> if (first_two_bits_diff) then (flags.fo <- true;)
+                 else (flags.fo <- false;)
+          | 2 -> (flags.fo <- false;)
+          | 3 -> if (original < 0L) then (flags.fo <- true;) 
+                 else (flags.fo <- false;)
+        end
+     in
   let bin_arithm_ofv (op1:operand) (op2:operand) (func: int64 -> int64 -> Ovf.t) : unit =
     let res = func (get_mem op1) (get_mem op2) in
-    m.flags.fo <- res.overflow;
+    flags.fo <- res.overflow;
     set_mem op2 (res.value) in
   let un_arithm_ovf (op:operand) (func: int64 -> Ovf.t) : unit = 
     let res = func (get_mem op) in
-    m.flags.fo <- res.overflow;
+    flags.fo <- res.overflow;
     set_mem op (res.value) in
-   (*let log_op (op1:operand) (op2:operand) (func: int64 -> int64 -> int64) : unit =
-    flags.fo = 
-    bin_arithm op1 op2*)
+   let bin_log (op1:operand) (op2:operand) (func: int64 -> int64 -> int64) : unit =
+    flags.fo <- false;
+    set_mem op2 (func (get_mem op1) (get_mem op2)) in
   begin match (opcode, ls) with
     | (Movq, [op1; op2])  -> movq_helper op1 op2 m.regs m.mem
     | (Pushq, [op])       -> pushq_helper op m.regs m.mem
@@ -349,22 +364,24 @@ let step (m:mach) : unit =
     | (Incq, [op])        -> un_arithm_ovf op Ovf.succ
     | (Decq, [op])        -> un_arithm_ovf op Ovf.pred
     | (Negq, [op])        -> un_arithm_ovf op Ovf.neg
-    | (Notq, [op])        -> un_arithm op Int64.lognot
+    | (Notq, [op])        -> flags.fo <- false;
+                             set_mem op (Int64.lognot (get_mem op)) 
     | (Addq, [op1; op2])  -> bin_arithm_ofv op1 op2 Ovf.add
     | (Subq, [op1; op2])  -> bin_arithm_ofv op1 op2 Ovf.sub
     | (Imulq, [op1; op2]) -> bin_arithm_ofv op1 op2 Ovf.mul
-    | (Xorq, [op1; op2])  -> bin_arithm op1 op2 Int64.logxor
-    | (Orq, [op1; op2])   -> bin_arithm op1 op2 Int64.logor
-    | (Andq, [op1; op2])  -> bin_arithm op1 op2 Int64.logand
-    | (Shlq, [op1; op2])  -> bin_arithm_shift op1 op2 Int64.shift_left
-    | (Sarq, [op1; op2])  -> bin_arithm_shift op1 op2 Int64.shift_right
-    | (Shrq, [op1; op2])  -> bin_arithm_shift op1 op2 Int64.shift_right_logical
+    | (Xorq, [op1; op2])  -> bin_log op1 op2 Int64.logxor
+    | (Orq, [op1; op2])   -> bin_log op1 op2 Int64.logor
+    | (Andq, [op1; op2])  -> bin_log op1 op2 Int64.logand
+    | (Shlq, [op1; op2])  -> bin_arithm_shift op1 op2 Int64.shift_left 1
+    | (Sarq, [op1; op2])  -> bin_arithm_shift op1 op2 Int64.shift_right 2
+    | (Shrq, [op1; op2])  -> bin_arithm_shift op1 op2 Int64.shift_right_logical 3
     | (Jmp, [op])         -> jmp_helper op m.regs m.mem
+    | (J cc, [op])        -> jcc_helper cc op m.regs m.mem m.flags
+    | (Cmpq, [op1;op2])    -> failwith "Cmpq not yet implemented"
+    | (Set cc, [op])      -> setb_helper cc op m.regs m.mem m.flags
     | (Callq, [op])       -> callq_helper op m.regs m.mem
     | (Retq, [])          -> retq_helper m.regs m.mem
-    | (J cc, [op])        -> jcc_helper cc op m.regs m.mem m.flags
-    | (Set cc, [op])      -> setb_helper cc op m.regs m.mem m.flags
-    | _ -> failwith "not yet implemented"
+    | _ -> failwith "not a proper opcode"
   end
 
 
