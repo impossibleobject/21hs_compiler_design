@@ -8,7 +8,7 @@
 open X86
 
 (*L: aliases for easier usage of modules*)
-(*module Ovf = Int64_overflow*)
+module Ovf = Int64_overflow
 
 (* simulator machine state -------------------------------------------------- *)
 
@@ -324,19 +324,40 @@ let step (m:mach) : unit =
       | _ -> quad_sbyte_list_into_mem (sbytes_of_int64 v) mem (get_mem_idx op)
     end 
   in
+  let bin_arithm (op1:operand) (op2:operand) (func: int64 -> int64 -> int64) : unit =
+    set_mem op2 (func (get_mem op1) (get_mem op2)) in
+  let bin_arithm_shift (op1:operand) (op2:operand) (func: int64 -> int -> int64) : unit =
+    set_mem op2 (func (get_mem op2) (Int64.to_int (get_mem op1))) in
+  let un_arithm (op:operand) (func: int64 -> int64) : unit = 
+    set_mem op (func (get_mem op)) in
   begin match (opcode, ls) with
-    | (Movq, [op1; op2]) -> movq_helper op1 op2 m.regs m.mem
-    | (Pushq, [op]) -> pushq_helper op m.regs m.mem
-    | (Popq, [op]) -> popq_helper op m.regs m.mem
-    | (Leaq, [ind; op2]) -> leaq_helper ind op2 m.regs m.mem
-    (*| (Addq [op1; op2]) -> *)
-    | (Jmp, [op]) -> jmp_helper op m.regs m.mem
-    | (Callq, [op]) -> callq_helper op m.regs m.mem
-    | (Retq, []) -> retq_helper m.regs m.mem
-    | (J cc, [op]) -> jcc_helper cc op m.regs m.mem m.flags
-    | (Set cc, [op]) -> setb_helper cc op m.regs m.mem m.flags
+    | (Movq, [op1; op2])  -> movq_helper op1 op2 m.regs m.mem
+    | (Pushq, [op])       -> pushq_helper op m.regs m.mem
+    | (Popq, [op])        -> popq_helper op m.regs m.mem
+    | (Leaq, [ind; op2])  -> leaq_helper ind op2 m.regs m.mem
+    | (Incq, [op])        -> un_arithm op Int64.succ
+    | (Decq, [op])        -> un_arithm op Int64.pred
+    | (Negq, [op])        -> un_arithm op Int64.neg
+    | (Notq, [op])        -> un_arithm op Int64.lognot
+    | (Addq, [op1; op2])  -> bin_arithm op1 op2 Int64.add
+    | (Subq, [op1; op2])  -> bin_arithm op1 op2 Int64.sub
+    | (Imulq, [op1; op2]) -> bin_arithm op1 op2 Int64.mul
+    | (Xorq, [op1; op2])  -> bin_arithm op1 op2 Int64.logxor
+    | (Orq, [op1; op2])   -> bin_arithm op1 op2 Int64.logor
+    | (Andq, [op1; op2])  -> bin_arithm op1 op2 Int64.logand
+    | (Shlq, [op1; op2])  -> bin_arithm_shift op1 op2 Int64.shift_left
+    | (Sarq, [op1; op2])  -> bin_arithm_shift op1 op2 Int64.shift_right
+    | (Shrq, [op1; op2])  -> bin_arithm_shift op1 op2 Int64.shift_right_logical
+    | (Jmp, [op])         -> jmp_helper op m.regs m.mem
+    | (Callq, [op])       -> callq_helper op m.regs m.mem
+    | (Retq, [])          -> retq_helper m.regs m.mem
+    | (J cc, [op])        -> jcc_helper cc op m.regs m.mem m.flags
+    | (Set cc, [op])      -> setb_helper cc op m.regs m.mem m.flags
     | _ -> failwith "not yet implemented"
   end
+
+
+  
 
 
 (* Runs the machine until the rip register reaches a designated
