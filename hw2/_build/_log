@@ -14,15 +14,22 @@ ocamlfind ocamldep -modules x86/x86.ml > x86/x86.ml.depends
 # Target: x86/x86.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:x86/x86.cmo, file:x86/x86.ml, implem, ocaml, quiet }
 ocamlfind ocamlc -c -I x86 -I util -o x86/x86.cmo x86/x86.ml
 # Target: simulator.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:simulator.cmo, file:simulator.ml, implem, ocaml, quiet }
-ocamlfind ocamlc -c -I util -I x86 -o simulator.cmo simulator.ml
+ocamlfind ocamlc -c -I x86 -I util -o simulator.cmo simulator.ml
++ ocamlfind ocamlc -c -I x86 -I util -o simulator.cmo simulator.ml
+File "simulator.ml", line 291, characters 6-11:
+Warning 26: unused variable flags.
+File "simulator.ml", line 313, characters 6-13:
+Warning 26: unused variable get_mem.
+File "simulator.ml", line 320, characters 6-13:
+Warning 26: unused variable set_mem.
 # Target: studenttests.ml.depends, tags: { extension:ml, file:studenttests.ml, ocaml, ocamldep, quiet }
 ocamlfind ocamldep -modules studenttests.ml > studenttests.ml.depends
 # Target: gradedtests.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:gradedtests.cmo, file:gradedtests.ml, implem, ocaml, quiet }
-ocamlfind ocamlc -c -I util -I x86 -o gradedtests.cmo gradedtests.ml
+ocamlfind ocamlc -c -I x86 -I util -o gradedtests.cmo gradedtests.ml
 # Target: studenttests.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:studenttests.cmo, file:studenttests.ml, implem, ocaml, quiet }
-ocamlfind ocamlc -c -I util -I x86 -o studenttests.cmo studenttests.ml
+ocamlfind ocamlc -c -I x86 -I util -o studenttests.cmo studenttests.ml
 # Target: main.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:main.cmo, file:main.ml, implem, ocaml, quiet }
-ocamlfind ocamlc -c -I util -I x86 -o main.cmo main.ml
+ocamlfind ocamlc -c -I x86 -I util -o main.cmo main.ml
 # Target: util/assert.ml.depends, tags: { extension:ml, file:util/assert.ml, ocaml, ocamldep, quiet }
 ocamlfind ocamldep -modules util/assert.ml > util/assert.ml.depends
 # Target: util/assert.cmx, tags: { compile, extension:cmx, extension:ml, file:util/assert.cmx, file:util/assert.ml, implem, native, ocaml, quiet }
@@ -30,13 +37,20 @@ ocamlfind ocamlopt -c -I util -I x86 -o util/assert.cmx util/assert.ml
 # Target: x86/x86.cmx, tags: { compile, extension:cmx, extension:ml, file:x86/x86.cmx, file:x86/x86.ml, implem, native, ocaml, quiet }
 ocamlfind ocamlopt -c -I x86 -I util -o x86/x86.cmx x86/x86.ml
 # Target: simulator.cmx, tags: { compile, extension:cmx, extension:ml, file:simulator.cmx, file:simulator.ml, implem, native, ocaml, quiet }
-ocamlfind ocamlopt -c -I util -I x86 -o simulator.cmx simulator.ml
+ocamlfind ocamlopt -c -I x86 -I util -o simulator.cmx simulator.ml
++ ocamlfind ocamlopt -c -I x86 -I util -o simulator.cmx simulator.ml
+File "simulator.ml", line 291, characters 6-11:
+Warning 26: unused variable flags.
+File "simulator.ml", line 313, characters 6-13:
+Warning 26: unused variable get_mem.
+File "simulator.ml", line 320, characters 6-13:
+Warning 26: unused variable set_mem.
 # Target: gradedtests.cmx, tags: { compile, extension:cmx, extension:ml, file:gradedtests.cmx, file:gradedtests.ml, implem, native, ocaml, quiet }
-ocamlfind ocamlopt -c -I util -I x86 -o gradedtests.cmx gradedtests.ml
+ocamlfind ocamlopt -c -I x86 -I util -o gradedtests.cmx gradedtests.ml
 # Target: studenttests.cmx, tags: { compile, extension:cmx, extension:ml, file:studenttests.cmx, file:studenttests.ml, implem, native, ocaml, quiet }
-ocamlfind ocamlopt -c -I util -I x86 -o studenttests.cmx studenttests.ml
+ocamlfind ocamlopt -c -I x86 -I util -o studenttests.cmx studenttests.ml
 # Target: main.cmx, tags: { compile, extension:cmx, extension:ml, file:main.cmx, file:main.ml, implem, native, ocaml, quiet }
-ocamlfind ocamlopt -c -I util -I x86 -o main.cmx main.ml
+ocamlfind ocamlopt -c -I x86 -I util -o main.cmx main.ml
 # Target: main.native, tags: { dont_link_with, extension:native, file:main.native, link, native, ocaml, program, quiet }
 ocamlfind ocamlopt unix.cmxa str.cmxa nums.cmxa -linkpkg -I x86 -I util x86/x86.cmx simulator.cmx util/assert.cmx gradedtests.cmx studenttests.cmx main.cmx -o main.native
 # Compilation successful.

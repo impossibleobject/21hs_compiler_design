@@ -7,6 +7,9 @@
 
 open X86
 
+(*L: aliases for easier usage of modules*)
+(*module Ovf = Int64_overflow*)
+
 (* simulator machine state -------------------------------------------------- *)
 
 let mem_bot = 0x400000L          (* lowest valid address *)
@@ -160,25 +163,122 @@ let map_addr (addr:quad) : int option =
     (Some (Int64.to_int (Int64.sub addr mem_bot))) 
   else None
 
+(*F: unpack immediate to quad*)
+let imm_to_quad (i:imm) : quad = 
+  begin match i with 
+    | Lit q -> q
+    | _ -> failwith "label in Imm"
+  end
+
+(*F: wrap quad in immediate*)
+let quad_to_imm (q:quad) : operand = Imm (Lit q)
+
+(*F: unpack sbyte to char*)
+let sbyte_to_char (s:sbyte) : char = 
+  begin match s with
+    | Byte c -> c
+    | _ -> failwith "sbyte is not char"
+  end
+
+(*F: unpack int option from map_addr*)
+let map_addr_safe (q:quad) : int =
+  let i = map_addr q in
+  begin match i with
+    | None -> failwith "not a valid address"
+    | Some i -> i
+  end
+
 (*L: Assignment 2 info -> no lbls for Instruction operands*)
 let interp_op (op:operand) (r:regs) (m:mem) : quad = 
-  let imm_to_quad i = 
-    begin match i with 
-      | Lit q -> q
-      | _ -> failwith "label in Imm"
-    end in
-  let sbyte_to_char s = 
-    begin match s with
-      | Byte c -> c
-      | _ -> failwith "sbyte is not char"
-    end in
   begin match op with
     | Imm i -> imm_to_quad i
     | Reg x -> r.(rind x)
     | Ind1 i -> imm_to_quad i
-    | Ind2 i -> Int64.of_int (Char.code (sbyte_to_char m.(Int64.to_int (r.(rind i)))))
-    | Ind3 (i1, i2) -> Int64.of_int (Char.code (sbyte_to_char m.(Int64.to_int (Int64.add r.(rind i2) (imm_to_quad i1)))))
+    | Ind2 i -> Int64.of_int (Char.code (sbyte_to_char m.(map_addr_safe (r.(rind i)))))
+    | Ind3 (i1, i2) -> Int64.of_int (Char.code (sbyte_to_char m.(map_addr_safe (Int64.add r.(rind i2) (imm_to_quad i1)))))
   end
+
+(*F: Helper function to index into mem array*)
+let get_addr (o:operand) (r:regs) : int =
+  begin match o with
+    | Imm imm -> map_addr_safe (imm_to_quad imm)
+    | Ind1 imm -> map_addr_safe (imm_to_quad imm)
+    | Ind2 reg -> map_addr_safe (r.(rind reg))
+    | Ind3 (i1, i2) -> map_addr_safe (Int64.add r.(rind i2) (imm_to_quad i1))
+    | _ -> failwith "get_addr should not be called with reg"
+  end
+
+(*F: put byte list into mem*)
+let quad_sbyte_list_into_mem (bls:sbyte list) (mem:mem) (addr:int) : unit =
+  for i = 0 to 7 do
+    mem.(addr) <- List.nth bls i
+  done
+
+(*F: put quad into regs*)
+let quad_into_reg (q:quad) (regs:regs) (r:reg) : unit =
+  Array.set regs (rind r) q
+
+(*F: pattern matching for movq*)
+let movq_helper (op1:operand) (op2:operand) (r:regs) (m:mem) : unit =
+  begin match op2 with
+    | Reg reg -> quad_into_reg (interp_op op1 r m) r reg
+    | (Imm x | Ind1 x) -> quad_sbyte_list_into_mem (sbytes_of_int64 (interp_op op1 r m)) m (get_addr (Imm x) r)
+    | Ind2 x -> quad_sbyte_list_into_mem (sbytes_of_int64 (interp_op op1 r m)) m (get_addr (Ind2 x) r)
+    | Ind3 x -> quad_sbyte_list_into_mem (sbytes_of_int64 (interp_op op1 r m)) m (get_addr (Ind3 x) r)
+  end
+
+(*F: helper function for pushq*)
+let pushq_helper (op:operand) (r:regs) (m:mem) : unit =
+  let rsp_new_val = Int64.sub r.(rind Rsp) 8L in
+  r.(rind Rsp) <- rsp_new_val;
+  movq_helper op (quad_to_imm (r.(rind Rsp))) r m
+
+(*F: helper function for popq*)
+let popq_helper (op:operand) (r:regs) (m:mem) : unit =
+  let rsp_old_val = r.(rind Rsp) in
+  let rsp_new_val = Int64.add rsp_old_val 8L in
+  movq_helper (quad_to_imm (r.(rind Rsp))) op r m;
+  r.(rind Rsp) <- rsp_new_val
+
+(*F: helper function for leaq*)
+let leaq_helper (ind:operand) (op2:operand) (r:regs) (m:mem) : unit =
+  begin match ind with
+    | Imm i -> failwith "leaq called with non-indirect operand type!"
+    | Reg i -> failwith "leaq called with non-indirect operand type!"
+    | _ -> let effective_addr = get_addr ind r in
+        movq_helper (quad_to_imm (Int64.of_int effective_addr)) op2 r m
+  end
+
+(*F: helper function for jmp*)
+let jmp_helper (op:operand) (r:regs) (m:mem) : unit = 
+  movq_helper op (Reg Rip) r m
+
+(*F: helper function for callq*)
+let callq_helper (op:operand) (r:regs) (m:mem) : unit =
+  pushq_helper (Reg Rip) r m;
+  movq_helper op (Reg Rip) r m 
+
+(*F: helper function for retq*)
+let retq_helper (r:regs) (m:mem) : unit =
+  popq_helper (Reg Rip) r m
+
+(*F: helper function for jcc*)
+let jcc_helper (cc:cnd) (op:operand) (r:regs) (m:mem) (f:flags) : unit =
+  let fallthru_rip = quad_to_imm (Int64.add r.(rind Rip) 8L) in
+  if interp_cnd f cc 
+    then movq_helper op (Reg Rip) r m 
+    else movq_helper fallthru_rip (Reg Rip) r m 
+
+(*F: helper function for setb 
+  -> assumes 'lower byte of dest' means the byte with the smallest addr in mem (out of the 8), 
+  so the byte the op is pointing to already*)
+let setb_helper (cc:cnd) (op:operand) (r:regs) (m:mem) (f:flags) : unit =
+  let addr = get_addr op r in
+  let char0 = Char.chr 0 in
+  let char1 = Char.chr 1 in
+  if interp_cnd f cc 
+    then m.(addr) <- (Byte char1)
+    else m.(addr) <- (Byte char0)
 
 (* Simulates one step of the machine:
     - fetch the instruction at %rip
@@ -188,7 +288,56 @@ let interp_op (op:operand) (r:regs) (m:mem) : quad =
     - set the condition flags
 *)
 let step (m:mach) : unit =
-failwith "step unimplemented"
+  let flags = m.flags in
+  let regs = m.regs in
+  let mem = m.mem in
+    let get_ins rip rarray marray =
+    let memcontent = marray.(Int64.to_int (rarray.(rind rip))) in
+    begin match memcontent with
+      | InsB0 instr -> instr
+      | _ -> failwith "not an InsB0"
+    end in
+  let (opcode, ls) = get_ins Rip m.regs m.mem in
+  let get_mem_idx (op:operand) : int = 
+    let idx = 
+      begin match op with
+        | Ind1 i      -> imm_to_quad i
+        | Ind2 r      -> regs.(rind r)
+        | Ind3 (i, r) -> (Int64.add (imm_to_quad i) regs.(rind r))
+        | _ -> failwith "can't idx reg or imm"
+      end
+    in Int64.to_int idx
+  in 
+  let get_mem_from_idx (idx:int) : int64 = 
+      int64_of_sbytes (Array.to_list (Array.sub mem idx 8)) in
+  let get_mem (op:operand) : int64 = 
+    begin match op with
+      | Imm i       -> imm_to_quad i
+      | Reg r       -> regs.(rind r)
+      | _ -> get_mem_from_idx (get_mem_idx op)
+    end
+  in
+  let set_mem (op:operand) (v:quad) : unit = 
+    begin match op with
+      | Imm i -> failwith "can't set an Immediate"
+      | Reg r -> Array.set regs (rind r) v
+      | _ -> quad_sbyte_list_into_mem (sbytes_of_int64 v) mem (get_mem_idx op)
+    end 
+  in
+  begin match (opcode, ls) with
+    | (Movq, [op1; op2]) -> movq_helper op1 op2 m.regs m.mem
+    | (Pushq, [op]) -> pushq_helper op m.regs m.mem
+    | (Popq, [op]) -> popq_helper op m.regs m.mem
+    | (Leaq, [ind; op2]) -> leaq_helper ind op2 m.regs m.mem
+    (*| (Addq [op1; op2]) -> *)
+    | (Jmp, [op]) -> jmp_helper op m.regs m.mem
+    | (Callq, [op]) -> callq_helper op m.regs m.mem
+    | (Retq, []) -> retq_helper m.regs m.mem
+    | (J cc, [op]) -> jcc_helper cc op m.regs m.mem m.flags
+    | (Set cc, [op]) -> setb_helper cc op m.regs m.mem m.flags
+    | _ -> failwith "not yet implemented"
+  end
+
 
 (* Runs the machine until the rip register reaches a designated
    memory address. Returns the contents of %rax when the 

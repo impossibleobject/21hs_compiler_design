@@ -7,6 +7,9 @@
 
 open X86
 
+(*L: aliases for easier usage of modules*)
+(*module Ovf = Int64_overflow*)
+
 (* simulator machine state -------------------------------------------------- *)
 
 let mem_bot = 0x400000L          (* lowest valid address *)
@@ -285,19 +288,48 @@ let setb_helper (cc:cnd) (op:operand) (r:regs) (m:mem) (f:flags) : unit =
     - set the condition flags
 *)
 let step (m:mach) : unit =
-  let get_ins rip rarray marray =
+  let flags = m.flags in
+  let regs = m.regs in
+  let mem = m.mem in
+    let get_ins rip rarray marray =
     let memcontent = marray.(Int64.to_int (rarray.(rind rip))) in
     begin match memcontent with
       | InsB0 instr -> instr
       | _ -> failwith "not an InsB0"
+    end in
+  let (opcode, ls) = get_ins Rip m.regs m.mem in
+  let get_mem_idx (op:operand) : int = 
+    let idx = 
+      begin match op with
+        | Ind1 i      -> imm_to_quad i
+        | Ind2 r      -> regs.(rind r)
+        | Ind3 (i, r) -> (Int64.add (imm_to_quad i) regs.(rind r))
+        | _ -> failwith "can't idx reg or imm"
+      end
+    in Int64.to_int idx
+  in 
+  let get_mem_from_idx (idx:int) : int64 = 
+      int64_of_sbytes (Array.to_list (Array.sub mem idx 8)) in
+  let get_mem (op:operand) : int64 = 
+    begin match op with
+      | Imm i       -> imm_to_quad i
+      | Reg r       -> regs.(rind r)
+      | _ -> get_mem_from_idx (get_mem_idx op)
+    end
+  in
+  let set_mem (op:operand) (v:quad) : unit = 
+    begin match op with
+      | Imm i -> failwith "can't set an Immediate"
+      | Reg r -> Array.set regs (rind r) v
+      | _ -> quad_sbyte_list_into_mem (sbytes_of_int64 v) mem (get_mem_idx op)
     end 
   in
-  let (opcode, ls) = get_ins Rip m.regs m.mem in
   begin match (opcode, ls) with
     | (Movq, [op1; op2]) -> movq_helper op1 op2 m.regs m.mem
     | (Pushq, [op]) -> pushq_helper op m.regs m.mem
     | (Popq, [op]) -> popq_helper op m.regs m.mem
     | (Leaq, [ind; op2]) -> leaq_helper ind op2 m.regs m.mem
+    (*| (Addq [op1; op2]) -> *)
     | (Jmp, [op]) -> jmp_helper op m.regs m.mem
     | (Callq, [op]) -> callq_helper op m.regs m.mem
     | (Retq, []) -> retq_helper m.regs m.mem
