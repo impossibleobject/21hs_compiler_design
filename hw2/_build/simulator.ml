@@ -345,10 +345,11 @@ let step (m:mach) : unit =
                  else (flags.fo <- false;)
         end
      in
-  let bin_arithm_ofv (op1:operand) (op2:operand) (func: int64 -> int64 -> Ovf.t) : unit =
+  let bin_arithm_ofv (op1:operand) (op2:operand) (func: int64 -> int64 -> Ovf.t) (written_to_mem:bool) : unit =
     let res = func (get_mem op1) (get_mem op2) in
     flags.fo <- res.overflow;
-    set_mem op2 (res.value) in
+    if(written_to_mem) then set_mem op2 (res.value)
+  in
   let un_arithm_ovf (op:operand) (func: int64 -> Ovf.t) : unit = 
     let res = func (get_mem op) in
     flags.fo <- res.overflow;
@@ -366,9 +367,9 @@ let step (m:mach) : unit =
     | (Negq, [op])        -> un_arithm_ovf op Ovf.neg
     | (Notq, [op])        -> flags.fo <- false;
                              set_mem op (Int64.lognot (get_mem op)) 
-    | (Addq, [op1; op2])  -> bin_arithm_ofv op1 op2 Ovf.add
-    | (Subq, [op1; op2])  -> bin_arithm_ofv op1 op2 Ovf.sub
-    | (Imulq, [op1; op2]) -> bin_arithm_ofv op1 op2 Ovf.mul
+    | (Addq, [op1; op2])  -> bin_arithm_ofv op1 op2 Ovf.add true
+    | (Subq, [op1; op2])  -> bin_arithm_ofv op1 op2 Ovf.sub true
+    | (Imulq, [op1; op2]) -> bin_arithm_ofv op1 op2 Ovf.mul true
     | (Xorq, [op1; op2])  -> bin_log op1 op2 Int64.logxor
     | (Orq, [op1; op2])   -> bin_log op1 op2 Int64.logor
     | (Andq, [op1; op2])  -> bin_log op1 op2 Int64.logand
@@ -377,7 +378,7 @@ let step (m:mach) : unit =
     | (Shrq, [op1; op2])  -> bin_arithm_shift op1 op2 Int64.shift_right_logical 3
     | (Jmp, [op])         -> jmp_helper op m.regs m.mem
     | (J cc, [op])        -> jcc_helper cc op m.regs m.mem m.flags
-    | (Cmpq, [op1;op2])    -> failwith "Cmpq not yet implemented"
+    | (Cmpq, [op1;op2])   -> bin_arithm_ofv op1 op2 Ovf.sub false
     | (Set cc, [op])      -> setb_helper cc op m.regs m.mem m.flags
     | (Callq, [op])       -> callq_helper op m.regs m.mem
     | (Retq, [])          -> retq_helper m.regs m.mem
