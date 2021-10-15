@@ -297,7 +297,7 @@ let step (m:mach) : unit =
       | InsB0 instr -> instr
       | _ -> failwith "not an InsB0"
     end in
-  let (opcode, ls) = get_ins Rip m.regs m.mem in
+  let (opcode, ls) = get_ins Rip regs mem in
   let get_mem_idx (op:operand) : int = 
     let idx = 
       begin match op with
@@ -327,11 +327,11 @@ let step (m:mach) : unit =
   let set_sz_flags (res:int64) : unit = 
     if(res = 0L) then (flags.fz <- true;) else (flags.fz <- false);
     if(res < 0L) then (flags.fs <- true;) else (flags.fs <- false) in
-  let bin_arithm_shift (op1:operand) (op2:operand) (func: int64 -> int -> int64) (variant:int): unit =
-    let shift = Int64.to_int (get_mem op1) in
-    let original = get_mem op2 in
+  let bin_arithm_shift (src:operand) (dst:operand) (func: int64 -> int -> int64) (variant:int): unit =
+    let shift = Int64.to_int (get_mem src) in
+    let original = get_mem dst in
     let res = func original shift in
-    set_mem op2 res;
+    set_mem dst res;
     (*L: idea: AND it with 0b110...0 and then XOR it with that number, still wrong*)
     let one_one_zeros : int64 = Int64.shift_right Int64.min_int 1 in
     let first_two_bits_diff : bool = 
@@ -360,14 +360,14 @@ let step (m:mach) : unit =
     set_sz_flags res.value;
     flags.fo <- res.overflow;
     set_mem op (res.value) in
-   let bin_log (op1:operand) (op2:operand) (func: int64 -> int64 -> int64) : unit =
+   let bin_log (src:operand) (dst:operand) (func: int64 -> int64 -> int64) : unit =
     flags.fo <- false;
-    set_mem op2 (func (get_mem op1) (get_mem op2)) in
+    set_mem dst (func (get_mem src) (get_mem dst)) in
   begin match (opcode, ls) with
-    | (Movq, [op1; op2])  -> movq_helper op1 op2 m.regs m.mem
-    | (Pushq, [op])       -> pushq_helper op m.regs m.mem
-    | (Popq, [op])        -> popq_helper op m.regs m.mem
-    | (Leaq, [ind; op2])  -> leaq_helper ind op2 m.regs m.mem
+    | (Movq, [op1; op2])  -> movq_helper op1 op2 regs mem
+    | (Pushq, [op])       -> pushq_helper op regs mem
+    | (Popq, [op])        -> popq_helper op regs mem
+    | (Leaq, [ind; op2])  -> leaq_helper ind op2 regs mem
     | (Incq, [op])        -> un_arithm_ovf op Ovf.succ
     | (Decq, [op])        -> un_arithm_ovf op Ovf.pred
     | (Negq, [op])        -> un_arithm_ovf op Ovf.neg
@@ -382,12 +382,12 @@ let step (m:mach) : unit =
     | (Shlq, [op1; op2])  -> bin_arithm_shift op1 op2 Int64.shift_left 1
     | (Sarq, [op1; op2])  -> bin_arithm_shift op1 op2 Int64.shift_right 2
     | (Shrq, [op1; op2])  -> bin_arithm_shift op1 op2 Int64.shift_right_logical 3
-    | (Jmp, [op])         -> jmp_helper op m.regs m.mem
-    | (J cc, [op])        -> jcc_helper cc op m.regs m.mem m.flags
+    | (Jmp, [op])         -> jmp_helper op regs mem
+    | (J cc, [op])        -> jcc_helper cc op regs mem m.flags
     | (Cmpq, [op1;op2])   -> bin_arithm_ofv op1 op2 Ovf.sub false
-    | (Set cc, [op])      -> setb_helper cc op m.regs m.mem m.flags
-    | (Callq, [op])       -> callq_helper op m.regs m.mem
-    | (Retq, [])          -> retq_helper m.regs m.mem
+    | (Set cc, [op])      -> setb_helper cc op regs mem m.flags
+    | (Callq, [op])       -> callq_helper op regs mem
+    | (Retq, [])          -> retq_helper regs mem
     | _ -> failwith "not a proper opcode"
   end
 
