@@ -325,8 +325,8 @@ let step (m:mach) : unit =
     end 
   in
   let set_sz_flags (res:int64) : unit = 
-    if(res = 0L) then flags.fz <- true;
-    if(res < 0L) then flags.fs <- true in
+    if(res = 0L) then (flags.fz <- true;) else (flags.fz <- false);
+    if(res < 0L) then (flags.fs <- true;) else (flags.fs <- false) in
   let bin_arithm_shift (op1:operand) (op2:operand) (func: int64 -> int -> int64) (variant:int): unit =
     let shift = Int64.to_int (get_mem op1) in
     let original = get_mem op2 in
