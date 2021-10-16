@@ -91,6 +91,7 @@ let rind : reg -> int = function
   | R08 -> 8  | R09 -> 9  | R10 -> 10 | R11 -> 11
   | R12 -> 12 | R13 -> 13 | R14 -> 14 | R15 -> 15
 
+
 (* Helper functions for reading/writing sbytes *)
 
 (* Convert an int64 to its sbyte representation *)
@@ -143,7 +144,7 @@ let sbytes_of_data : data -> sbyte list = function
      [if !debug_simulator then print_endline @@ string_of_ins u; ...]
 
 *)
-let debug_simulator = ref false
+let debug_simulator = ref true
 
 (* Interpret a condition code with respect to the given flags. *)
 let interp_cnd {fo; fs; fz} : cnd -> bool = fun x -> 
@@ -184,7 +185,7 @@ let sbyte_to_char (s:sbyte) : char =
 let map_addr_safe (q:quad) : int =
   let i = map_addr q in
   begin match i with
-    | None -> failwith "not a valid address"
+    | None -> raise X86lite_segfault
     | Some i -> i
   end
 
@@ -415,8 +416,133 @@ exception Redefined_sym of lbl
 
   HINT: List.fold_left and List.fold_right are your friends.
  *)
+
+type lbl_offsets = {
+  lbl:lbl;
+  start:int;
+  finish:int;
+}
+
+let offset_addition (tupls: lbl_offsets list) : lbl_offsets list =
+  let tupls_len = List.length tupls in
+  if (tupls_len == 0 || tupls_len == 1) 
+    then tupls 
+  else 
+    let new_tupls = ref ((List.hd tupls)::[]) in
+    for i=1 to (tupls_len-1) do
+      let curr = List.nth tupls i in
+      let pred = List.nth tupls (i-1) in
+      new_tupls := (!new_tupls) @ [{lbl = curr.lbl; start = curr.start + pred.finish; finish = curr.finish + pred.finish}]
+    done;
+    !new_tupls
+
+let length_asm (asm:asm) : int = 
+  begin match asm with
+    | Text ls -> List.length ls
+    | Data ls -> List.length ls
+  end
+
+let get_lbl_and_offsets (e:elem) : lbl_offsets = {lbl = e.lbl; start = 0; finish = length_asm e.asm} (*error*)
+
+let filter_text_seg (e:elem) : bool =
+  let list = e.asm in
+  begin match list with
+    | Text instr -> true
+    | _ -> false
+  end
+
+let symbol_table_constr (tupls:lbl_offsets list) : (lbl * int64) list =
+  let symbol_table = ref [] in
+  for i=0 to ((List.length tupls)-1) do
+    let curr = List.nth tupls i in
+    if(List.exists (fun (x, _) -> (x = curr.lbl)) !symbol_table) then raise (Redefined_sym curr.lbl)
+    else symbol_table := !symbol_table @ [(curr.lbl, Int64.add (Int64.of_int curr.start) mem_bot)]
+  done;
+  !symbol_table
+    
+
+
+
+let get_asm_text (asm:asm) : (ins list) =
+  begin match asm with
+    | Text il -> il
+    | _ -> failwith "wanted instr list got data list"
+  end
+
+let get_asm_data (asm:asm) : (data list) =
+  begin match asm with
+    | Data dl -> dl
+    | _ -> failwith "wanted data list got instr list"
+  end
+
+
+let map_symbol (symtab:(lbl*int64)list) (lbl:lbl) : int64 =
+  try
+    let (a,addr) = List.find (fun (x,_) -> x=lbl) symtab in
+    addr
+  with
+    | Not_found -> raise (Undefined_sym lbl)
+
+let transl_imm (i:imm) (st:(lbl * int64) list): imm  =
+  begin match i with
+    | Lit q -> i
+    | Lbl l -> (Lit (map_symbol st l))
+  end
+
+let clean_instr (st:(lbl * int64) list) (ins:ins) : ins = 
+  let clean_op (op:operand) : operand =
+    begin match op with
+      | Imm i -> Imm (transl_imm i st)
+      | Ind1 i -> Ind1 (transl_imm i st)
+      | Ind3 (i,r) -> Ind3 ((transl_imm i st), r)
+      | _ -> op
+    end
+  in
+  let opcode, operand_ls = ins in
+  begin match operand_ls with
+    | [] -> opcode, operand_ls
+    | ls -> opcode, (List.map clean_op ls) 
+  end
+
+let unpack_insl_from_elem (p:prog) (st:(lbl * int64) list): ins list = 
+  let tmp = List.map (fun e -> e.asm) p in 
+  let unclean = List.concat (List.map get_asm_text tmp) in
+  List.map (clean_instr st) unclean
+
+let clean_data (st:(lbl * int64) list) (d:data) : data = 
+  begin match d with
+    | Quad i -> Quad (transl_imm i st)
+    | Asciz s -> d
+  end
+
+let unpack_datal_from_elem (p:prog) (st:(lbl * int64) list): data list = 
+  let tmp = List.map (fun e -> e.asm) p in 
+  let unclean = List.concat (List.map get_asm_data tmp) in
+  List.map (clean_data st) unclean 
+
+
+
 let assemble (p:prog) : exec =
-failwith "assemble unimplemented"
+  let (prog_only_text, prog_only_data) = List.partition filter_text_seg p in
+  let text_lbl_offset_ls = (offset_addition (List.map get_lbl_and_offsets prog_only_text)) in
+  let data_lbl_offset_ls = (offset_addition (List.map get_lbl_and_offsets prog_only_data)) in
+  let lbl_offset_ls = (List.append text_lbl_offset_ls data_lbl_offset_ls) in
+  let symbol_table = symbol_table_constr lbl_offset_ls in
+  let text_seg_size = Int64.of_int ((List.hd (List.rev text_lbl_offset_ls)).finish * 8) in
+  let text_seg = List.concat (List.map sbytes_of_ins (unpack_insl_from_elem prog_only_text symbol_table)) in
+  let data_seg = List.concat (List.map sbytes_of_data (unpack_datal_from_elem prog_only_data symbol_table)) in
+  let entry = map_symbol symbol_table "main" in
+  if(!debug_simulator) then
+    print_string((String.concat "\n" (List.map string_of_ins (unpack_insl_from_elem prog_only_text symbol_table))));
+    print_string("\n new program starts here \n");
+  {
+    entry = entry;
+    text_pos = mem_bot;
+    data_pos = Int64.add mem_bot text_seg_size;
+    text_seg = text_seg;
+    data_seg = data_seg;
+  }
+
 
 (* Convert an object file into an executable machine state. 
     - allocate the mem array
@@ -432,4 +558,18 @@ failwith "assemble unimplemented"
   may be of use.
 *)
 let load {entry; text_pos; data_pos; text_seg; data_seg} : mach = 
-failwith "load unimplemented"
+  let flags = {
+    fo = false;
+    fs = false;
+    fz = false;
+  } in
+  let regs = Array.make nregs 0L in
+  let mem = Array.make mem_size InsFrag in
+  let text_arr = Array.of_list text_seg in
+  let data_arr = Array.of_list data_seg in
+  Array.blit text_arr 0 mem (Int64.to_int text_pos) (Array.length text_arr);
+  Array.blit data_arr 0 mem (Int64.to_int data_pos) (Array.length data_arr);
+  set_mem (Imm (Lit entry)) (Reg Rip) regs mem;
+  set_mem (Imm (Lit (Int64.sub mem_top 1L))) (Reg Rsp) regs mem;
+  set_mem (Imm (Lit exit_addr)) (Ind2 Rsp) regs mem;
+  {flags = flags; regs = regs; mem = mem;}
