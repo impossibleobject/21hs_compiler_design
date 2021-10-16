@@ -499,7 +499,14 @@ let unpack_datal_from_elem (p:prog) : data list =
   let tmp = List.map (fun e -> e.asm) p in 
   List.concat (List.map get_asm_data tmp)
 
-(* let clean_text (instr:sbyte list) : sbyte list = *)
+let map_symbol (symtab:(lbl*int64)list) (lbl:lbl) : int64 =
+  let (a,addr) = List.find (fun (x,_) -> x=lbl) symtab in
+  addr
+
+(* let clean_text (instr:sbyte list) : sbyte list = 
+ *)
+
+
 let assemble (p:prog) : exec =
   let (prog_only_text, prog_only_data) = List.partition filter_text_seg p in
   let lbl_offset_ls = offset_addition (List.map get_lbl_and_offsets prog_only_text) in
