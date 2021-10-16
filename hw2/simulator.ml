@@ -184,7 +184,7 @@ let sbyte_to_char (s:sbyte) : char =
 let map_addr_safe (q:quad) : int =
   let i = map_addr q in
   begin match i with
-    | None -> failwith "not a valid address"
+    | None -> raise X86lite_segfault
     | Some i -> i
   end
 
@@ -415,7 +415,55 @@ exception Redefined_sym of lbl
 
   HINT: List.fold_left and List.fold_right are your friends.
  *)
+
+type lbl_offsets = {
+  lbl:lbl;
+  start:int;
+  finish:int;
+}
+
+let offset_addition (tupls: lbl_offsets list) : lbl_offsets list =
+  let tupls_len = List.length tupls in
+  if (tupls_len == 0 || tupls_len == 1) 
+    then tupls 
+  else 
+    let new_tupls = (List.hd tupls)::[] in
+    for i=1 to (tupls_len-1) do
+      let curr = List.nth tupls i in
+      let pred = List.nth tupls (i-1) in
+      new_tupls @ [{lbl = curr.lbl; start = curr.start + pred.finish; finish = curr.finish + pred.finish}]
+    done;
+    new_tupls
+
+let get_lbl_and_offsets (e:elem) : lbl_offsets = {lbl = e.lbl; start = 0; finish = List.length e.asm} (*error*)
+
+let filter_text_seg (e:elem) : bool =
+  let list = e.asm in
+  begin match list with
+    | Text instr -> true
+    | _ -> false
+  end
+
+let symbol_table_constr (tupls:lbl_offsets list) : (lbl * int64) list =
+  let symbol_table = [] in
+  for i=0 to ((List.length tupls)-1) do
+    let curr = List.nth tupls i in
+    symbol_table @ [(curr.lbl, Int64.add (Int64.of_int curr.start) mem_bot)]
+  done;
+  symbol_table
+
+let unpack_asm_from_elem (p:prog) : asm list = List.map (fun e -> e.asm) p 
+
+(* let clean_text (instr:sbyte list) : sbyte list = *)
 let assemble (p:prog) : exec =
+  let (prog_only_text, prog_only_data) = List.partition filter_text_seg p in
+  let lbl_offset_ls = offset_addition (List.map get_lbl_and_offsets prog_only_text) in
+  let symbol_table = symbol_table_constr lbl_offset_ls in
+  let text_seg_size = Int64.of_int ((List.hd (List.rev lbl_offset_ls)).finish * 8) in
+  let data_seg_size = List.fold_left (fun acc e -> (List.length e.asm) + acc) 0 prog_only_data in
+  let dirty_text_seg = List.concat (List.map sbytes_of_ins (unpack_asm_from_elem prog_only_text)) in
+  let dirty_data_seg = List.concat (List.map sbytes_of_data (unpack_asm_from_elem prog_only_data)) in
+(*   let text_seg = clean_text dirty_text_seg *)
 failwith "assemble unimplemented"
 
 (* Convert an object file into an executable machine state. 
