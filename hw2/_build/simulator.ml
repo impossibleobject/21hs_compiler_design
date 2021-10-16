@@ -473,9 +473,11 @@ let symbol_table_constr (tupls:lbl_offsets list) : (lbl * int64) list =
   let symbol_table = ref [] in
   for i=0 to ((List.length tupls)-1) do
     let curr = List.nth tupls i in
-    symbol_table := !symbol_table @ [(curr.lbl, Int64.add (Int64.of_int curr.start) mem_bot)]
+    if(List.exists (fun (x, _) -> (x = curr.lbl)) !symbol_table) then raise (Redefined_sym curr.lbl)
+    else symbol_table := !symbol_table @ [(curr.lbl, Int64.add (Int64.of_int curr.start) mem_bot)]
   done;
   !symbol_table
+    
 
 
 
@@ -491,25 +493,70 @@ let get_asm_data (asm:asm) : (data list) =
     | _ -> failwith "wanted data list got instr list"
   end
 
-let unpack_insl_from_elem (p:prog) : ins list = 
-  let tmp = List.map (fun e -> e.asm) p in 
-  List.concat (List.map get_asm_text tmp)
 
-let unpack_datal_from_elem (p:prog) : data list = 
-  let tmp = List.map (fun e -> e.asm) p in 
-  List.concat (List.map get_asm_data tmp)
+let map_symbol (symtab:(lbl*int64)list) (lbl:lbl) : int64 =
+  try
+    let (a,addr) = List.find (fun (x,_) -> x=lbl) symtab in
+    addr
+  with
+    | Not_found -> raise (Undefined_sym lbl)
 
-(* let clean_text (instr:sbyte list) : sbyte list = *)
+let transl_imm (i:imm) (st:(lbl * int64) list): imm  =
+  begin match i with
+    | Lit q -> i
+    | Lbl l -> (Lit (map_symbol st l))
+  end
+
+let clean_instr (st:(lbl * int64) list) (ins:ins) : ins = 
+  let clean_op (op:operand) : operand =
+    begin match op with
+      | Imm i -> Imm (transl_imm i st)
+      | Ind1 i -> Ind1 (transl_imm i st)
+      | Ind3 (i,r) -> Ind3 ((transl_imm i st), r)
+      | _ -> op
+    end
+  in
+  let opcode, operand_ls = ins in
+  begin match operand_ls with
+    | [] -> opcode, operand_ls
+    | ls -> opcode, (List.map clean_op ls) 
+  end
+
+let unpack_insl_from_elem (p:prog) (st:(lbl * int64) list): ins list = 
+  let tmp = List.map (fun e -> e.asm) p in 
+  let unclean = List.concat (List.map get_asm_text tmp) in
+  List.map (clean_instr st) unclean
+
+let clean_data (st:(lbl * int64) list) (d:data) : data = 
+  begin match d with
+    | Quad i -> Quad (transl_imm i st)
+    | Asciz s -> d
+  end
+
+let unpack_datal_from_elem (p:prog) (st:(lbl * int64) list): data list = 
+  let tmp = List.map (fun e -> e.asm) p in 
+  let unclean = List.concat (List.map get_asm_data tmp) in
+  List.map (clean_data st) unclean 
+
+
+
 let assemble (p:prog) : exec =
   let (prog_only_text, prog_only_data) = List.partition filter_text_seg p in
   let lbl_offset_ls = offset_addition (List.map get_lbl_and_offsets prog_only_text) in
   let symbol_table = symbol_table_constr lbl_offset_ls in
   let text_seg_size = Int64.of_int ((List.hd (List.rev lbl_offset_ls)).finish * 8) in
   let data_seg_size = List.fold_left (fun acc e -> (length_asm e.asm) + acc) 0 prog_only_data in
-  let dirty_text_seg = List.concat (List.map sbytes_of_ins (unpack_insl_from_elem prog_only_text)) in
-  let dirty_data_seg = List.concat (List.map sbytes_of_data (unpack_datal_from_elem prog_only_data)) in
-(*   let text_seg = clean_text dirty_text_seg *)
-failwith "assemble unimplemented"
+  let text_seg = List.concat (List.map sbytes_of_ins (unpack_insl_from_elem prog_only_text symbol_table)) in
+  let data_seg = List.concat (List.map sbytes_of_data (unpack_datal_from_elem prog_only_data symbol_table)) in
+  let entry = map_symbol symbol_table "main" in
+  {
+    entry = entry;
+    text_pos = mem_bot;
+    data_pos = Int64.add mem_bot text_seg_size;
+    text_seg = text_seg;
+    data_seg = data_seg;
+  }
+
 
 (* Convert an object file into an executable machine state. 
     - allocate the mem array
