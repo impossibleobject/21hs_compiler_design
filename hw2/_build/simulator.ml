@@ -91,6 +91,7 @@ let rind : reg -> int = function
   | R08 -> 8  | R09 -> 9  | R10 -> 10 | R11 -> 11
   | R12 -> 12 | R13 -> 13 | R14 -> 14 | R15 -> 15
 
+
 (* Helper functions for reading/writing sbytes *)
 
 (* Convert an int64 to its sbyte representation *)
@@ -143,7 +144,7 @@ let sbytes_of_data : data -> sbyte list = function
      [if !debug_simulator then print_endline @@ string_of_ins u; ...]
 
 *)
-let debug_simulator = ref false
+let debug_simulator = ref true
 
 (* Interpret a condition code with respect to the given flags. *)
 let interp_cnd {fo; fs; fz} : cnd -> bool = fun x -> 
@@ -421,25 +422,6 @@ type lbl_offsets = {
   start:int;
   finish:int;
 }
-(*let offset_addition (tupls: lbl_offsets list) : lbl_offsets list =
-
-  let rec offset_add_aux (tls:lbl_offsets list) (acc:int) : lbl_offsets list =
-    begin match acc with
-      | List.length tupls -> tls
-      | cnt               -> let one_step 
-                             offset_add_aux one_step (cnt+1)
-
-
-
-      | x::y::tl -> x::(offset_add_aux y::tl)
-
-
-
-  in
-
-  offset_add_aux tupls
-
-*)
 
 let offset_addition (tupls: lbl_offsets list) : lbl_offsets list =
   let tupls_len = List.length tupls in
@@ -542,13 +524,17 @@ let unpack_datal_from_elem (p:prog) (st:(lbl * int64) list): data list =
 
 let assemble (p:prog) : exec =
   let (prog_only_text, prog_only_data) = List.partition filter_text_seg p in
-  let lbl_offset_ls = offset_addition (List.map get_lbl_and_offsets prog_only_text) in
+  let text_lbl_offset_ls = (offset_addition (List.map get_lbl_and_offsets prog_only_text)) in
+  let data_lbl_offset_ls = (offset_addition (List.map get_lbl_and_offsets prog_only_data)) in
+  let lbl_offset_ls = (List.append text_lbl_offset_ls data_lbl_offset_ls) in
   let symbol_table = symbol_table_constr lbl_offset_ls in
-  let text_seg_size = Int64.of_int ((List.hd (List.rev lbl_offset_ls)).finish * 8) in
-  let data_seg_size = List.fold_left (fun acc e -> (length_asm e.asm) + acc) 0 prog_only_data in
+  let text_seg_size = Int64.of_int ((List.hd (List.rev text_lbl_offset_ls)).finish * 8) in
   let text_seg = List.concat (List.map sbytes_of_ins (unpack_insl_from_elem prog_only_text symbol_table)) in
   let data_seg = List.concat (List.map sbytes_of_data (unpack_datal_from_elem prog_only_data symbol_table)) in
   let entry = map_symbol symbol_table "main" in
+  if(!debug_simulator) then
+    print_string((String.concat "\n" (List.map string_of_ins (unpack_insl_from_elem prog_only_text symbol_table))));
+    print_string("\n new program starts here \n");
   {
     entry = entry;
     text_pos = mem_bot;
@@ -572,4 +558,18 @@ let assemble (p:prog) : exec =
   may be of use.
 *)
 let load {entry; text_pos; data_pos; text_seg; data_seg} : mach = 
-failwith "load unimplemented"
+  let flags = {
+    fo = false;
+    fs = false;
+    fz = false;
+  } in
+  let regs = Array.make nregs 0L in
+  let mem = Array.make mem_size InsFrag in
+  let text_arr = Array.of_list text_seg in
+  let data_arr = Array.of_list data_seg in
+  Array.blit text_arr 0 mem (Int64.to_int text_pos) (Array.length text_arr);
+  Array.blit data_arr 0 mem (Int64.to_int data_pos) (Array.length data_arr);
+  set_mem (Imm (Lit entry)) (Reg Rip) regs mem;
+  set_mem (Imm (Lit (Int64.sub mem_top 1L))) (Reg Rsp) regs mem;
+  set_mem (Imm (Lit exit_addr)) (Ind2 Rsp) regs mem;
+  {flags = flags; regs = regs; mem = mem;}
