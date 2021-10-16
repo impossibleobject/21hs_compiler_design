@@ -184,7 +184,7 @@ let sbyte_to_char (s:sbyte) : char =
 let map_addr_safe (q:quad) : int =
   let i = map_addr q in
   begin match i with
-    | None -> failwith "not a valid address"
+    | None -> raise X86lite_segfault
     | Some i -> i
   end
 
@@ -298,16 +298,6 @@ let step (m:mach) : unit =
       | _ -> failwith "not an InsB0"
     end in
   let (opcode, ls) = get_ins Rip regs mem in
-  let get_mem_idx (op:operand) : int = 
-    let idx = 
-      begin match op with
-        | Ind1 i      -> imm_to_quad i
-        | Ind2 r      -> regs.(rind r)
-        | Ind3 (i, r) -> (Int64.add (imm_to_quad i) regs.(rind r))
-        | _ -> failwith "can't idx reg or imm"
-      end
-    in Int64.to_int idx
-  in 
   let get_mem_from_idx (idx:int) : int64 = 
       int64_of_sbytes (Array.to_list (Array.sub mem idx 8)) in
   let get_mem (op:operand) : int64 = 
@@ -425,7 +415,100 @@ exception Redefined_sym of lbl
 
   HINT: List.fold_left and List.fold_right are your friends.
  *)
+
+type lbl_offsets = {
+  lbl:lbl;
+  start:int;
+  finish:int;
+}
+(*let offset_addition (tupls: lbl_offsets list) : lbl_offsets list =
+
+  let rec offset_add_aux (tls:lbl_offsets list) (acc:int) : lbl_offsets list =
+    begin match acc with
+      | List.length tupls -> tls
+      | cnt               -> let one_step 
+                             offset_add_aux one_step (cnt+1)
+
+
+
+      | x::y::tl -> x::(offset_add_aux y::tl)
+
+
+
+  in
+
+  offset_add_aux tupls
+
+*)
+
+let offset_addition (tupls: lbl_offsets list) : lbl_offsets list =
+  let tupls_len = List.length tupls in
+  if (tupls_len == 0 || tupls_len == 1) 
+    then tupls 
+  else 
+    let new_tupls = ref ((List.hd tupls)::[]) in
+    for i=1 to (tupls_len-1) do
+      let curr = List.nth tupls i in
+      let pred = List.nth tupls (i-1) in
+      new_tupls := (!new_tupls) @ [{lbl = curr.lbl; start = curr.start + pred.finish; finish = curr.finish + pred.finish}]
+    done;
+    !new_tupls
+
+let length_asm (asm:asm) : int = 
+  begin match asm with
+    | Text ls -> List.length ls
+    | Data ls -> List.length ls
+  end
+
+let get_lbl_and_offsets (e:elem) : lbl_offsets = {lbl = e.lbl; start = 0; finish = length_asm e.asm} (*error*)
+
+let filter_text_seg (e:elem) : bool =
+  let list = e.asm in
+  begin match list with
+    | Text instr -> true
+    | _ -> false
+  end
+
+let symbol_table_constr (tupls:lbl_offsets list) : (lbl * int64) list =
+  let symbol_table = ref [] in
+  for i=0 to ((List.length tupls)-1) do
+    let curr = List.nth tupls i in
+    symbol_table := !symbol_table @ [(curr.lbl, Int64.add (Int64.of_int curr.start) mem_bot)]
+  done;
+  !symbol_table
+
+
+
+let get_asm_text (asm:asm) : (ins list) =
+  begin match asm with
+    | Text il -> il
+    | _ -> failwith "wanted instr list got data list"
+  end
+
+let get_asm_data (asm:asm) : (data list) =
+  begin match asm with
+    | Data dl -> dl
+    | _ -> failwith "wanted data list got instr list"
+  end
+
+let unpack_insl_from_elem (p:prog) : ins list = 
+  let tmp = List.map (fun e -> e.asm) p in 
+  List.concat (List.map get_asm_text tmp)
+
+let unpack_datal_from_elem (p:prog) : data list = 
+  let tmp = List.map (fun e -> e.asm) p in 
+  List.concat (List.map get_asm_data tmp)
+
+(* let clean_text (instr:sbyte list) : sbyte list = *)
 let assemble (p:prog) : exec =
+  let (prog_only_text, prog_only_data) = List.partition filter_text_seg p in
+  let lbl_offset_ls = offset_addition (List.map get_lbl_and_offsets prog_only_text) in
+  let symbol_table = symbol_table_constr lbl_offset_ls in
+  let text_seg_size = Int64.of_int ((List.hd (List.rev lbl_offset_ls)).finish * 8) in
+  let data_seg_size = List.fold_left (fun acc e -> (length_asm e.asm) + acc) 0 prog_only_data in
+  let dirty_text_seg = List.concat (List.map sbytes_of_ins (unpack_insl_from_elem prog_only_text)) in
+  let dirty_data_seg = List.concat (List.map sbytes_of_data (unpack_datal_from_elem prog_only_data)) in
+(*   let text_seg = clean_text dirty_text_seg *)
 failwith "assemble unimplemented"
 
 (* Convert an object file into an executable machine state. 
