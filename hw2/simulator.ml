@@ -423,7 +423,30 @@ type lbl_offsets = {
   finish:int;
 }
 
-let offset_addition (tupls: lbl_offsets list) : lbl_offsets list =
+
+let offset_addition (tupls: lbl_offsets list) (init_offset:int) : (lbl_offsets list * int) = 
+  let rec offset_add_aux (tupls: lbl_offsets list) (offset:int) : (lbl_offsets list * int) =
+    begin match tupls with
+      | []    ->  [], offset
+      | h::ls ->  let h_new = 
+                  {
+                    lbl = h.lbl; 
+                    start = offset; 
+                    finish = h.finish + offset
+                  } in
+                  (*if(!debug_simulator) then
+                    print_string("\n old label: ");
+                    print_string(h.lbl);
+                    print_string("\n size of old block: ");
+                    print_int(h.finish);
+                    print_string("\n new offset: ");
+                    print_int(h_new.finish);*)
+                  let res = offset_add_aux ls h_new.finish in
+                  (h_new :: fst res), snd res
+    end in
+    offset_add_aux tupls init_offset
+
+let offset_addition_old (tupls: lbl_offsets list) : lbl_offsets list =
   let tupls_len = List.length tupls in
   if (tupls_len == 0 || tupls_len == 1) 
     then tupls 
@@ -436,13 +459,15 @@ let offset_addition (tupls: lbl_offsets list) : lbl_offsets list =
     done;
     !new_tupls
 
+(*L: tested, length not 0*)
 let length_asm (asm:asm) : int = 
   begin match asm with
-    | Text ls -> List.length ls
+    | Text ls -> 8 * List.length ls
     | Data ls -> List.length ls
   end
 
-let get_lbl_and_offsets (e:elem) : lbl_offsets = {lbl = e.lbl; start = 0; finish = length_asm e.asm} (*error*)
+let get_lbl_and_offsets (e:elem) : lbl_offsets = 
+  {lbl = e.lbl; start = 0; finish = length_asm e.asm} (*error*)
 
 let filter_text_seg (e:elem) : bool =
   let list = e.asm in
@@ -524,8 +549,10 @@ let unpack_datal_from_elem (p:prog) (st:(lbl * int64) list): data list =
 
 let assemble (p:prog) : exec =
   let (prog_only_text, prog_only_data) = List.partition filter_text_seg p in
-  let text_lbl_offset_ls = (offset_addition (List.map get_lbl_and_offsets prog_only_text)) in
-  let data_lbl_offset_ls = (offset_addition (List.map get_lbl_and_offsets prog_only_data)) in
+  let text_lbl_offset_ls, offset =
+    (offset_addition (List.map get_lbl_and_offsets prog_only_text) 0) in
+  let data_lbl_offset_ls, _      = 
+    (offset_addition (List.map get_lbl_and_offsets prog_only_data) offset) in
   let lbl_offset_ls = (List.append text_lbl_offset_ls data_lbl_offset_ls) in
   let symbol_table = symbol_table_constr lbl_offset_ls in
   let text_seg_size = Int64.of_int ((List.hd (List.rev text_lbl_offset_ls)).finish * 8) in
@@ -533,8 +560,10 @@ let assemble (p:prog) : exec =
   let data_seg = List.concat (List.map sbytes_of_data (unpack_datal_from_elem prog_only_data symbol_table)) in
   let entry = map_symbol symbol_table "main" in
   if(!debug_simulator) then
-    print_string((String.concat "\n" (List.map string_of_ins (unpack_insl_from_elem prog_only_text symbol_table))));
-    print_string("\n new program starts here \n");
+    (*print_string((String.concat "\n" (List.map string_of_ins (unpack_insl_from_elem prog_only_text symbol_table))));
+    print_string("\n new program starts here \n");*)
+    print_string("\n Length of text segment: ");
+    print_int(List.length text_seg);
   {
     entry = entry;
     text_pos = mem_bot;
