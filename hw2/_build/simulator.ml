@@ -146,6 +146,10 @@ let sbytes_of_data : data -> sbyte list = function
 *)
 let debug_simulator = ref true
 
+(*L: stolen from graded tests*)
+let sbyte_list (a: sbyte array) (start: int) : sbyte list =
+  Array.to_list (Array.sub a start 8)
+
 (* Interpret a condition code with respect to the given flags. *)
 let interp_cnd {fo; fs; fz} : cnd -> bool = fun x -> 
   begin match x with
@@ -192,11 +196,12 @@ let map_addr_safe (q:quad) : int =
 (*L: Assignment 2 info -> no lbls for Instruction operands*)
 let interp_op (op:operand) (r:regs) (m:mem) : quad = 
   begin match op with
-    | Imm i -> imm_to_quad i
-    | Reg x -> r.(rind x)
+    | Imm i  -> imm_to_quad i
+    | Reg x  -> r.(rind x)
     | Ind1 i -> imm_to_quad i
-    | Ind2 i -> Int64.of_int (Char.code (sbyte_to_char m.(map_addr_safe (r.(rind i)))))
-    | Ind3 (i1, i2) -> Int64.of_int (Char.code (sbyte_to_char m.(map_addr_safe (Int64.add r.(rind i2) (imm_to_quad i1)))))
+    | Ind2 i -> int64_of_sbytes (sbyte_list m (map_addr_safe (r.(rind i))))
+    | Ind3 (i1, i2) -> int64_of_sbytes (sbyte_list m (map_addr_safe 
+                       (Int64.add r.(rind i2) (imm_to_quad i1))))
   end
 
 (*F: Helper function to index into mem array*)
@@ -212,7 +217,7 @@ let get_addr (o:operand) (r:regs) : int =
 (*F: put byte list into mem*)
 let quad_sbyte_list_into_mem (bls:sbyte list) (mem:mem) (addr:int) : unit =
   for i = 0 to 7 do
-    mem.(addr) <- List.nth bls i
+    mem.(addr + i) <- List.nth bls i
   done
 
 (*F: put quad into regs*)
@@ -223,9 +228,12 @@ let quad_into_reg (q:quad) (regs:regs) (r:reg) : unit =
 let set_mem (op1:operand) (op2:operand) (r:regs) (m:mem) : unit =
   begin match op2 with
     | Reg reg -> quad_into_reg (interp_op op1 r m) r reg
-    | (Imm x | Ind1 x) -> quad_sbyte_list_into_mem (sbytes_of_int64 (interp_op op1 r m)) m (get_addr (Imm x) r)
-    | Ind2 x -> quad_sbyte_list_into_mem (sbytes_of_int64 (interp_op op1 r m)) m (get_addr (Ind2 x) r)
-    | Ind3 x -> quad_sbyte_list_into_mem (sbytes_of_int64 (interp_op op1 r m)) m (get_addr (Ind3 x) r)
+    | (Imm x | Ind1 x) -> quad_sbyte_list_into_mem 
+                (sbytes_of_int64 (interp_op op1 r m)) m (get_addr (Imm x) r)
+    | Ind2 x -> quad_sbyte_list_into_mem 
+                (sbytes_of_int64 (interp_op op1 r m)) m (get_addr (Ind2 x) r)
+    | Ind3 x -> quad_sbyte_list_into_mem 
+                (sbytes_of_int64 (interp_op op1 r m)) m (get_addr (Ind3 x) r)
   end
 
 (*F: helper function for pushq*)
@@ -600,6 +608,10 @@ let load {entry; text_pos; data_pos; text_seg; data_seg} : mach =
   Array.blit text_arr 0 mem (map_addr_safe text_pos) (Array.length text_arr);
   Array.blit data_arr 0 mem (map_addr_safe data_pos) (Array.length data_arr);
   set_mem (Imm (Lit entry)) (Reg Rip) regs mem;
-  set_mem (Imm (Lit (Int64.sub mem_top 1L))) (Reg Rsp) regs mem;
+  set_mem (Imm (Lit (Int64.sub mem_top 8L))) (Reg Rsp) regs mem;
   set_mem (Imm (Lit exit_addr)) (Ind2 Rsp) regs mem;
+  (* print_string("\n location of exit_addr: ");
+  print_int(Int64.to_int ( regs. (rind Rsp)));
+  print_string("\n content of above_location: ");
+  print_int(Int64.to_int (int64_of_sbytes (Array.to_list (Array.sub mem (get_addr (Ind2 Rsp) regs) 8)))); *)
   {flags = flags; regs = regs; mem = mem;}
