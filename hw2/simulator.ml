@@ -146,6 +146,10 @@ let sbytes_of_data : data -> sbyte list = function
 *)
 let debug_simulator = ref true
 
+(*L: stolen from graded tests*)
+let sbyte_list (a: sbyte array) (start: int) : sbyte list =
+  Array.to_list (Array.sub a start 8)
+
 (* Interpret a condition code with respect to the given flags. *)
 let interp_cnd {fo; fs; fz} : cnd -> bool = fun x -> 
   begin match x with
@@ -192,11 +196,12 @@ let map_addr_safe (q:quad) : int =
 (*L: Assignment 2 info -> no lbls for Instruction operands*)
 let interp_op (op:operand) (r:regs) (m:mem) : quad = 
   begin match op with
-    | Imm i -> imm_to_quad i
-    | Reg x -> r.(rind x)
+    | Imm i  -> imm_to_quad i
+    | Reg x  -> r.(rind x)
     | Ind1 i -> imm_to_quad i
-    | Ind2 i -> Int64.of_int (Char.code (sbyte_to_char m.(map_addr_safe (r.(rind i)))))
-    | Ind3 (i1, i2) -> Int64.of_int (Char.code (sbyte_to_char m.(map_addr_safe (Int64.add r.(rind i2) (imm_to_quad i1)))))
+    | Ind2 i -> int64_of_sbytes (sbyte_list m (map_addr_safe (r.(rind i))))
+    | Ind3 (i1, i2) -> int64_of_sbytes (sbyte_list m (map_addr_safe 
+                       (Int64.add r.(rind i2) (imm_to_quad i1))))
   end
 
 (*F: Helper function to index into mem array*)
@@ -212,20 +217,29 @@ let get_addr (o:operand) (r:regs) : int =
 (*F: put byte list into mem*)
 let quad_sbyte_list_into_mem (bls:sbyte list) (mem:mem) (addr:int) : unit =
   for i = 0 to 7 do
-    mem.(addr) <- List.nth bls i
+    mem.(addr + i) <- List.nth bls i
   done
 
 (*F: put quad into regs*)
 let quad_into_reg (q:quad) (regs:regs) (r:reg) : unit =
-  Array.set regs (rind r) q
+  print_string("\n quad_into_reg, register we are setting: " ^ string_of_reg r);
+  print_string("\n content before: ");
+  print_int(Int64.to_int regs.(rind r));
+  print_string("\n content after: ");
+  Array.set regs (rind r) q;
+  print_int(Int64.to_int regs.(rind r))
+  
 
 (*F: pattern matching for movq*)
 let set_mem (op1:operand) (op2:operand) (r:regs) (m:mem) : unit =
   begin match op2 with
     | Reg reg -> quad_into_reg (interp_op op1 r m) r reg
-    | (Imm x | Ind1 x) -> quad_sbyte_list_into_mem (sbytes_of_int64 (interp_op op1 r m)) m (get_addr (Imm x) r)
-    | Ind2 x -> quad_sbyte_list_into_mem (sbytes_of_int64 (interp_op op1 r m)) m (get_addr (Ind2 x) r)
-    | Ind3 x -> quad_sbyte_list_into_mem (sbytes_of_int64 (interp_op op1 r m)) m (get_addr (Ind3 x) r)
+    | (Imm x | Ind1 x) -> quad_sbyte_list_into_mem 
+                (sbytes_of_int64 (interp_op op1 r m)) m (get_addr (Imm x) r)
+    | Ind2 x -> quad_sbyte_list_into_mem 
+                (sbytes_of_int64 (interp_op op1 r m)) m (get_addr (Ind2 x) r)
+    | Ind3 x -> quad_sbyte_list_into_mem 
+                (sbytes_of_int64 (interp_op op1 r m)) m (get_addr (Ind3 x) r)
   end
 
 (*F: helper function for pushq*)
@@ -274,12 +288,16 @@ let jcc_helper (cc:cnd) (op:operand) (r:regs) (m:mem) (f:flags) : unit =
   -> assumes 'lower byte of dest' means the byte with the smallest addr in mem (out of the 8), 
   so the byte the op is pointing to already*)
 let setb_helper (cc:cnd) (op:operand) (r:regs) (m:mem) (f:flags) : unit =
-  let addr = get_addr op r in
-  let char0 = Char.chr 0 in
-  let char1 = Char.chr 1 in
-  if interp_cnd f cc 
-    then m.(addr) <- (Byte char1)
-    else m.(addr) <- (Byte char0)
+  begin match op with
+    | Reg reg -> if (interp_cnd f cc) then r.(rind reg) <- 1L
+                else r.(rind reg) <- 0L
+    | _ -> let addr = get_addr op r in
+           let char0 = Char.chr 0 in
+           let char1 = Char.chr 1 in
+           if interp_cnd f cc 
+             then m.(addr) <- (Byte char1)
+             else m.(addr) <- (Byte char0)
+  end
 
 (* Simulates one step of the machine:
     - fetch the instruction at %rip
@@ -292,13 +310,15 @@ let step (m:mach) : unit =
   let flags = m.flags in
   let regs = m.regs in
   let mem = m.mem in
-    let get_ins rip rarray marray =
-    let memcontent = marray.(Int64.to_int (rarray.(rind rip))) in
+  let get_ins rarray marray =
+    let memcontent = marray.(map_addr_safe regs.(rind Rip)) in
     begin match memcontent with
-      | InsB0 instr -> instr
+      | InsB0 instr -> print_string("\n instr given to step: ");
+                       print_string(string_of_ins instr);
+                       instr
       | _ -> failwith "not an InsB0"
     end in
-  let (opcode, ls) = get_ins Rip regs mem in
+  let (opcode, ls) = get_ins regs mem in
   let get_mem_from_idx (idx:int) : int64 = 
       int64_of_sbytes (Array.to_list (Array.sub mem idx 8)) in
   let get_mem (op:operand) : int64 = 
@@ -423,7 +443,30 @@ type lbl_offsets = {
   finish:int;
 }
 
-let offset_addition (tupls: lbl_offsets list) : lbl_offsets list =
+
+let offset_addition (tupls: lbl_offsets list) (init_offset:int) : (lbl_offsets list * int) = 
+  let rec offset_add_aux (tupls: lbl_offsets list) (offset:int) : (lbl_offsets list * int) =
+    begin match tupls with
+      | []    ->  [], offset
+      | h::ls ->  let h_new = 
+                  {
+                    lbl = h.lbl; 
+                    start = offset; 
+                    finish = h.finish + offset
+                  } in
+                  (*if(!debug_simulator) then
+                    print_string("\n old label: ");
+                    print_string(h.lbl);
+                    print_string("\n size of old block: ");
+                    print_int(h.finish);
+                    print_string("\n new offset: ");
+                    print_int(h_new.finish);*)
+                  let res = offset_add_aux ls h_new.finish in
+                  (h_new :: fst res), snd res
+    end in
+    offset_add_aux tupls init_offset
+
+let offset_addition_old (tupls: lbl_offsets list) : lbl_offsets list =
   let tupls_len = List.length tupls in
   if (tupls_len == 0 || tupls_len == 1) 
     then tupls 
@@ -438,11 +481,12 @@ let offset_addition (tupls: lbl_offsets list) : lbl_offsets list =
 
 let length_asm (asm:asm) : int = 
   begin match asm with
-    | Text ls -> List.length ls
+    | Text ls -> 8 * List.length ls
     | Data ls -> List.length ls
   end
 
-let get_lbl_and_offsets (e:elem) : lbl_offsets = {lbl = e.lbl; start = 0; finish = length_asm e.asm} (*error*)
+let get_lbl_and_offsets (e:elem) : lbl_offsets = 
+  {lbl = e.lbl; start = 0; finish = length_asm e.asm}
 
 let filter_text_seg (e:elem) : bool =
   let list = e.asm in
@@ -518,27 +562,33 @@ let clean_data (st:(lbl * int64) list) (d:data) : data =
 let unpack_datal_from_elem (p:prog) (st:(lbl * int64) list): data list = 
   let tmp = List.map (fun e -> e.asm) p in 
   let unclean = List.concat (List.map get_asm_data tmp) in
-  List.map (clean_data st) unclean 
+  List.map (clean_data st) unclean
 
 
 
 let assemble (p:prog) : exec =
   let (prog_only_text, prog_only_data) = List.partition filter_text_seg p in
-  let text_lbl_offset_ls = (offset_addition (List.map get_lbl_and_offsets prog_only_text)) in
-  let data_lbl_offset_ls = (offset_addition (List.map get_lbl_and_offsets prog_only_data)) in
+  let text_lbl_offset_ls, offset_data =
+    (offset_addition (List.map get_lbl_and_offsets prog_only_text) 0) in
+  let data_lbl_offset_ls, _      = 
+    (offset_addition (List.map get_lbl_and_offsets prog_only_data) offset_data) in
   let lbl_offset_ls = (List.append text_lbl_offset_ls data_lbl_offset_ls) in
   let symbol_table = symbol_table_constr lbl_offset_ls in
   let text_seg_size = Int64.of_int ((List.hd (List.rev text_lbl_offset_ls)).finish * 8) in
   let text_seg = List.concat (List.map sbytes_of_ins (unpack_insl_from_elem prog_only_text symbol_table)) in
   let data_seg = List.concat (List.map sbytes_of_data (unpack_datal_from_elem prog_only_data symbol_table)) in
   let entry = map_symbol symbol_table "main" in
-  if(!debug_simulator) then
+  (*if(!debug_simulator) then
     print_string((String.concat "\n" (List.map string_of_ins (unpack_insl_from_elem prog_only_text symbol_table))));
     print_string("\n new program starts here \n");
+    print_string("\n Length of text segment: ");
+    print_int(List.length text_seg);
+    print_string("\n Length data offset: ");
+    print_int(offset_data);*)
   {
     entry = entry;
     text_pos = mem_bot;
-    data_pos = Int64.add mem_bot text_seg_size;
+    data_pos = Int64.add mem_bot (Int64.of_int offset_data);
     text_seg = text_seg;
     data_seg = data_seg;
   }
@@ -567,9 +617,15 @@ let load {entry; text_pos; data_pos; text_seg; data_seg} : mach =
   let mem = Array.make mem_size InsFrag in
   let text_arr = Array.of_list text_seg in
   let data_arr = Array.of_list data_seg in
-  Array.blit text_arr 0 mem (Int64.to_int text_pos) (Array.length text_arr);
-  Array.blit data_arr 0 mem (Int64.to_int data_pos) (Array.length data_arr);
+  Array.blit text_arr 0 mem (map_addr_safe text_pos) (Array.length text_arr);
+  Array.blit data_arr 0 mem (map_addr_safe data_pos) (Array.length data_arr);
   set_mem (Imm (Lit entry)) (Reg Rip) regs mem;
-  set_mem (Imm (Lit (Int64.sub mem_top 1L))) (Reg Rsp) regs mem;
+  set_mem (Imm (Lit (Int64.sub mem_top 8L))) (Reg Rsp) regs mem;
   set_mem (Imm (Lit exit_addr)) (Ind2 Rsp) regs mem;
+  (* print_string("\n location of exit_addr: ");
+  print_int(Int64.to_int ( regs. (rind Rsp)));
+  print_string("\n content of above_location: ");
+  print_int(Int64.to_int (int64_of_sbytes (Array.to_list (Array.sub mem (get_addr (Ind2 Rsp) regs) 8)))); *)
+  print_string("\n content of %rax = ");
+  print_int(Int64.to_int regs.(rind Rax));
   {flags = flags; regs = regs; mem = mem;}
