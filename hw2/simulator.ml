@@ -222,7 +222,13 @@ let quad_sbyte_list_into_mem (bls:sbyte list) (mem:mem) (addr:int) : unit =
 
 (*F: put quad into regs*)
 let quad_into_reg (q:quad) (regs:regs) (r:reg) : unit =
-  Array.set regs (rind r) q
+  print_string("\n quad_into_reg, register we are setting: " ^ string_of_reg r);
+  print_string("\n content before: ");
+  print_int(Int64.to_int regs.(rind r));
+  print_string("\n content after: ");
+  Array.set regs (rind r) q;
+  print_int(Int64.to_int regs.(rind r))
+  
 
 (*F: pattern matching for movq*)
 let set_mem (op1:operand) (op2:operand) (r:regs) (m:mem) : unit =
@@ -282,12 +288,16 @@ let jcc_helper (cc:cnd) (op:operand) (r:regs) (m:mem) (f:flags) : unit =
   -> assumes 'lower byte of dest' means the byte with the smallest addr in mem (out of the 8), 
   so the byte the op is pointing to already*)
 let setb_helper (cc:cnd) (op:operand) (r:regs) (m:mem) (f:flags) : unit =
-  let addr = get_addr op r in
-  let char0 = Char.chr 0 in
-  let char1 = Char.chr 1 in
-  if interp_cnd f cc 
-    then m.(addr) <- (Byte char1)
-    else m.(addr) <- (Byte char0)
+  begin match op with
+    | Reg reg -> if (interp_cnd f cc) then r.(rind reg) <- 1L
+                else r.(rind reg) <- 0L
+    | _ -> let addr = get_addr op r in
+           let char0 = Char.chr 0 in
+           let char1 = Char.chr 1 in
+           if interp_cnd f cc 
+             then m.(addr) <- (Byte char1)
+             else m.(addr) <- (Byte char0)
+  end
 
 (* Simulates one step of the machine:
     - fetch the instruction at %rip
@@ -300,13 +310,15 @@ let step (m:mach) : unit =
   let flags = m.flags in
   let regs = m.regs in
   let mem = m.mem in
-    let get_ins rip rarray marray =
-    let memcontent = marray.(Int64.to_int (rarray.(rind rip))) in
+  let get_ins rarray marray =
+    let memcontent = marray.(map_addr_safe regs.(rind Rip)) in
     begin match memcontent with
-      | InsB0 instr -> instr
+      | InsB0 instr -> print_string("\n instr given to step: ");
+                       print_string(string_of_ins instr);
+                       instr
       | _ -> failwith "not an InsB0"
     end in
-  let (opcode, ls) = get_ins Rip regs mem in
+  let (opcode, ls) = get_ins regs mem in
   let get_mem_from_idx (idx:int) : int64 = 
       int64_of_sbytes (Array.to_list (Array.sub mem idx 8)) in
   let get_mem (op:operand) : int64 = 
@@ -614,4 +626,6 @@ let load {entry; text_pos; data_pos; text_seg; data_seg} : mach =
   print_int(Int64.to_int ( regs. (rind Rsp)));
   print_string("\n content of above_location: ");
   print_int(Int64.to_int (int64_of_sbytes (Array.to_list (Array.sub mem (get_addr (Ind2 Rsp) regs) 8)))); *)
+  print_string("\n content of %rax = ");
+  print_int(Int64.to_int regs.(rind Rax));
   {flags = flags; regs = regs; mem = mem;}
