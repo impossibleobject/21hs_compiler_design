@@ -144,7 +144,7 @@ let sbytes_of_data : data -> sbyte list = function
      [if !debug_simulator then print_endline @@ string_of_ins u; ...]
 
 *)
-let debug_simulator = ref true
+let debug_simulator = ref false
 
 (*L: stolen from graded tests*)
 let sbyte_list (a: sbyte array) (start: int) : sbyte list =
@@ -212,8 +212,6 @@ let interp_op (op:operand) (r:regs) (m:mem) : quad =
 
 (*helper to get mem addr*)
 let get_addr (o:operand) (r:regs) : int64 =
-  (* print_endline("\n get_addr called with op: ");
-  print_endline(string_of_operand o); *)
   begin match o with
     | Ind1 imm -> (imm_to_quad imm)
     | Ind2 reg -> (r.(rind reg))
@@ -232,13 +230,7 @@ let quad_sbyte_list_into_mem (bls:sbyte list) (mem:mem) (addr:int) : unit =
 
 (*F: put quad into regs*)
 let quad_into_reg (q:quad) (regs:regs) (r:reg) : unit =
-  (* print_endline("\n quad_into_reg, register we are setting: " ^ string_of_reg r);
-  print_endline("\n content before: ");
-  print_int(Int64.to_int regs.(rind r));
-  print_endline("\n content after: "); *)
   Array.set regs (rind r) q
-  (* print_int(Int64.to_int regs.(rind r))
-   *)
 
 (*F: pattern matching for movq*)
 let set_mem (src:operand) (des:operand) (r:regs) (m:mem) : unit =
@@ -324,22 +316,11 @@ let step (m:mach) : unit =
   let get_ins rarray marray =
     let memcontent = marray.(map_addr_safe regs.(rind Rip)) in
     begin match memcontent with
-      | InsB0 instr -> (* print_endline("\n instr given to step: ");
-                       print_endline(string_of_ins instr); *)
-                       instr
+      | InsB0 instr -> instr
       | _ -> failwith "not an InsB0"
     end in
   let (opcode, ls) = get_ins regs mem in
-  (* print_endline("\n current instr step: ");
-  print_endline (string_of_ins (opcode, ls));
-  print_endline("step instr pointer: ");
-  print_string("contents of %rip before: ");
-  print_int64(regs.(rind Rip)); *)
-(*   set_mem (Ind3 (Lit 8L,Rip)) (Reg Rip) regs mem;
- *)  
   regs.(rind Rip) <- Int64.add regs.(rind Rip) 8L;
-  (* print_string("contents of %rip after: ");
-  print_int64(regs.(rind Rip)); *)
   let get_mem_from_idx (idx:int) : int64 = 
       int64_of_sbytes (Array.to_list (Array.sub mem idx 8)) in
   let get_mem (op:operand) : int64 = 
@@ -374,12 +355,6 @@ let step (m:mach) : unit =
      in
   let bin_arithm_ofv (op1:operand) (op2:operand) (func: int64 -> int64 -> Ovf.t) (written_to_mem:bool) : unit =
     let res = func (get_mem op2) (get_mem op1) in
-   (*  print_endline("\n bin_arithm_ofv: ");
-    print_endline("op1: ");
-    print_endline(string_of_operand op1);
-    print_endline("op2: ");
-    print_endline(string_of_operand op2); *)
-    (*test if func is imul instr => fz fs ignored in that case*)
     if(((func 1L 1L).value) <> 1L) then set_sz_flags res.value;
     flags.fo <- res.overflow;
     if(written_to_mem) then set_mem (quad_to_imm res.value) op2 regs mem
@@ -404,14 +379,7 @@ let step (m:mach) : unit =
     | (Negq, [op])        -> un_arithm_ovf op Ovf.neg
     | (Notq, [op])        -> flags.fo <- false;
                              set_mem op (quad_to_imm (Int64.lognot (get_mem op))) regs mem 
-    | (Addq, [op1; op2])  -> bin_arithm_ofv op1 op2 Ovf.add true;
-                             (* print_endline("\n add");
-                             print_endline("\n contents of %rip: ");
-                             print_int64(regs.(rind Rip));
-                             print_endline("\n contents of %rax: ");
-                             print_int64(regs.(rind Rax));
-                             print_endline("\n contents of %rbx: ");
-                             print_int64(regs.(rind Rbx)) *)
+    | (Addq, [op1; op2])  -> bin_arithm_ofv op1 op2 Ovf.add true
     | (Subq, [op1; op2])  -> bin_arithm_ofv op1 op2 Ovf.sub true
     | (Imulq, [op1; op2]) -> bin_arithm_ofv op1 op2 Ovf.mul true
     | (Xorq, [op1; op2])  -> bin_log op1 op2 Int64.logxor
@@ -488,13 +456,6 @@ let offset_addition (tupls: lbl_offsets list) (init_offset:int) : (lbl_offsets l
                     start = offset; 
                     finish = h.finish + offset
                   } in
-                  (*if(!debug_simulator) then
-                    print_endline("\n old label: ");
-                    print_endline(h.lbl);
-                    print_endline("\n size of old block: ");
-                    print_int(h.finish);
-                    print_endline("\n new offset: ");
-                    print_int(h_new.finish);*)
                   let res = offset_add_aux ls h_new.finish in
                   (h_new :: fst res), snd res
     end in
@@ -612,15 +573,6 @@ let assemble (p:prog) : exec =
   let text_seg = List.concat (List.map sbytes_of_ins (unpack_insl_from_elem prog_only_text symbol_table)) in
   let data_seg = List.concat (List.map sbytes_of_data (unpack_datal_from_elem prog_only_data symbol_table)) in
   let entry = map_symbol symbol_table "main" in
-  (* print_endline("\n entry is: ");
-  print_int64(entry); *)
-  (*if(!debug_simulator) then
-    print_endline((String.concat "\n" (List.map string_of_ins (unpack_insl_from_elem prog_only_text symbol_table))));
-    print_endline("\n new program starts here \n");
-    print_endline("\n Length of text segment: ");
-    print_int(List.length text_seg);
-    print_endline("\n Length data offset: ");
-    print_int(offset_data);*)
   {
     entry = entry;
     text_pos = mem_bot;
@@ -658,10 +610,4 @@ let load {entry; text_pos; data_pos; text_seg; data_seg} : mach =
   set_mem (Imm (Lit entry)) (Reg Rip) regs mem;
   set_mem (Imm (Lit (Int64.sub mem_top 8L))) (Reg Rsp) regs mem;
   set_mem (Imm (Lit exit_addr)) (Ind2 Rsp) regs mem;
-  (* print_endline("\n location of exit_addr: ");
-  print_int(Int64.to_int ( regs. (rind Rsp)));
-  print_endline("\n content of above_location: ");
-  print_int(Int64.to_int (int64_of_sbytes (Array.to_list (Array.sub mem (get_addr (Ind2 Rsp) regs) 8)))); *)
-  (* print_endline("\n content of %rax = ");
-  print_int(Int64.to_int regs.(rind Rax)); *)
   {flags = flags; regs = regs; mem = mem;}
