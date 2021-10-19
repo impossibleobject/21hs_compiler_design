@@ -161,9 +161,6 @@ let interp_cnd {fo; fs; fz} : cnd -> bool = fun x ->
     | Le  -> (fs <> fo) || fz
   end
 
-(* Maps an X86lite address into Some OCaml array index,
-   or None if the address is not within the legal address space. *)
-
 
 (*F: unpack immediate to quad*)
 let imm_to_quad (i:imm) : quad = 
