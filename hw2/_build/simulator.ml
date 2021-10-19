@@ -254,14 +254,17 @@ let set_mem (src:operand) (des:operand) (r:regs) (m:mem) : unit =
 let pushq_helper (op:operand) (r:regs) (m:mem) : unit =
   let rsp_new_val = Int64.sub r.(rind Rsp) 8L in
   r.(rind Rsp) <- rsp_new_val;
-  set_mem op (quad_to_imm (r.(rind Rsp))) r m
+  set_mem op (Ind2 Rsp) r m
 
 (*F: helper function for popq*)
 let popq_helper (op:operand) (r:regs) (m:mem) : unit =
   let rsp_old_val = r.(rind Rsp) in
   let rsp_new_val = Int64.add rsp_old_val 8L in
-  set_mem (quad_to_imm (r.(rind Rsp))) op r m;
+  (* print_endline ("Rsp original " ^ (Int64.to_string r.(rind Rsp))); *)
+  set_mem (Ind2 Rsp) op r m;
+  (* print_endline ("Rax  " ^ (Int64.to_string r.(rind Rax))); *)
   r.(rind Rsp) <- rsp_new_val
+  (* print_endline ("Rsp new " ^ (Int64.to_string r.(rind Rsp))) *)
 
 (*F: helper function for leaq*)
 let leaq_helper (ind:operand) (op2:operand) (r:regs) (m:mem) : unit =
@@ -386,10 +389,12 @@ let step (m:mach) : unit =
     let res = func (get_mem op) in
     set_sz_flags res.value;
     flags.fo <- res.overflow;
-    set_mem op (quad_to_imm res.value) regs mem in
-   let bin_log (src:operand) (dst:operand) (func: int64 -> int64 -> int64) : unit =
+    set_mem (quad_to_imm res.value) op regs mem in
+  let bin_log (src:operand) (dst:operand) (func: int64 -> int64 -> int64) : unit =
     flags.fo <- false;
-    set_mem dst (quad_to_imm (func (get_mem src) (get_mem dst))) regs mem in
+    let resq = func (get_mem src) (get_mem dst) in
+    set_sz_flags resq;
+    set_mem (quad_to_imm resq) dst regs mem in
   begin match (opcode, ls) with
     | (Movq, [op1; op2])  -> set_mem op1 op2 regs mem
     | (Pushq, [op])       -> pushq_helper op regs mem
