@@ -150,6 +150,10 @@ let debug_simulator = ref true
 let sbyte_list (a: sbyte array) (start: int) : sbyte list =
   Array.to_list (Array.sub a start 8)
 
+(*L: helper to print int64*)
+let print_int64 (i:int64) : unit = print_int(Int64.to_int i);
+                                   print_endline("")
+
 (* Interpret a condition code with respect to the given flags. *)
 let interp_cnd {fo; fs; fz} : cnd -> bool = fun x -> 
   begin match x with
@@ -189,7 +193,9 @@ let sbyte_to_char (s:sbyte) : char =
 let map_addr_safe (q:quad) : int =
   let i = map_addr q in
   begin match i with
-    | None -> raise X86lite_segfault
+    | None -> (* print_endline("map addr called with: ");
+              print_int(Int64.to_int q); *)
+              raise X86lite_segfault
     | Some i -> i
   end
 
@@ -198,21 +204,25 @@ let interp_op (op:operand) (r:regs) (m:mem) : quad =
   begin match op with
     | Imm i  -> imm_to_quad i
     | Reg x  -> r.(rind x)
-    | Ind1 i -> imm_to_quad i
-    | Ind2 i -> int64_of_sbytes (sbyte_list m (map_addr_safe (r.(rind i))))
-    | Ind3 (i1, i2) -> int64_of_sbytes (sbyte_list m (map_addr_safe 
-                       (Int64.add r.(rind i2) (imm_to_quad i1))))
+    | Ind1 i -> int64_of_sbytes (sbyte_list m (map_addr_safe (imm_to_quad i)))
+    | Ind2 reg -> int64_of_sbytes (sbyte_list m (map_addr_safe (r.(rind reg))))
+    | Ind3 (i, reg) -> int64_of_sbytes (sbyte_list m (map_addr_safe 
+                       (Int64.add r.(rind reg) (imm_to_quad i))))
   end
 
-(*F: Helper function to index into mem array*)
-let get_addr (o:operand) (r:regs) : int =
+(*helper to get mem addr*)
+let get_addr (o:operand) (r:regs) : int64 =
+  (* print_endline("\n get_addr called with op: ");
+  print_endline(string_of_operand o); *)
   begin match o with
-    | Imm imm -> map_addr_safe (imm_to_quad imm)
-    | Ind1 imm -> map_addr_safe (imm_to_quad imm)
-    | Ind2 reg -> map_addr_safe (r.(rind reg))
-    | Ind3 (i1, i2) -> map_addr_safe (Int64.add r.(rind i2) (imm_to_quad i1))
-    | _ -> failwith "get_addr should not be called with reg"
+    | Ind1 imm -> (imm_to_quad imm)
+    | Ind2 reg -> (r.(rind reg))
+    | Ind3 (i, reg) -> (Int64.add r.(rind reg) (imm_to_quad i))
+    | _ -> failwith "get_addr should not be called with reg or imm"
   end
+(*L: F: Helper function to index into mem array*)
+let get_idx (o:operand) (r:regs) : int =
+  map_addr_safe (get_addr o r)
 
 (*F: put byte list into mem*)
 let quad_sbyte_list_into_mem (bls:sbyte list) (mem:mem) (addr:int) : unit =
@@ -222,24 +232,22 @@ let quad_sbyte_list_into_mem (bls:sbyte list) (mem:mem) (addr:int) : unit =
 
 (*F: put quad into regs*)
 let quad_into_reg (q:quad) (regs:regs) (r:reg) : unit =
-  print_string("\n quad_into_reg, register we are setting: " ^ string_of_reg r);
-  print_string("\n content before: ");
+  (* print_endline("\n quad_into_reg, register we are setting: " ^ string_of_reg r);
+  print_endline("\n content before: ");
   print_int(Int64.to_int regs.(rind r));
-  print_string("\n content after: ");
-  Array.set regs (rind r) q;
-  print_int(Int64.to_int regs.(rind r))
-  
+  print_endline("\n content after: "); *)
+  Array.set regs (rind r) q
+  (* print_int(Int64.to_int regs.(rind r))
+   *)
 
 (*F: pattern matching for movq*)
-let set_mem (op1:operand) (op2:operand) (r:regs) (m:mem) : unit =
-  begin match op2 with
-    | Reg reg -> quad_into_reg (interp_op op1 r m) r reg
-    | (Imm x | Ind1 x) -> quad_sbyte_list_into_mem 
-                (sbytes_of_int64 (interp_op op1 r m)) m (get_addr (Imm x) r)
-    | Ind2 x -> quad_sbyte_list_into_mem 
-                (sbytes_of_int64 (interp_op op1 r m)) m (get_addr (Ind2 x) r)
-    | Ind3 x -> quad_sbyte_list_into_mem 
-                (sbytes_of_int64 (interp_op op1 r m)) m (get_addr (Ind3 x) r)
+let set_mem (src:operand) (des:operand) (r:regs) (m:mem) : unit =
+  (* print_endline ("set_mem src:  " ^ (Int64.to_string (interp_op src r m))); *)
+  begin match des with
+    | Imm i   -> failwith "set_mem can't write to imm"
+    | Reg reg -> quad_into_reg (interp_op src r m) r reg
+    | _       -> quad_sbyte_list_into_mem
+                 (sbytes_of_int64 (interp_op src r m)) m (get_idx des r)
   end
 
 (*F: helper function for pushq*)
@@ -261,7 +269,7 @@ let leaq_helper (ind:operand) (op2:operand) (r:regs) (m:mem) : unit =
     | Imm i -> failwith "leaq called with non-indirect operand type!"
     | Reg i -> failwith "leaq called with non-indirect operand type!"
     | _ -> let effective_addr = get_addr ind r in
-        set_mem (quad_to_imm (Int64.of_int effective_addr)) op2 r m
+        set_mem (quad_to_imm effective_addr) op2 r m
   end
 
 (*F: helper function for jmp*)
@@ -291,7 +299,7 @@ let setb_helper (cc:cnd) (op:operand) (r:regs) (m:mem) (f:flags) : unit =
   begin match op with
     | Reg reg -> if (interp_cnd f cc) then r.(rind reg) <- 1L
                 else r.(rind reg) <- 0L
-    | _ -> let addr = get_addr op r in
+    | _ -> let addr = get_idx op r in
            let char0 = Char.chr 0 in
            let char1 = Char.chr 1 in
            if interp_cnd f cc 
@@ -313,19 +321,29 @@ let step (m:mach) : unit =
   let get_ins rarray marray =
     let memcontent = marray.(map_addr_safe regs.(rind Rip)) in
     begin match memcontent with
-      | InsB0 instr -> print_string("\n instr given to step: ");
-                       print_string(string_of_ins instr);
+      | InsB0 instr -> (* print_endline("\n instr given to step: ");
+                       print_endline(string_of_ins instr); *)
                        instr
       | _ -> failwith "not an InsB0"
     end in
   let (opcode, ls) = get_ins regs mem in
+  (* print_endline("\n current instr step: ");
+  print_endline (string_of_ins (opcode, ls));
+  print_endline("step instr pointer: ");
+  print_string("contents of %rip before: ");
+  print_int64(regs.(rind Rip)); *)
+(*   set_mem (Ind3 (Lit 8L,Rip)) (Reg Rip) regs mem;
+ *)  
+  regs.(rind Rip) <- Int64.add regs.(rind Rip) 8L;
+  (* print_string("contents of %rip after: ");
+  print_int64(regs.(rind Rip)); *)
   let get_mem_from_idx (idx:int) : int64 = 
       int64_of_sbytes (Array.to_list (Array.sub mem idx 8)) in
   let get_mem (op:operand) : int64 = 
     begin match op with
       | Imm i       -> imm_to_quad i
       | Reg r       -> regs.(rind r)
-      | _ -> get_mem_from_idx (get_addr op regs)
+      | _ -> get_mem_from_idx (get_idx op regs)
     end
   in
   let set_sz_flags (res:int64) : unit = 
@@ -353,11 +371,16 @@ let step (m:mach) : unit =
         end
      in
   let bin_arithm_ofv (op1:operand) (op2:operand) (func: int64 -> int64 -> Ovf.t) (written_to_mem:bool) : unit =
-    let res = func (get_mem op1) (get_mem op2) in
+    let res = func (get_mem op2) (get_mem op1) in
+   (*  print_endline("\n bin_arithm_ofv: ");
+    print_endline("op1: ");
+    print_endline(string_of_operand op1);
+    print_endline("op2: ");
+    print_endline(string_of_operand op2); *)
     (*test if func is imul instr => fz fs ignored in that case*)
     if(((func 1L 1L).value) <> 1L) then set_sz_flags res.value;
     flags.fo <- res.overflow;
-    if(written_to_mem) then set_mem op2 (quad_to_imm res.value) regs mem
+    if(written_to_mem) then set_mem (quad_to_imm res.value) op2 regs mem
   in
   let un_arithm_ovf (op:operand) (func: int64 -> Ovf.t) : unit = 
     let res = func (get_mem op) in
@@ -377,7 +400,14 @@ let step (m:mach) : unit =
     | (Negq, [op])        -> un_arithm_ovf op Ovf.neg
     | (Notq, [op])        -> flags.fo <- false;
                              set_mem op (quad_to_imm (Int64.lognot (get_mem op))) regs mem 
-    | (Addq, [op1; op2])  -> bin_arithm_ofv op1 op2 Ovf.add true
+    | (Addq, [op1; op2])  -> bin_arithm_ofv op1 op2 Ovf.add true;
+                             (* print_endline("\n add");
+                             print_endline("\n contents of %rip: ");
+                             print_int64(regs.(rind Rip));
+                             print_endline("\n contents of %rax: ");
+                             print_int64(regs.(rind Rax));
+                             print_endline("\n contents of %rbx: ");
+                             print_int64(regs.(rind Rbx)) *)
     | (Subq, [op1; op2])  -> bin_arithm_ofv op1 op2 Ovf.sub true
     | (Imulq, [op1; op2]) -> bin_arithm_ofv op1 op2 Ovf.mul true
     | (Xorq, [op1; op2])  -> bin_log op1 op2 Int64.logxor
@@ -455,11 +485,11 @@ let offset_addition (tupls: lbl_offsets list) (init_offset:int) : (lbl_offsets l
                     finish = h.finish + offset
                   } in
                   (*if(!debug_simulator) then
-                    print_string("\n old label: ");
-                    print_string(h.lbl);
-                    print_string("\n size of old block: ");
+                    print_endline("\n old label: ");
+                    print_endline(h.lbl);
+                    print_endline("\n size of old block: ");
                     print_int(h.finish);
-                    print_string("\n new offset: ");
+                    print_endline("\n new offset: ");
                     print_int(h_new.finish);*)
                   let res = offset_add_aux ls h_new.finish in
                   (h_new :: fst res), snd res
@@ -578,12 +608,14 @@ let assemble (p:prog) : exec =
   let text_seg = List.concat (List.map sbytes_of_ins (unpack_insl_from_elem prog_only_text symbol_table)) in
   let data_seg = List.concat (List.map sbytes_of_data (unpack_datal_from_elem prog_only_data symbol_table)) in
   let entry = map_symbol symbol_table "main" in
+  (* print_endline("\n entry is: ");
+  print_int64(entry); *)
   (*if(!debug_simulator) then
-    print_string((String.concat "\n" (List.map string_of_ins (unpack_insl_from_elem prog_only_text symbol_table))));
-    print_string("\n new program starts here \n");
-    print_string("\n Length of text segment: ");
+    print_endline((String.concat "\n" (List.map string_of_ins (unpack_insl_from_elem prog_only_text symbol_table))));
+    print_endline("\n new program starts here \n");
+    print_endline("\n Length of text segment: ");
     print_int(List.length text_seg);
-    print_string("\n Length data offset: ");
+    print_endline("\n Length data offset: ");
     print_int(offset_data);*)
   {
     entry = entry;
@@ -614,7 +646,7 @@ let load {entry; text_pos; data_pos; text_seg; data_seg} : mach =
     fz = false;
   } in
   let regs = Array.make nregs 0L in
-  let mem = Array.make mem_size InsFrag in
+  let mem = Array.make mem_size (Byte '\x00') in
   let text_arr = Array.of_list text_seg in
   let data_arr = Array.of_list data_seg in
   Array.blit text_arr 0 mem (map_addr_safe text_pos) (Array.length text_arr);
@@ -622,10 +654,10 @@ let load {entry; text_pos; data_pos; text_seg; data_seg} : mach =
   set_mem (Imm (Lit entry)) (Reg Rip) regs mem;
   set_mem (Imm (Lit (Int64.sub mem_top 8L))) (Reg Rsp) regs mem;
   set_mem (Imm (Lit exit_addr)) (Ind2 Rsp) regs mem;
-  (* print_string("\n location of exit_addr: ");
+  (* print_endline("\n location of exit_addr: ");
   print_int(Int64.to_int ( regs. (rind Rsp)));
-  print_string("\n content of above_location: ");
+  print_endline("\n content of above_location: ");
   print_int(Int64.to_int (int64_of_sbytes (Array.to_list (Array.sub mem (get_addr (Ind2 Rsp) regs) 8)))); *)
-  print_string("\n content of %rax = ");
-  print_int(Int64.to_int regs.(rind Rax));
+  (* print_endline("\n content of %rax = ");
+  print_int(Int64.to_int regs.(rind Rax)); *)
   {flags = flags; regs = regs; mem = mem;}
