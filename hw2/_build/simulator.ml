@@ -290,10 +290,10 @@ let retq_helper (r:regs) (m:mem) : unit =
 
 (*F: helper function for jcc*)
 let jcc_helper (cc:cnd) (op:operand) (r:regs) (m:mem) (f:flags) : unit =
-  let fallthru_rip = quad_to_imm (Int64.add r.(rind Rip) 8L) in
+  (* let fallthru_rip = quad_to_imm (Int64.add r.(rind Rip) 8L) in *)
   if interp_cnd f cc 
     then set_mem op (Reg Rip) r m 
-    else set_mem fallthru_rip (Reg Rip) r m 
+    (* else set_mem fallthru_rip (Reg Rip) r m  *)
 
 (*F: helper function for setb 
   -> assumes 'lower byte of dest' means the byte with the smallest addr in mem (out of the 8), 
@@ -357,10 +357,9 @@ let step (m:mach) : unit =
     let original = get_mem dst in
     let res = func original shift in
     set_mem (quad_to_imm res) dst regs mem;
-    (*L: idea: AND it with 0b110...0 and then XOR it with that number, still wrong*)
-    let one_one_zeros : int64 = Int64.shift_right Int64.min_int 1 in
     let first_two_bits_diff : bool = 
-      ((Int64.logxor (Int64.logand original one_one_zeros) one_one_zeros) <> 0L) in
+      let first_two_bits : int64 = Int64.shift_right_logical res 62 in
+      (first_two_bits = 1L) || (first_two_bits = 2L) in
     if(shift <> 0) then 
       set_sz_flags res;
       if(shift = 1) then 

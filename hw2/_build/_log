@@ -20,7 +20,7 @@ ocamlfind ocamlc -c -I x86 -I util -o x86/x86.cmo x86/x86.ml
 # Target: simulator.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:simulator.cmo, file:simulator.ml, implem, ocaml, quiet }
 ocamlfind ocamlc -c -I x86 -I util -o simulator.cmo simulator.ml
 + ocamlfind ocamlc -c -I x86 -I util -o simulator.cmo simulator.ml
-File "simulator.ml", line 612, characters 6-19:
+File "simulator.ml", line 611, characters 6-19:
 Warning 26: unused variable text_seg_size.
 # Target: studenttests.ml.depends, tags: { extension:ml, file:studenttests.ml, ocaml, ocamldep, quiet }
 ocamlfind ocamldep -modules studenttests.ml > studenttests.ml.depends
@@ -43,7 +43,7 @@ ocamlfind ocamlopt -c -I x86 -I util -o x86/x86.cmx x86/x86.ml
 # Target: simulator.cmx, tags: { compile, extension:cmx, extension:ml, file:simulator.cmx, file:simulator.ml, implem, native, ocaml, quiet }
 ocamlfind ocamlopt -c -I x86 -I util -o simulator.cmx simulator.ml
 + ocamlfind ocamlopt -c -I x86 -I util -o simulator.cmx simulator.ml
-File "simulator.ml", line 612, characters 6-19:
+File "simulator.ml", line 611, characters 6-19:
 Warning 26: unused variable text_seg_size.
 # Target: gradedtests.cmx, tags: { compile, extension:cmx, extension:ml, file:gradedtests.cmx, file:gradedtests.ml, implem, native, ocaml, quiet }
 ocamlfind ocamlopt -c -I x86 -I util -o gradedtests.cmx gradedtests.ml
