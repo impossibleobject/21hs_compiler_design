@@ -150,19 +150,15 @@ let debug_simulator = ref false
 let sbyte_list (a: sbyte array) (start: int) : sbyte list =
   Array.to_list (Array.sub a start 8)
 
-(*L: helper to print int64*)
-let print_int64 (i:int64) : unit = print_int(Int64.to_int i);
-                                   print_endline("")
-
 (* Interpret a condition code with respect to the given flags. *)
 let interp_cnd {fo; fs; fz} : cnd -> bool = fun x -> 
   begin match x with
-    | Eq -> fz
+    | Eq  -> fz
     | Neq -> not fz
-    | Gt -> not ((fs <> fo) || fz)
-    | Ge -> not ((fs <> fo) || ((fs && not fo) || ((not fs) && fo)))
-    | Lt -> (fs <> fo) || ((fs && not fo) || ((not fs) && fo))
-    | Le -> (fs <> fo) || fz
+    | Gt  -> not ((fs <> fo) || fz)
+    | Ge  -> not ((fs <> fo) || ((fs && not fo) || ((not fs) && fo)))
+    | Lt  -> (fs <> fo) || ((fs && not fo) || ((not fs) && fo))
+    | Le  -> (fs <> fo) || fz
   end
 
 (* Maps an X86lite address into Some OCaml array index,
@@ -173,7 +169,7 @@ let interp_cnd {fo; fs; fz} : cnd -> bool = fun x ->
 let imm_to_quad (i:imm) : quad = 
   begin match i with 
     | Lit q -> q
-    | _ -> failwith "label in Imm"
+    | _     -> failwith "label in Imm"
   end
 
 (*F: wrap quad in immediate*)
@@ -202,8 +198,8 @@ let addr_to_idx (q:quad) : int =
 (*helper to get mem addr*)
 let get_addr (r:regs) (o:operand) : int64 =
   begin match o with
-    | Ind1 imm -> (imm_to_quad imm)
-    | Ind2 reg -> (r.(rind reg))
+    | Ind1 imm -> imm_to_quad imm
+    | Ind2 reg -> r.(rind reg)
     | Ind3 (i, reg) -> (Int64.add r.(rind reg) (imm_to_quad i))
     | _ -> failwith "get_addr should not be called with reg or imm"
   end
@@ -257,7 +253,7 @@ let set_mem (r:regs) (m:mem) (src:operand) (des:operand) : unit =
     - set the condition flags
 *)
 let step (m:mach) : unit =
-  (*shorthands*)
+  (*L: shorthands*)
   let flags = m.flags in
   let regs = m.regs in
   let mem = m.mem in
@@ -266,27 +262,27 @@ let step (m:mach) : unit =
   let set_sz_flags (res:int64) : unit = 
     if(res = 0L) then (flags.fz <- true;) else (flags.fz <- false);
     if(res < 0L) then (flags.fs <- true;) else (flags.fs <- false) in
-  (*get the current instr and move %rip*)
-  let get_ins : ins =
+  (*L: get the current instr and move %rip*)
+  let get_curr_ins : ins =
     let memcontent = mem.(addr_to_idx regs.(rind Rip)) in
     begin match memcontent with
       | InsB0 instr -> instr
       | _ -> failwith "not an InsB0"
     end in
-  let (opcode, ls) = get_ins in
+  let (opcode, ls) = get_curr_ins in
   regs.(rind Rip) <- Int64.add regs.(rind Rip) 8L;
   (*L: helpers for arithmetic instr*)
-  let bin_arithm_shift (src:operand) (dst:operand) (func: int64 -> int -> int64) (variant:int): unit =
-    let shift = Int64.to_int (get_mem src) in
+  let bin_arithm_shift (src:operand) (dst:operand) (shift: int64 -> int -> int64) (variant:int): unit =
+    let amt = Int64.to_int (get_mem src) in
     let original = get_mem dst in
-    let res = func original shift in
+    let res = shift original amt in
     set_mem (quad_to_imm res) dst;
     let first_two_bits_diff : bool = 
-      let first_two_bits : int64 = Int64.shift_right_logical res 62 in
+      let first_two_bits : int64 = Int64.shift_right_logical original 62 in
       (first_two_bits = 1L) || (first_two_bits = 2L) in
-    if(shift <> 0) then 
+    if(amt <> 0) then 
       set_sz_flags res;
-      if(shift = 1) then 
+      if(amt = 1) then 
         begin match variant with
           | 1 -> if (first_two_bits_diff) then (flags.fo <- true;)
                  else (flags.fo <- false;)
@@ -330,18 +326,18 @@ let step (m:mach) : unit =
       | _     -> let effective_addr = get_addr regs ind in
                 set_mem (quad_to_imm effective_addr) op2
     end in
-  (*F: -> assumes 'lower byte of dest' means the byte with the smallest addr in mem (out of the 8), 
-    so the byte the op is pointing to already*)
   let setb (cc:cnd) (op:operand) : unit =
+    let set_lower_byte (orig:int64) (lower:int64) : int64 = 
+      let orig_lower_0 = Int64.shift_left (Int64.shift_right orig 8) 8 in
+      Int64.logor orig_lower_0 lower in
     begin match op with
-      | Reg reg -> if (interp_cnd flags cc) then regs.(rind reg) <- 1L
-                  else regs.(rind reg) <- 0L
-      | _ -> let addr = get_idx regs op in
-            let char0 = Char.chr 0 in
-            let char1 = Char.chr 1 in
-            if interp_cnd flags cc 
-              then mem.(addr) <- (Byte char1)
-              else mem.(addr) <- (Byte char0)
+      | Reg reg -> let curr_reg = regs.(rind reg) in
+                   if (interp_cnd flags cc) then 
+                     regs.(rind reg) <- set_lower_byte curr_reg 1L
+                   else regs.(rind reg) <- set_lower_byte curr_reg 0L
+      | _       -> let addr = get_idx regs op in
+                   if interp_cnd flags cc then mem.(addr) <- Byte '\x01'
+                   else mem.(addr) <- Byte '\x00'
     end in
   begin match (opcode, ls) with
     | (Movq, [op1; op2])  -> set_mem op1 op2 
@@ -351,8 +347,7 @@ let step (m:mach) : unit =
     | (Incq, [op])        -> un_arithm_ovf op Ovf.succ
     | (Decq, [op])        -> un_arithm_ovf op Ovf.pred
     | (Negq, [op])        -> un_arithm_ovf op Ovf.neg
-    | (Notq, [op])        -> flags.fo <- false;
-                             set_mem op (quad_to_imm (Int64.lognot (get_mem op))) 
+    | (Notq, [op])        -> set_mem (quad_to_imm (Int64.lognot (get_mem op))) op
     | (Addq, [op1; op2])  -> bin_arithm_ofv op1 op2 Ovf.add true
     | (Subq, [op1; op2])  -> bin_arithm_ofv op1 op2 Ovf.sub true
     | (Imulq, [op1; op2]) -> bin_arithm_ofv op1 op2 Ovf.mul true
@@ -414,13 +409,12 @@ exception Redefined_sym of lbl
   HINT: List.fold_left and List.fold_right are your friends.
  *)
 
+(*L: helpers for labels*)
 type lbl_offsets = {
   lbl:lbl;
   start:int;
   finish:int;
 }
-
-
 let offset_addition (tupls: lbl_offsets list) (init_offset:int) : (lbl_offsets list * int) = 
   let rec offset_add_aux (tupls: lbl_offsets list) (offset:int) : (lbl_offsets list * int) =
     begin match tupls with
@@ -434,37 +428,18 @@ let offset_addition (tupls: lbl_offsets list) (init_offset:int) : (lbl_offsets l
                   let res = offset_add_aux ls h_new.finish in
                   (h_new :: fst res), snd res
     end in
-    offset_add_aux tupls init_offset
-
-let offset_addition_old (tupls: lbl_offsets list) : lbl_offsets list =
-  let tupls_len = List.length tupls in
-  if (tupls_len == 0 || tupls_len == 1) 
-    then tupls 
-  else 
-    let new_tupls = ref ((List.hd tupls)::[]) in
-    for i=1 to (tupls_len-1) do
-      let curr = List.nth tupls i in
-      let pred = List.nth tupls (i-1) in
-      new_tupls := (!new_tupls) @ [{lbl = curr.lbl; start = curr.start + pred.finish; finish = curr.finish + pred.finish}]
-    done;
-    !new_tupls
-
-let length_asm (asm:asm) : int = 
-  begin match asm with
-    | Text ls -> 8 * List.length ls
-    | Data ls -> List.length ls
-  end
+  offset_add_aux tupls init_offset
 
 let get_lbl_and_offsets (e:elem) : lbl_offsets = 
+  let length_asm (asm:asm) : int = 
+    begin match asm with
+      | Text ls -> 8 * List.length ls
+      | Data ls -> List.length ls
+    end in
   {lbl = e.lbl; start = 0; finish = length_asm e.asm}
 
-let filter_text_seg (e:elem) : bool =
-  let list = e.asm in
-  begin match list with
-    | Text instr -> true
-    | _ -> false
-  end
 
+(*L: helpers for symbol table*)
 let symbol_table_constr (tupls:lbl_offsets list) : (lbl * int64) list =
   let symbol_table = ref [] in
   for i=0 to ((List.length tupls)-1) do
@@ -473,22 +448,6 @@ let symbol_table_constr (tupls:lbl_offsets list) : (lbl * int64) list =
     else symbol_table := !symbol_table @ [(curr.lbl, Int64.add (Int64.of_int curr.start) mem_bot)]
   done;
   !symbol_table
-    
-
-
-
-let get_asm_text (asm:asm) : (ins list) =
-  begin match asm with
-    | Text il -> il
-    | _ -> failwith "wanted instr list got data list"
-  end
-
-let get_asm_data (asm:asm) : (data list) =
-  begin match asm with
-    | Data dl -> dl
-    | _ -> failwith "wanted data list got instr list"
-  end
-
 
 let map_symbol (symtab:(lbl*int64)list) (lbl:lbl) : int64 =
   try
@@ -497,46 +456,62 @@ let map_symbol (symtab:(lbl*int64)list) (lbl:lbl) : int64 =
   with
     | Not_found -> raise (Undefined_sym lbl)
 
+
+(*L: general helpers*)
 let transl_imm (i:imm) (st:(lbl * int64) list): imm  =
   begin match i with
     | Lit q -> i
     | Lbl l -> (Lit (map_symbol st l))
   end
 
-let clean_instr (st:(lbl * int64) list) (ins:ins) : ins = 
-  let clean_op (op:operand) : operand =
-    begin match op with
-      | Imm i -> Imm (transl_imm i st)
-      | Ind1 i -> Ind1 (transl_imm i st)
-      | Ind3 (i,r) -> Ind3 ((transl_imm i st), r)
-      | _ -> op
+let unpack_insl_from_elem (p:prog) (st:(lbl * int64) list): ins list = 
+  let get_asm_text (asm:asm) : (ins list) =
+    begin match asm with
+      | Text il -> il
+      | _ -> failwith "wanted instr list got data list"
+    end in
+  let clean_instr (ins:ins) : ins = 
+    let clean_op (op:operand) : operand =
+      begin match op with
+        | Imm i -> Imm (transl_imm i st)
+        | Ind1 i -> Ind1 (transl_imm i st)
+        | Ind3 (i,r) -> Ind3 ((transl_imm i st), r)
+        | _ -> op
+      end
+    in
+    let opcode, operand_ls = ins in
+    begin match operand_ls with
+      | [] -> opcode, operand_ls
+      | ls -> opcode, (List.map clean_op ls) 
     end
   in
-  let opcode, operand_ls = ins in
-  begin match operand_ls with
-    | [] -> opcode, operand_ls
-    | ls -> opcode, (List.map clean_op ls) 
-  end
-
-let unpack_insl_from_elem (p:prog) (st:(lbl * int64) list): ins list = 
   let tmp = List.map (fun e -> e.asm) p in 
   let unclean = List.concat (List.map get_asm_text tmp) in
-  List.map (clean_instr st) unclean
-
-let clean_data (st:(lbl * int64) list) (d:data) : data = 
-  begin match d with
-    | Quad i -> Quad (transl_imm i st)
-    | Asciz s -> d
-  end
+  List.map clean_instr unclean
 
 let unpack_datal_from_elem (p:prog) (st:(lbl * int64) list): data list = 
+  let get_asm_data (asm:asm) : (data list) =
+    begin match asm with
+      | Data dl -> dl
+      | _ -> failwith "wanted data list got instr list"
+    end in
+  let clean_data (d:data) : data = 
+    begin match d with
+      | Quad i -> Quad (transl_imm i st)
+      | Asciz s -> d
+    end in
   let tmp = List.map (fun e -> e.asm) p in 
   let unclean = List.concat (List.map get_asm_data tmp) in
-  List.map (clean_data st) unclean
+  List.map clean_data unclean
 
 
 
 let assemble (p:prog) : exec =
+  let filter_text_seg (e:elem) : bool =
+    begin match e.asm with
+      | Text instr -> true
+      | _ -> false
+    end in
   let (prog_only_text, prog_only_data) = List.partition filter_text_seg p in
   let text_lbl_offset_ls, offset_data =
     (offset_addition (List.map get_lbl_and_offsets prog_only_text) 0) in

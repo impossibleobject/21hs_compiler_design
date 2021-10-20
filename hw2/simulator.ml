@@ -150,19 +150,15 @@ let debug_simulator = ref false
 let sbyte_list (a: sbyte array) (start: int) : sbyte list =
   Array.to_list (Array.sub a start 8)
 
-(*L: helper to print int64*)
-let print_int64 (i:int64) : unit = print_int(Int64.to_int i);
-                                   print_endline("")
-
 (* Interpret a condition code with respect to the given flags. *)
 let interp_cnd {fo; fs; fz} : cnd -> bool = fun x -> 
   begin match x with
-    | Eq -> fz
+    | Eq  -> fz
     | Neq -> not fz
-    | Gt -> not ((fs <> fo) || fz)
-    | Ge -> not ((fs <> fo) || ((fs && not fo) || ((not fs) && fo)))
-    | Lt -> (fs <> fo) || ((fs && not fo) || ((not fs) && fo))
-    | Le -> (fs <> fo) || fz
+    | Gt  -> not ((fs <> fo) || fz)
+    | Ge  -> not ((fs <> fo) || ((fs && not fo) || ((not fs) && fo)))
+    | Lt  -> (fs <> fo) || ((fs && not fo) || ((not fs) && fo))
+    | Le  -> (fs <> fo) || fz
   end
 
 (* Maps an X86lite address into Some OCaml array index,
@@ -173,7 +169,7 @@ let interp_cnd {fo; fs; fz} : cnd -> bool = fun x ->
 let imm_to_quad (i:imm) : quad = 
   begin match i with 
     | Lit q -> q
-    | _ -> failwith "label in Imm"
+    | _     -> failwith "label in Imm"
   end
 
 (*F: wrap quad in immediate*)
@@ -202,10 +198,10 @@ let addr_to_idx (q:quad) : int =
 (*helper to get mem addr*)
 let get_addr (r:regs) (o:operand) : int64 =
   begin match o with
-    | Ind1 imm -> (imm_to_quad imm)
-    | Ind2 reg -> (r.(rind reg))
-    | Ind3 (i, reg) -> (Int64.add r.(rind reg) (imm_to_quad i))
-    | _ -> failwith "get_addr should not be called with reg or imm"
+    | Ind1 imm      -> imm_to_quad imm
+    | Ind2 reg      -> r.(rind reg)
+    | Ind3 (i, reg) -> Int64.add r.(rind reg) (imm_to_quad i)
+    | _             -> failwith "get_addr should not be called with reg or imm"
   end
 (*L: F: Helper function to index into mem array*)
 let get_idx (r:regs) (o:operand) : int =
@@ -223,9 +219,9 @@ let get_mem (regs:regs) (mem:mem) (op:operand) : int64 =
 (*L: Assignment 2 info -> no lbls for Instruction operands*)
 let interp_op (op:operand) (r:regs) (m:mem) : quad = 
   begin match op with
-    | Imm i     -> imm_to_quad i
-    | Reg x     -> r.(rind x)
-    | _         -> get_mem r m op
+    | Imm i -> imm_to_quad i
+    | Reg x -> r.(rind x)
+    | _     -> get_mem r m op
   end
 
 (*F: put byte list into mem*)
