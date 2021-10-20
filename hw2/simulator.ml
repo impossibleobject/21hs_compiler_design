@@ -257,7 +257,7 @@ let set_mem (r:regs) (m:mem) (src:operand) (des:operand) : unit =
     - set the condition flags
 *)
 let step (m:mach) : unit =
-  (*shorthands*)
+  (*L: shorthands*)
   let flags = m.flags in
   let regs = m.regs in
   let mem = m.mem in
@@ -266,14 +266,14 @@ let step (m:mach) : unit =
   let set_sz_flags (res:int64) : unit = 
     if(res = 0L) then (flags.fz <- true;) else (flags.fz <- false);
     if(res < 0L) then (flags.fs <- true;) else (flags.fs <- false) in
-  (*get the current instr and move %rip*)
-  let get_ins : ins =
+  (*L: get the current instr and move %rip*)
+  let get_curr_ins : ins =
     let memcontent = mem.(addr_to_idx regs.(rind Rip)) in
     begin match memcontent with
       | InsB0 instr -> instr
       | _ -> failwith "not an InsB0"
     end in
-  let (opcode, ls) = get_ins in
+  let (opcode, ls) = get_curr_ins in
   regs.(rind Rip) <- Int64.add regs.(rind Rip) 8L;
   (*L: helpers for arithmetic instr*)
   let bin_arithm_shift (src:operand) (dst:operand) (func: int64 -> int -> int64) (variant:int): unit =
@@ -414,13 +414,12 @@ exception Redefined_sym of lbl
   HINT: List.fold_left and List.fold_right are your friends.
  *)
 
+(*L: helpers for labels*)
 type lbl_offsets = {
   lbl:lbl;
   start:int;
   finish:int;
 }
-
-
 let offset_addition (tupls: lbl_offsets list) (init_offset:int) : (lbl_offsets list * int) = 
   let rec offset_add_aux (tupls: lbl_offsets list) (offset:int) : (lbl_offsets list * int) =
     begin match tupls with
@@ -434,37 +433,18 @@ let offset_addition (tupls: lbl_offsets list) (init_offset:int) : (lbl_offsets l
                   let res = offset_add_aux ls h_new.finish in
                   (h_new :: fst res), snd res
     end in
-    offset_add_aux tupls init_offset
-
-let offset_addition_old (tupls: lbl_offsets list) : lbl_offsets list =
-  let tupls_len = List.length tupls in
-  if (tupls_len == 0 || tupls_len == 1) 
-    then tupls 
-  else 
-    let new_tupls = ref ((List.hd tupls)::[]) in
-    for i=1 to (tupls_len-1) do
-      let curr = List.nth tupls i in
-      let pred = List.nth tupls (i-1) in
-      new_tupls := (!new_tupls) @ [{lbl = curr.lbl; start = curr.start + pred.finish; finish = curr.finish + pred.finish}]
-    done;
-    !new_tupls
-
-let length_asm (asm:asm) : int = 
-  begin match asm with
-    | Text ls -> 8 * List.length ls
-    | Data ls -> List.length ls
-  end
+  offset_add_aux tupls init_offset
 
 let get_lbl_and_offsets (e:elem) : lbl_offsets = 
+  let length_asm (asm:asm) : int = 
+    begin match asm with
+      | Text ls -> 8 * List.length ls
+      | Data ls -> List.length ls
+    end in
   {lbl = e.lbl; start = 0; finish = length_asm e.asm}
 
-let filter_text_seg (e:elem) : bool =
-  let list = e.asm in
-  begin match list with
-    | Text instr -> true
-    | _ -> false
-  end
 
+(*L: helpers for symbol table*)
 let symbol_table_constr (tupls:lbl_offsets list) : (lbl * int64) list =
   let symbol_table = ref [] in
   for i=0 to ((List.length tupls)-1) do
@@ -473,22 +453,6 @@ let symbol_table_constr (tupls:lbl_offsets list) : (lbl * int64) list =
     else symbol_table := !symbol_table @ [(curr.lbl, Int64.add (Int64.of_int curr.start) mem_bot)]
   done;
   !symbol_table
-    
-
-
-
-let get_asm_text (asm:asm) : (ins list) =
-  begin match asm with
-    | Text il -> il
-    | _ -> failwith "wanted instr list got data list"
-  end
-
-let get_asm_data (asm:asm) : (data list) =
-  begin match asm with
-    | Data dl -> dl
-    | _ -> failwith "wanted data list got instr list"
-  end
-
 
 let map_symbol (symtab:(lbl*int64)list) (lbl:lbl) : int64 =
   try
@@ -497,46 +461,62 @@ let map_symbol (symtab:(lbl*int64)list) (lbl:lbl) : int64 =
   with
     | Not_found -> raise (Undefined_sym lbl)
 
+
+(*L: general helpers*)
 let transl_imm (i:imm) (st:(lbl * int64) list): imm  =
   begin match i with
     | Lit q -> i
     | Lbl l -> (Lit (map_symbol st l))
   end
 
-let clean_instr (st:(lbl * int64) list) (ins:ins) : ins = 
-  let clean_op (op:operand) : operand =
-    begin match op with
-      | Imm i -> Imm (transl_imm i st)
-      | Ind1 i -> Ind1 (transl_imm i st)
-      | Ind3 (i,r) -> Ind3 ((transl_imm i st), r)
-      | _ -> op
+let unpack_insl_from_elem (p:prog) (st:(lbl * int64) list): ins list = 
+  let get_asm_text (asm:asm) : (ins list) =
+    begin match asm with
+      | Text il -> il
+      | _ -> failwith "wanted instr list got data list"
+    end in
+  let clean_instr (ins:ins) : ins = 
+    let clean_op (op:operand) : operand =
+      begin match op with
+        | Imm i -> Imm (transl_imm i st)
+        | Ind1 i -> Ind1 (transl_imm i st)
+        | Ind3 (i,r) -> Ind3 ((transl_imm i st), r)
+        | _ -> op
+      end
+    in
+    let opcode, operand_ls = ins in
+    begin match operand_ls with
+      | [] -> opcode, operand_ls
+      | ls -> opcode, (List.map clean_op ls) 
     end
   in
-  let opcode, operand_ls = ins in
-  begin match operand_ls with
-    | [] -> opcode, operand_ls
-    | ls -> opcode, (List.map clean_op ls) 
-  end
-
-let unpack_insl_from_elem (p:prog) (st:(lbl * int64) list): ins list = 
   let tmp = List.map (fun e -> e.asm) p in 
   let unclean = List.concat (List.map get_asm_text tmp) in
-  List.map (clean_instr st) unclean
-
-let clean_data (st:(lbl * int64) list) (d:data) : data = 
-  begin match d with
-    | Quad i -> Quad (transl_imm i st)
-    | Asciz s -> d
-  end
+  List.map clean_instr unclean
 
 let unpack_datal_from_elem (p:prog) (st:(lbl * int64) list): data list = 
+  let get_asm_data (asm:asm) : (data list) =
+    begin match asm with
+      | Data dl -> dl
+      | _ -> failwith "wanted data list got instr list"
+    end in
+  let clean_data (d:data) : data = 
+    begin match d with
+      | Quad i -> Quad (transl_imm i st)
+      | Asciz s -> d
+    end in
   let tmp = List.map (fun e -> e.asm) p in 
   let unclean = List.concat (List.map get_asm_data tmp) in
-  List.map (clean_data st) unclean
+  List.map clean_data unclean
 
 
 
 let assemble (p:prog) : exec =
+  let filter_text_seg (e:elem) : bool =
+    begin match e.asm with
+      | Text instr -> true
+      | _ -> false
+    end in
   let (prog_only_text, prog_only_data) = List.partition filter_text_seg p in
   let text_lbl_offset_ls, offset_data =
     (offset_addition (List.map get_lbl_and_offsets prog_only_text) 0) in

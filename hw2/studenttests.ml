@@ -127,7 +127,7 @@ let ind2_test =
 
 let provided_tests : suite = [
   Test ("Debug", [
-    ("Retq", assert_eqf (fun () -> program_test myOwn) 0L );
+    ("Retq", assert_eqf (fun () -> program_test myOwn) 0L);
     ("Mem_top", assert_eqf (fun () -> program_test myOwn2) 0L );
     ("Fact", assert_eqf (fun () -> program_test (factorial_iter 6)) 720L );
     ("Gcd",  assert_eqf (fun () -> program_test (gcd  25493 21463)) 13L );
