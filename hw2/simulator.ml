@@ -276,17 +276,17 @@ let step (m:mach) : unit =
   let (opcode, ls) = get_curr_ins in
   regs.(rind Rip) <- Int64.add regs.(rind Rip) 8L;
   (*L: helpers for arithmetic instr*)
-  let bin_arithm_shift (src:operand) (dst:operand) (func: int64 -> int -> int64) (variant:int): unit =
-    let shift = Int64.to_int (get_mem src) in
+  let bin_arithm_shift (src:operand) (dst:operand) (shift: int64 -> int -> int64) (variant:int): unit =
+    let amt = Int64.to_int (get_mem src) in
     let original = get_mem dst in
-    let res = func original shift in
+    let res = shift original amt in
     set_mem (quad_to_imm res) dst;
     let first_two_bits_diff : bool = 
-      let first_two_bits : int64 = Int64.shift_right_logical res 62 in
+      let first_two_bits : int64 = Int64.shift_right_logical original 62 in
       (first_two_bits = 1L) || (first_two_bits = 2L) in
-    if(shift <> 0) then 
+    if(amt <> 0) then 
       set_sz_flags res;
-      if(shift = 1) then 
+      if(amt = 1) then 
         begin match variant with
           | 1 -> if (first_two_bits_diff) then (flags.fo <- true;)
                  else (flags.fo <- false;)
@@ -330,18 +330,18 @@ let step (m:mach) : unit =
       | _     -> let effective_addr = get_addr regs ind in
                 set_mem (quad_to_imm effective_addr) op2
     end in
-  (*F: -> assumes 'lower byte of dest' means the byte with the smallest addr in mem (out of the 8), 
-    so the byte the op is pointing to already*)
   let setb (cc:cnd) (op:operand) : unit =
+    let set_lower_byte (orig:int64) (lower:int64) : int64 = 
+      let orig_lower_0 = Int64.shift_left (Int64.shift_right orig 8) 8 in
+      Int64.logor orig_lower_0 lower in
     begin match op with
-      | Reg reg -> if (interp_cnd flags cc) then regs.(rind reg) <- 1L
-                  else regs.(rind reg) <- 0L
-      | _ -> let addr = get_idx regs op in
-            let char0 = Char.chr 0 in
-            let char1 = Char.chr 1 in
-            if interp_cnd flags cc 
-              then mem.(addr) <- (Byte char1)
-              else mem.(addr) <- (Byte char0)
+      | Reg reg -> let curr_reg = regs.(rind reg) in
+                   if (interp_cnd flags cc) then 
+                     regs.(rind reg) <- set_lower_byte curr_reg 1L
+                   else regs.(rind reg) <- set_lower_byte curr_reg 0L
+      | _       -> let addr = get_idx regs op in
+                   if interp_cnd flags cc then mem.(addr) <- Byte '\x01'
+                   else mem.(addr) <- Byte '\x00'
     end in
   begin match (opcode, ls) with
     | (Movq, [op1; op2])  -> set_mem op1 op2 
@@ -351,8 +351,7 @@ let step (m:mach) : unit =
     | (Incq, [op])        -> un_arithm_ovf op Ovf.succ
     | (Decq, [op])        -> un_arithm_ovf op Ovf.pred
     | (Negq, [op])        -> un_arithm_ovf op Ovf.neg
-    | (Notq, [op])        -> flags.fo <- false;
-                             set_mem op (quad_to_imm (Int64.lognot (get_mem op))) 
+    | (Notq, [op])        -> set_mem (quad_to_imm (Int64.lognot (get_mem op))) op
     | (Addq, [op1; op2])  -> bin_arithm_ofv op1 op2 Ovf.add true
     | (Subq, [op1; op2])  -> bin_arithm_ofv op1 op2 Ovf.sub true
     | (Imulq, [op1; op2]) -> bin_arithm_ofv op1 op2 Ovf.mul true
