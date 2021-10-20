@@ -144,7 +144,7 @@ let sbytes_of_data : data -> sbyte list = function
      [if !debug_simulator then print_endline @@ string_of_ins u; ...]
 
 *)
-let debug_simulator = ref true
+let debug_simulator = ref false
 
 (*L: stolen from graded tests*)
 let sbyte_list (a: sbyte array) (start: int) : sbyte list =
@@ -167,10 +167,7 @@ let interp_cnd {fo; fs; fz} : cnd -> bool = fun x ->
 
 (* Maps an X86lite address into Some OCaml array index,
    or None if the address is not within the legal address space. *)
-let map_addr (addr:quad) : int option = 
-  if ((addr < mem_top) && (addr >= mem_bot)) then
-    (Some (Int64.to_int (Int64.sub addr mem_bot))) 
-  else None
+
 
 (*F: unpack immediate to quad*)
 let imm_to_quad (i:imm) : quad = 
@@ -189,29 +186,21 @@ let sbyte_to_char (s:sbyte) : char =
     | _ -> failwith "sbyte is not char"
   end
 
+let map_addr (addr:quad) : int option = 
+  if ((addr < mem_top) && (addr >= mem_bot)) then
+    (Some (Int64.to_int (Int64.sub addr mem_bot))) 
+  else None
+
 (*F: unpack int option from map_addr*)
-let map_addr_safe (q:quad) : int =
+let addr_to_idx (q:quad) : int =
   let i = map_addr q in
   begin match i with
-    | None -> (* print_endline("map addr called with: ");
-              print_int(Int64.to_int q); *)
-              raise X86lite_segfault
+    | None   -> raise X86lite_segfault
     | Some i -> i
   end
 
-(*L: Assignment 2 info -> no lbls for Instruction operands*)
-let interp_op (op:operand) (r:regs) (m:mem) : quad = 
-  begin match op with
-    | Imm i  -> imm_to_quad i
-    | Reg x  -> r.(rind x)
-    | Ind1 i -> int64_of_sbytes (sbyte_list m (map_addr_safe (imm_to_quad i)))
-    | Ind2 reg -> int64_of_sbytes (sbyte_list m (map_addr_safe (r.(rind reg))))
-    | Ind3 (i, reg) -> int64_of_sbytes (sbyte_list m (map_addr_safe 
-                       (Int64.add r.(rind reg) (imm_to_quad i))))
-  end
-
 (*helper to get mem addr*)
-let get_addr (o:operand) (r:regs) : int64 =
+let get_addr (r:regs) (o:operand) : int64 =
   begin match o with
     | Ind1 imm -> (imm_to_quad imm)
     | Ind2 reg -> (r.(rind reg))
@@ -219,8 +208,25 @@ let get_addr (o:operand) (r:regs) : int64 =
     | _ -> failwith "get_addr should not be called with reg or imm"
   end
 (*L: F: Helper function to index into mem array*)
-let get_idx (o:operand) (r:regs) : int =
-  map_addr_safe (get_addr o r)
+let get_idx (r:regs) (o:operand) : int =
+  addr_to_idx (get_addr r o)
+
+let get_mem (regs:regs) (mem:mem) (op:operand) : int64 = 
+  let get_mem_from_idx (idx:int) : int64 = 
+    int64_of_sbytes (Array.to_list (Array.sub mem idx 8)) in
+  begin match op with
+    | Imm i -> imm_to_quad i
+    | Reg r -> regs.(rind r)
+    | _     -> get_mem_from_idx (get_idx regs op)
+  end
+
+(*L: Assignment 2 info -> no lbls for Instruction operands*)
+let interp_op (op:operand) (r:regs) (m:mem) : quad = 
+  begin match op with
+    | Imm i     -> imm_to_quad i
+    | Reg x     -> r.(rind x)
+    | _         -> get_mem r m op
+  end
 
 (*F: put byte list into mem*)
 let quad_sbyte_list_into_mem (bls:sbyte list) (mem:mem) (addr:int) : unit =
@@ -233,74 +239,15 @@ let quad_into_reg (q:quad) (regs:regs) (r:reg) : unit =
   Array.set regs (rind r) q
 
 (*F: pattern matching for movq*)
-let set_mem (src:operand) (des:operand) (r:regs) (m:mem) : unit =
-  (* print_endline ("set_mem src:  " ^ (Int64.to_string (interp_op src r m))); *)
+let set_mem (r:regs) (m:mem) (src:operand) (des:operand) : unit =
   begin match des with
     | Imm i   -> failwith "set_mem can't write to imm"
     | Reg reg -> quad_into_reg (interp_op src r m) r reg
     | _       -> quad_sbyte_list_into_mem
-                 (sbytes_of_int64 (interp_op src r m)) m (get_idx des r)
+                 (sbytes_of_int64 (interp_op src r m)) m (get_idx r des)
   end
 
-(*F: helper function for pushq*)
-let pushq_helper (op:operand) (r:regs) (m:mem) : unit =
-  let rsp_new_val = Int64.sub r.(rind Rsp) 8L in
-  r.(rind Rsp) <- rsp_new_val;
-  set_mem op (Ind2 Rsp) r m
 
-(*F: helper function for popq*)
-let popq_helper (op:operand) (r:regs) (m:mem) : unit =
-  let rsp_old_val = r.(rind Rsp) in
-  let rsp_new_val = Int64.add rsp_old_val 8L in
-  (* print_endline ("Rsp original " ^ (Int64.to_string r.(rind Rsp))); *)
-  set_mem (Ind2 Rsp) op r m;
-  (* print_endline ("Rax  " ^ (Int64.to_string r.(rind Rax))); *)
-  r.(rind Rsp) <- rsp_new_val
-  (* print_endline ("Rsp new " ^ (Int64.to_string r.(rind Rsp))) *)
-
-(*F: helper function for leaq*)
-let leaq_helper (ind:operand) (op2:operand) (r:regs) (m:mem) : unit =
-  begin match ind with
-    | Imm i -> failwith "leaq called with non-indirect operand type!"
-    | Reg i -> failwith "leaq called with non-indirect operand type!"
-    | _ -> let effective_addr = get_addr ind r in
-        set_mem (quad_to_imm effective_addr) op2 r m
-  end
-
-(*F: helper function for jmp*)
-let jmp_helper (op:operand) (r:regs) (m:mem) : unit = 
-  set_mem op (Reg Rip) r m
-
-(*F: helper function for callq*)
-let callq_helper (op:operand) (r:regs) (m:mem) : unit =
-  pushq_helper (Reg Rip) r m;
-  set_mem op (Reg Rip) r m 
-
-(*F: helper function for retq*)
-let retq_helper (r:regs) (m:mem) : unit =
-  popq_helper (Reg Rip) r m
-
-(*F: helper function for jcc*)
-let jcc_helper (cc:cnd) (op:operand) (r:regs) (m:mem) (f:flags) : unit =
-  (* let fallthru_rip = quad_to_imm (Int64.add r.(rind Rip) 8L) in *)
-  if interp_cnd f cc 
-    then set_mem op (Reg Rip) r m 
-    (* else set_mem fallthru_rip (Reg Rip) r m  *)
-
-(*F: helper function for setb 
-  -> assumes 'lower byte of dest' means the byte with the smallest addr in mem (out of the 8), 
-  so the byte the op is pointing to already*)
-let setb_helper (cc:cnd) (op:operand) (r:regs) (m:mem) (f:flags) : unit =
-  begin match op with
-    | Reg reg -> if (interp_cnd f cc) then r.(rind reg) <- 1L
-                else r.(rind reg) <- 0L
-    | _ -> let addr = get_idx op r in
-           let char0 = Char.chr 0 in
-           let char1 = Char.chr 1 in
-           if interp_cnd f cc 
-             then m.(addr) <- (Byte char1)
-             else m.(addr) <- (Byte char0)
-  end
 
 (* Simulates one step of the machine:
     - fetch the instruction at %rip
@@ -310,34 +257,30 @@ let setb_helper (cc:cnd) (op:operand) (r:regs) (m:mem) (f:flags) : unit =
     - set the condition flags
 *)
 let step (m:mach) : unit =
+  (*shorthands*)
   let flags = m.flags in
   let regs = m.regs in
   let mem = m.mem in
-  let get_ins rarray marray =
-    let memcontent = marray.(map_addr_safe regs.(rind Rip)) in
+  let get_mem = get_mem regs mem in
+  let set_mem = set_mem regs mem in
+  let set_sz_flags (res:int64) : unit = 
+    if(res = 0L) then (flags.fz <- true;) else (flags.fz <- false);
+    if(res < 0L) then (flags.fs <- true;) else (flags.fs <- false) in
+  (*get the current instr and move %rip*)
+  let get_ins : ins =
+    let memcontent = mem.(addr_to_idx regs.(rind Rip)) in
     begin match memcontent with
       | InsB0 instr -> instr
       | _ -> failwith "not an InsB0"
     end in
-  let (opcode, ls) = get_ins regs mem in
+  let (opcode, ls) = get_ins in
   regs.(rind Rip) <- Int64.add regs.(rind Rip) 8L;
-  let get_mem_from_idx (idx:int) : int64 = 
-      int64_of_sbytes (Array.to_list (Array.sub mem idx 8)) in
-  let get_mem (op:operand) : int64 = 
-    begin match op with
-      | Imm i       -> imm_to_quad i
-      | Reg r       -> regs.(rind r)
-      | _ -> get_mem_from_idx (get_idx op regs)
-    end
-  in
-  let set_sz_flags (res:int64) : unit = 
-    if(res = 0L) then (flags.fz <- true;) else (flags.fz <- false);
-    if(res < 0L) then (flags.fs <- true;) else (flags.fs <- false) in
+  (*L: helpers for arithmetic instr*)
   let bin_arithm_shift (src:operand) (dst:operand) (func: int64 -> int -> int64) (variant:int): unit =
     let shift = Int64.to_int (get_mem src) in
     let original = get_mem dst in
     let res = func original shift in
-    set_mem (quad_to_imm res) dst regs mem;
+    set_mem (quad_to_imm res) dst;
     let first_two_bits_diff : bool = 
       let first_two_bits : int64 = Int64.shift_right_logical res 62 in
       (first_two_bits = 1L) || (first_two_bits = 2L) in
@@ -357,28 +300,59 @@ let step (m:mach) : unit =
     let res = func (get_mem op2) (get_mem op1) in
     if(((func 1L 1L).value) <> 1L) then set_sz_flags res.value;
     flags.fo <- res.overflow;
-    if(written_to_mem) then set_mem (quad_to_imm res.value) op2 regs mem
+    if(written_to_mem) then set_mem (quad_to_imm res.value) op2
   in
   let un_arithm_ovf (op:operand) (func: int64 -> Ovf.t) : unit = 
     let res = func (get_mem op) in
     set_sz_flags res.value;
     flags.fo <- res.overflow;
-    set_mem (quad_to_imm res.value) op regs mem in
+    set_mem (quad_to_imm res.value) op in
   let bin_log (src:operand) (dst:operand) (func: int64 -> int64 -> int64) : unit =
     flags.fo <- false;
     let resq = func (get_mem src) (get_mem dst) in
     set_sz_flags resq;
-    set_mem (quad_to_imm resq) dst regs mem in
+    set_mem (quad_to_imm resq) dst in
+  (*F: helpers for data moving instr*)
+  let pushq (op:operand) : unit =
+    let rsp_old_val = regs.(rind Rsp) in
+    let rsp_new_val = Int64.sub rsp_old_val 8L in
+    regs.(rind Rsp) <- rsp_new_val;
+    set_mem op (Ind2 Rsp) in
+  let popq (op:operand) : unit =
+    let rsp_old_val = regs.(rind Rsp) in
+    let rsp_new_val = Int64.add rsp_old_val 8L in
+    set_mem (Ind2 Rsp) op;
+    regs.(rind Rsp) <- rsp_new_val in
+  let leaq (ind:operand) (op2:operand) : unit =
+    begin match ind with
+      | Imm i -> failwith "leaq called with non-indirect operand type imm!"
+      | Reg i -> failwith "leaq called with non-indirect operand type reg!"
+      | _     -> let effective_addr = get_addr regs ind in
+                set_mem (quad_to_imm effective_addr) op2
+    end in
+  (*F: -> assumes 'lower byte of dest' means the byte with the smallest addr in mem (out of the 8), 
+    so the byte the op is pointing to already*)
+  let setb (cc:cnd) (op:operand) : unit =
+    begin match op with
+      | Reg reg -> if (interp_cnd flags cc) then regs.(rind reg) <- 1L
+                  else regs.(rind reg) <- 0L
+      | _ -> let addr = get_idx regs op in
+            let char0 = Char.chr 0 in
+            let char1 = Char.chr 1 in
+            if interp_cnd flags cc 
+              then mem.(addr) <- (Byte char1)
+              else mem.(addr) <- (Byte char0)
+    end in
   begin match (opcode, ls) with
-    | (Movq, [op1; op2])  -> set_mem op1 op2 regs mem
-    | (Pushq, [op])       -> pushq_helper op regs mem
-    | (Popq, [op])        -> popq_helper op regs mem
-    | (Leaq, [ind; op2])  -> leaq_helper ind op2 regs mem
+    | (Movq, [op1; op2])  -> set_mem op1 op2 
+    | (Pushq, [op])       -> pushq op
+    | (Popq, [op])        -> popq op
+    | (Leaq, [ind; op2])  -> leaq ind op2
     | (Incq, [op])        -> un_arithm_ovf op Ovf.succ
     | (Decq, [op])        -> un_arithm_ovf op Ovf.pred
     | (Negq, [op])        -> un_arithm_ovf op Ovf.neg
     | (Notq, [op])        -> flags.fo <- false;
-                             set_mem op (quad_to_imm (Int64.lognot (get_mem op))) regs mem 
+                             set_mem op (quad_to_imm (Int64.lognot (get_mem op))) 
     | (Addq, [op1; op2])  -> bin_arithm_ofv op1 op2 Ovf.add true
     | (Subq, [op1; op2])  -> bin_arithm_ofv op1 op2 Ovf.sub true
     | (Imulq, [op1; op2]) -> bin_arithm_ofv op1 op2 Ovf.mul true
@@ -388,12 +362,13 @@ let step (m:mach) : unit =
     | (Shlq, [op1; op2])  -> bin_arithm_shift op1 op2 Int64.shift_left 1
     | (Sarq, [op1; op2])  -> bin_arithm_shift op1 op2 Int64.shift_right 2
     | (Shrq, [op1; op2])  -> bin_arithm_shift op1 op2 Int64.shift_right_logical 3
-    | (Jmp, [op])         -> jmp_helper op regs mem
-    | (J cc, [op])        -> jcc_helper cc op regs mem m.flags
+    | (Jmp, [op])         -> set_mem op (Reg Rip)
+    | (J cc, [op])        -> if (interp_cnd flags cc) then set_mem op (Reg Rip)
     | (Cmpq, [op1;op2])   -> bin_arithm_ofv op1 op2 Ovf.sub false
-    | (Set cc, [op])      -> setb_helper cc op regs mem m.flags
-    | (Callq, [op])       -> callq_helper op regs mem
-    | (Retq, [])          -> retq_helper regs mem
+    | (Set cc, [op])      -> setb cc op 
+    | (Callq, [op])       -> pushq (Reg Rip);
+                             set_mem op (Reg Rip) 
+    | (Retq, [])          -> popq (Reg Rip) 
     | _ -> failwith "not a proper opcode"
   end
 
@@ -569,7 +544,6 @@ let assemble (p:prog) : exec =
     (offset_addition (List.map get_lbl_and_offsets prog_only_data) offset_data) in
   let lbl_offset_ls = (List.append text_lbl_offset_ls data_lbl_offset_ls) in
   let symbol_table = symbol_table_constr lbl_offset_ls in
-  let text_seg_size = Int64.of_int ((List.hd (List.rev text_lbl_offset_ls)).finish * 8) in
   let text_seg = List.concat (List.map sbytes_of_ins (unpack_insl_from_elem prog_only_text symbol_table)) in
   let data_seg = List.concat (List.map sbytes_of_data (unpack_datal_from_elem prog_only_data symbol_table)) in
   let entry = map_symbol symbol_table "main" in
@@ -605,9 +579,9 @@ let load {entry; text_pos; data_pos; text_seg; data_seg} : mach =
   let mem = Array.make mem_size (Byte '\x00') in
   let text_arr = Array.of_list text_seg in
   let data_arr = Array.of_list data_seg in
-  Array.blit text_arr 0 mem (map_addr_safe text_pos) (Array.length text_arr);
-  Array.blit data_arr 0 mem (map_addr_safe data_pos) (Array.length data_arr);
-  set_mem (Imm (Lit entry)) (Reg Rip) regs mem;
-  set_mem (Imm (Lit (Int64.sub mem_top 8L))) (Reg Rsp) regs mem;
-  set_mem (Imm (Lit exit_addr)) (Ind2 Rsp) regs mem;
+  Array.blit text_arr 0 mem (addr_to_idx text_pos) (Array.length text_arr);
+  Array.blit data_arr 0 mem (addr_to_idx data_pos) (Array.length data_arr);
+  set_mem regs mem (Imm (Lit entry)) (Reg Rip);
+  set_mem regs mem (Imm (Lit (Int64.sub mem_top 8L))) (Reg Rsp);
+  set_mem regs mem (Imm (Lit exit_addr)) (Ind2 Rsp);
   {flags = flags; regs = regs; mem = mem;}
