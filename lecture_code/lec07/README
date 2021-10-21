@@ -1,0 +1,7 @@
+prerequisites: clang, opt, xdot
+
+To display the CFGs use the following:
+make view_ackermann
+make view_ackermann_opt
+make view_loops
+make view_loops_opt

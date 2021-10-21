@@ -1,0 +1,10 @@
+S .
+S util
+S x86
+S ll
+S llprograms
+S output
+B _build
+B _build/util
+B _build/x86
+B _build/ll
