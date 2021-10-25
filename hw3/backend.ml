@@ -222,7 +222,14 @@ let mk_lbl (fn:string) (l:string) = fn ^ "." ^ l
    [fn] - the name of the function containing this terminator
 *)
 let compile_terminator (fn:string) (ctxt:ctxt) (t:Ll.terminator) : ins list =
-  failwith "compile_terminator not implemented"
+  (*L: missing logic to reset stack and put result into %rax
+  let fn_stack_space = List.length ctxt.layout in*)
+  begin match t with
+    | Ret (Void, None) -> [(Retq, [])]
+    | _             -> failwith "compile_terminator only works with void"
+  end
+  
+  
 
 
 (* compiling blocks --------------------------------------------------------- *)
@@ -233,7 +240,12 @@ let compile_terminator (fn:string) (ctxt:ctxt) (t:Ll.terminator) : ins list =
    [blk]  - LLVM IR code for the block
 *)
 let compile_block (fn:string) (ctxt:ctxt) (blk:Ll.block) : ins list =
-  failwith "compile_block not implemented"
+  begin match blk.insns with 
+  (*L: uid of blk.term not handled yet*)
+    | [] -> compile_terminator fn ctxt (snd blk.term)
+    | _  -> failwith "compile_block not implemented for non-empty lists"
+  end
+  
 
 let compile_lbl_block fn lbl ctxt blk : elem =
   Asm.text (mk_lbl fn lbl) (compile_block fn ctxt blk)
@@ -251,7 +263,17 @@ let compile_lbl_block fn lbl ctxt blk : elem =
    [ NOTE: the first six arguments are numbered 0 .. 5 ]
 *)
 let arg_loc (n : int) : operand =
-failwith "arg_loc not implemented"
+  begin match n with
+    | 0 -> Reg Rdi
+    | 1 -> Reg Rsi
+    | 2 -> Reg Rdx
+    | 3 -> Reg Rcx
+    | 4 -> Reg R08
+    | 5 -> Reg R09
+    | _ -> if(n<0) then failwith "can't locate negative arg"
+           else let offset = Lit (Int64.of_int (((n-7)+2)*8)) in 
+           Ind3 (offset, Rbp)
+  end
 
 
 (* We suggest that you create a helper function that computes the
@@ -264,7 +286,16 @@ failwith "arg_loc not implemented"
 
 *)
 let stack_layout (args : uid list) ((block, lbled_blocks):cfg) : layout =
-failwith "stack_layout not implemented"
+  let length = List.length args in
+  let rec fill_params (layout : layout) (acc: int) : layout = 
+    begin match acc with
+      | length -> layout
+      | _      -> fill_params ((List.nth args acc,arg_loc acc)::layout) (acc+1)
+    end
+  in
+  (*L: empty for now, not handling cfg yet*)
+  let local_vars = [] in
+  List.append (fill_params [] 0) local_vars
 
 (* The code for the entry-point of a function must do several things:
 
@@ -283,7 +314,12 @@ failwith "stack_layout not implemented"
      to hold all of the local stack slots.
 *)
 let compile_fdecl (tdecls:(tid * ty) list) (name:string) ({ f_ty; f_param; f_cfg }:fdecl) : prog =
-failwith "compile_fdecl unimplemented"
+  let nr_of_params = List.length f_param in
+  let layout = stack_layout f_param f_cfg in
+  let ctxt = {tdecls = tdecls; layout = layout} in
+  let entry, body = f_cfg in
+  let asm_entry = Text (compile_block name ctxt entry) in
+  [{lbl = name; global = true; asm = asm_entry}]
 
 
 
