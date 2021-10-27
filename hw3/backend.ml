@@ -293,9 +293,23 @@ let stack_layout (args : uid list) ((block, lbled_blocks):cfg) : layout =
       | _      -> fill_params ((List.nth args acc,arg_loc acc)::layout) (acc+1)
     end
   in
+  let rec get_locals ((cnt, acc): (int * layout)) (blk:block) : (int * layout) =
+    let ils = blk.insns in
+    begin match ils with
+      | []      -> (cnt, acc) (*F: terminator uid left out, should not be problematic*)
+      | (uid, i)::tl  -> 
+        begin match i with
+          | (Call _ | Store _) -> get_locals (cnt, acc) {insns = tl; term = blk.term}
+          | _ ->  get_locals (cnt+1, List.append acc [(uid, arg_loc cnt)]) {insns = tl; term = blk.term}
+        end
+    end 
+  in
   (*L: empty for now, not handling cfg yet*)
-  let local_vars = [] in
-  List.append (fill_params [] 0) local_vars
+  let locals_offset = if (length < 6) then 6 else length in
+  let entry_layout = get_locals (locals_offset, []) block in
+  let fold_block = fun (c, a) b -> get_locals (c, a) (snd b) in 
+  let local_vars_body = List.fold_left fold_block entry_layout lbled_blocks in
+  List.append (fill_params [] 0) (snd local_vars_body)
 
 (* The code for the entry-point of a function must do several things:
 
