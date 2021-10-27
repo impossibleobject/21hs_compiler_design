@@ -64,6 +64,7 @@ let lookup m x = List.assoc x m
 
 (* compiling operands  ------------------------------------------------------ *)
 
+
 (* LLVM IR instructions support several kinds of operands.
 
    LL local %uids live in stack slots, whereas global ids live at
@@ -90,7 +91,13 @@ let lookup m x = List.assoc x m
    destination (usually a register).
 *)
 let compile_operand (ctxt:ctxt) (dest:X86.operand) : Ll.operand -> ins =
-  function _ -> failwith "compile_operand unimplemented"
+  fun op ->
+    begin match op with
+      | Null    -> (Movq, [(Imm (Lit 0L)); dest])
+      | Const c -> (Movq, [(Imm (Lit c)); dest])
+      | Gid g   -> (Leaq, [Ind3(Lbl (Platform.mangle g), Rip); dest])
+      | Id l    -> (Movq, [(lookup ctxt.layout l); dest] )
+    end
 
 
 
@@ -199,7 +206,12 @@ failwith "compile_gep not implemented"
    - Bitcast: does nothing interesting at the assembly level
 *)
 let compile_insn (ctxt:ctxt) ((uid:uid), (i:Ll.insn)) : X86.ins list =
-      failwith "compile_insn not implemented"
+  let dest = lookup ctxt.layout uid in 
+  (*L: we are confused by this, lecture 8 did not help => already too optimized*)
+  begin match i with
+    (* | Binop bop ty op1 op2 -> (compile_operand ctxt dest) *)
+    | _ -> failwith "not implemented non binops "     
+  end
 
 
 
@@ -308,8 +320,8 @@ let stack_layout (args : uid list) ((block, lbled_blocks):cfg) : layout =
   let locals_offset = if (length < 6) then 6 else length in
   let entry_layout = get_locals (locals_offset, []) block in
   let fold_block = fun (c, a) b -> get_locals (c, a) (snd b) in 
-  let local_vars_body = List.fold_left fold_block entry_layout lbled_blocks in
-  List.append (fill_params [] 0) (snd local_vars_body)
+  let local_vars = List.fold_left fold_block entry_layout lbled_blocks in
+  List.append (fill_params [] 0) (snd local_vars)
 
 (* The code for the entry-point of a function must do several things:
 
