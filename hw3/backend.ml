@@ -99,6 +99,16 @@ let compile_operand (ctxt:ctxt) (dest:X86.operand) : Ll.operand -> ins =
       | Id l    -> (Movq, [(lookup ctxt.layout l); dest] )
     end
 
+(*L: did not get point of helper above, transformed it for our purposes*)
+let transl_operand (ctxt:ctxt) : Ll.operand -> X86.operand =
+  fun op ->
+    begin match op with
+      | Null    -> Imm (Lit 0L)
+      | Const c -> Imm (Lit c)
+      | Gid g   -> Ind3(Lbl (Platform.mangle g), Rip)
+      | Id l    -> lookup ctxt.layout l
+    end
+
 
 
 (* compiling call  ---------------------------------------------------------- *)
@@ -207,9 +217,25 @@ failwith "compile_gep not implemented"
 *)
 let compile_insn (ctxt:ctxt) ((uid:uid), (i:Ll.insn)) : X86.ins list =
   let dest = lookup ctxt.layout uid in 
+  let top = transl_operand ctxt in
+  let binop (bop:bop) ((op1, op2):(Ll.operand * Ll.operand)) : X86.ins list =
+    let ins = 
+      begin match bop with 
+        | Add  -> Addq
+        | Sub  -> Subq
+        | Mul  -> Imulq
+        | Shl  -> Shlq
+        | Lshr -> Shrq
+        | Ashr -> Sarq
+        | And  -> Andq
+        | Or   -> Orq
+        | Xor  -> Xorq
+      end in
+    [(ins, [top op1; top op2])]
+  in 
   (*L: we are confused by this, lecture 8 did not help => already too optimized*)
   begin match i with
-    (* | Binop bop ty op1 op2 -> (compile_operand ctxt dest) *)
+    | Binop (bop, ty, op1, op2) -> binop bop (op1, op2)
     | _ -> failwith "not implemented non binops "     
   end
 
