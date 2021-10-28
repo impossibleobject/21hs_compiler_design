@@ -231,7 +231,7 @@ let compile_insn (ctxt:ctxt) ((uid:uid), (i:Ll.insn)) : X86.ins list =
         | Or   -> Orq
         | Xor  -> Xorq
       end in
-    [(ins, [top op1; top op2])]
+    [compile_operand ctxt dest op2;(ins, [top op1; dest])]
   in 
   (*L: we are confused by this, lecture 8 did not help => already too optimized*)
   begin match i with
@@ -278,12 +278,10 @@ let compile_terminator (fn:string) (ctxt:ctxt) (t:Ll.terminator) : ins list =
    [blk]  - LLVM IR code for the block
 *)
 let compile_block (fn:string) (ctxt:ctxt) (blk:Ll.block) : ins list =
-  begin match blk.insns with 
-  (*L: uid of blk.term not handled yet*)
-    | [] -> compile_terminator fn ctxt (snd blk.term)
-    | _  -> failwith "compile_block not implemented for non-empty lists"
-  end
-  
+  let instr_list ((insns, term):((uid * insn) list * terminator)) : X86.ins list = 
+    let insls = List.concat (List.map (compile_insn ctxt) insns) in
+    List.append insls (compile_terminator fn ctxt term) in
+  instr_list (blk.insns, snd blk.term)
 
 let compile_lbl_block fn lbl ctxt blk : elem =
   Asm.text (mk_lbl fn lbl) (compile_block fn ctxt blk)
@@ -342,7 +340,6 @@ let stack_layout (args : uid list) ((block, lbled_blocks):cfg) : layout =
         end
     end 
   in
-  (*L: empty for now, not handling cfg yet*)
   let locals_offset = if (length < 6) then 6 else length in
   let entry_layout = get_locals (locals_offset, []) block in
   let fold_block = fun (c, a) b -> get_locals (c, a) (snd b) in 
@@ -366,12 +363,14 @@ let stack_layout (args : uid list) ((block, lbled_blocks):cfg) : layout =
      to hold all of the local stack slots.
 *)
 let compile_fdecl (tdecls:(tid * ty) list) (name:string) ({ f_ty; f_param; f_cfg }:fdecl) : prog =
-  let nr_of_params = List.length f_param in
   let layout = stack_layout f_param f_cfg in
   let ctxt = {tdecls = tdecls; layout = layout} in
   let entry, body = f_cfg in
   let asm_entry = Text (compile_block name ctxt entry) in
-  [{lbl = name; global = true; asm = asm_entry}]
+  let elem_entry = [{lbl = name; global = true; asm = asm_entry}] in
+  let compile_cfg_elem ((lbl, blk):(lbl * block)) : elem = compile_lbl_block name lbl ctxt blk in
+  let elem_cfg = List.map compile_cfg_elem body in 
+  List.append elem_entry elem_cfg
 
 
 
