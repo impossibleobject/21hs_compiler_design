@@ -5,6 +5,6 @@ main:
 	addq	$5, %rax
 	movq	%rax, 8(%rbp)
 	movq	8(%rbp), %rax
-	addq	$8, %rsp
+	addq	$24, %rsp
 	popq	%rbp
 	retq	

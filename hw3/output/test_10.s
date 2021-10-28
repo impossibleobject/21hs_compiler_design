@@ -1,7 +1,10 @@
 	.text
 	.globl	main
 main:
-	movq	$0, %rax
+	jmp	main.end
+	.text
+main.end:
+	movq	$9, %rax
 	addq	$16, %rsp
 	popq	%rbp
 	retq	

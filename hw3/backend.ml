@@ -263,6 +263,7 @@ let mk_lbl (fn:string) (l:string) = fn ^ "." ^ l
    [fn] - the name of the function containing this terminator
 *)
 let compile_terminator (fn:string) (ctxt:ctxt) (t:Ll.terminator) : ins list =
+  let top = transl_operand ctxt in
   let fn_space = Imm (Lit (Int64.of_int (8 * (List.length ctxt.layout)))) in
   let stack_cleanup = [(Addq, [fn_space; Reg Rsp]);
                        (Popq, [Reg Rbp])] in
@@ -272,7 +273,10 @@ let compile_terminator (fn:string) (ctxt:ctxt) (t:Ll.terminator) : ins list =
     | Ret (Void, None)  -> stack_cleanup @ [(Retq, [])]
     | Ret (ty, Some op) -> ((compile_operand ctxt (Reg Rax)) op)::
                             (stack_cleanup @ [(Retq, [])])
-    | _ -> failwith "compile_terminator only works Ret or void gets an operand"
+    | Br lb             -> [(Jmp, [Imm (Lbl (mk_lbl fn lb))])]
+    (*F: no clue what to do with conditional branch, temporary solution for now*)
+    | Cbr (op, l1, l2)  -> [(Cmpq, [(Imm (Lit 0L)); top op]); ((J X86.Eq), [Imm (Lbl (mk_lbl fn l2))]); (Jmp, [Imm (Lbl (mk_lbl fn l1))])]
+    | _ -> failwith "compile_terminator or vscode gets mad"
   end
   
   
@@ -332,10 +336,8 @@ let arg_loc (n : int) : operand =
 let stack_layout (args : uid list) ((block, lbled_blocks):cfg) : layout =
   let length = List.length args in
   let rec fill_params (layout : layout) (acc: int) : layout = 
-    begin match acc with
-      | length -> layout
-      | _      -> fill_params ((List.nth args acc,arg_loc acc)::layout) (acc+1)
-    end
+    if(acc = length) then layout
+    else fill_params ((List.nth args acc,arg_loc acc)::layout) (acc+1)
   in
   let rec get_locals ((cnt, acc): (int * layout)) (blk:block) : (int * layout) =
     let ils = blk.insns in
