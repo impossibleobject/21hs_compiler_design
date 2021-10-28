@@ -231,7 +231,10 @@ let compile_insn (ctxt:ctxt) ((uid:uid), (i:Ll.insn)) : X86.ins list =
         | Or   -> Orq
         | Xor  -> Xorq
       end in
-    [compile_operand ctxt dest op2;(ins, [top op1; dest])]
+    (*L: not a negation but deref, imul has to output into reg, use R10 for temp storage*)
+    [compile_operand ctxt (Reg Rax) op2;
+     (ins, [top op1; (Reg Rax)]);
+     (Movq, [Reg Rax; dest])]
   in 
   (*L: we are confused by this, lecture 8 did not help => already too optimized*)
   begin match i with
@@ -260,11 +263,16 @@ let mk_lbl (fn:string) (l:string) = fn ^ "." ^ l
    [fn] - the name of the function containing this terminator
 *)
 let compile_terminator (fn:string) (ctxt:ctxt) (t:Ll.terminator) : ins list =
+  let fn_space = Imm (Lit (Int64.of_int (8 * (List.length ctxt.layout)))) in
+  let stack_cleanup = [(Addq, [fn_space; Reg Rsp]);
+                       (Popq, [Reg Rbp])] in
   (*L: missing logic to reset stack and put result into %rax
   let fn_stack_space = List.length ctxt.layout in*)
   begin match t with
-    | Ret (Void, None) -> [(Retq, [])]
-    | _             -> failwith "compile_terminator only works with void"
+    | Ret (Void, None)  -> stack_cleanup @ [(Retq, [])]
+    | Ret (ty, Some op) -> ((compile_operand ctxt (Reg Rax)) op)::
+                            (stack_cleanup @ [(Retq, [])])
+    | _ -> failwith "compile_terminator only works Ret or void gets an operand"
   end
   
   
@@ -344,7 +352,7 @@ let stack_layout (args : uid list) ((block, lbled_blocks):cfg) : layout =
   let entry_layout = get_locals (locals_offset, []) block in
   let fold_block = fun (c, a) b -> get_locals (c, a) (snd b) in 
   let local_vars = List.fold_left fold_block entry_layout lbled_blocks in
-  List.append (fill_params [] 0) (snd local_vars)
+  (fill_params [] 0) @ (snd local_vars)
 
 (* The code for the entry-point of a function must do several things:
 
