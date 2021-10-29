@@ -232,8 +232,8 @@ let compile_insn (ctxt:ctxt) ((uid:uid), (i:Ll.insn)) : X86.ins list =
         | Xor  -> Xorq
       end in
     (*L: not a negation but deref, imul has to output into reg, use R10 for temp storage*)
-    [compile_operand ctxt (Reg Rax) op1;
-     (ins, [top op2; (Reg Rax)]);
+    [compile_operand ctxt (Reg Rax) op2;
+     (ins, [top op1; (Reg Rax)]);
      (Movq, [Reg Rax; dest])]
   in 
   (*L: we are confused by this, lecture 8 did not help => already too optimized*)
@@ -320,7 +320,7 @@ let arg_loc (n : int) : operand =
     | 5 -> Reg R09
     | _ -> if(n<0) then failwith "can't locate negative arg"
            else let offset = Lit (Int64.of_int (((n-7)+2)*8)) in 
-           Ind3 (offset, Rsp)
+           Ind3 (offset, Rbp)
   end
 
 
