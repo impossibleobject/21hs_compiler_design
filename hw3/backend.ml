@@ -231,16 +231,15 @@ let compile_insn (ctxt:ctxt) ((uid:uid), (i:Ll.insn)) : X86.ins list =
         | Or   -> Orq
         | Xor  -> Xorq
       end in
-    (*L: not a negation but deref, imul has to output into reg, use R10 for temp storage*)
     [compile_operand ctxt (Reg Rax) op1;
      (ins, [top op2; (Reg Rax)]);
      (Movq, [Reg Rax; dest])]
   in 
-  (*L: we are confused by this, lecture 8 did not help => already too optimized*)
   begin match i with
     | Binop (bop, ty, op1, op2) -> binop bop (op1, op2)
-    | Icmp  (cnd, ty, op1, op2) -> ((compile_operand ctxt (Reg Rax)) op2) ::
-                                   [(Cmpq, [transl_operand ctxt op1; Reg Rax])]
+    | Icmp  (cnd, ty, op1, op2) -> ((compile_operand ctxt (Reg Rax)) op1) :: 
+                                   (Cmpq, [top op2; Reg Rax]) ::
+                                   [(Set (compile_cnd cnd), [top (Id uid)])]
     | _ -> failwith "not implemented non binops "     
   end
 
@@ -265,19 +264,18 @@ let mk_lbl (fn:string) (l:string) = fn ^ "." ^ l
    [fn] - the name of the function containing this terminator
 *)
 let compile_terminator (fn:string) (ctxt:ctxt) (t:Ll.terminator) : ins list =
-  let top = transl_operand ctxt in
   let fn_space = Imm (Lit (Int64.of_int (8 * (List.length ctxt.layout)))) in
   let stack_cleanup = [(Addq, [fn_space; Reg Rsp]);
                        (Popq, [Reg Rbp])] in
-  (*L: missing logic to reset stack and put result into %rax
-  let fn_stack_space = List.length ctxt.layout in*)
   begin match t with
     | Ret (Void, None)  -> stack_cleanup @ [(Retq, [])]
     | Ret (ty, Some op) -> ((compile_operand ctxt (Reg Rax)) op)::
                             (stack_cleanup @ [(Retq, [])])
     | Br lb             -> [(Jmp, [Imm (Lbl (mk_lbl fn lb))])]
-    (*F: no clue what to do with conditional branch, temporary solution for now*)
-    | Cbr (op, l1, l2)  -> [(Cmpq, [(Imm (Lit 0L)); top op]); ((J X86.Eq), [Imm (Lbl (mk_lbl fn l2))]); (Jmp, [Imm (Lbl (mk_lbl fn l1))])]
+    | Cbr (op, l1, l2)  -> ((compile_operand ctxt (Reg Rax)) op) ::
+                           (Cmpq, [Imm (Lit 0L); Reg Rax]) ::
+                           (J X86.Neq, [Imm (Lbl (mk_lbl fn l1))]) ::
+                           [(Jmp, [Imm (Lbl (mk_lbl fn l2))])]
     | _ -> failwith "compile_terminator or vscode gets mad"
   end
   
@@ -392,7 +390,8 @@ let compile_fdecl (tdecls:(tid * ty) list) (name:string) ({ f_ty; f_param; f_cfg
   let stack_alloc = [(Pushq, [Reg Rbp]); (Subq, [arg_space; Reg Rsp])] in
   let asm_entry = Text (stack_alloc @ args_on_stack @ (compile_block name ctxt entry)) in
   let elem_entry = [{lbl = name; global = true; asm = asm_entry}] in
-  let compile_cfg_elem ((lbl, blk):(lbl * block)) : elem = compile_lbl_block name lbl ctxt blk in
+  let compile_cfg_elem ((lbl, blk):(lbl * block)) : elem = 
+    compile_lbl_block name lbl ctxt blk in
   let elem_cfg = List.map compile_cfg_elem body in 
   List.append elem_entry elem_cfg
 
