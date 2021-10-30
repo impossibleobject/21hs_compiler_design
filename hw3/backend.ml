@@ -231,23 +231,14 @@ let compile_insn (ctxt:ctxt) ((uid:uid), (i:Ll.insn)) : X86.ins list =
         | Or   -> Orq
         | Xor  -> Xorq
       end in
-    (*L: not a negation but deref, imul has to output into reg, use R10 for temp storage*)
     [compile_operand ctxt (Reg Rax) op1;
      (ins, [top op2; (Reg Rax)]);
      (Movq, [Reg Rax; dest])]
   in 
-  (* let comp ((cnd, ty, op1, op2):(cnd * ty * Ll.operand * Ll.operand)) : X86.ins list =
-    ((compile_operand ctxt (Reg Rax)) op2) ::
-    begin match (compile_cnd cnd) with
-      | Eq -> 
-    end in  *)
-  (*L: we are confused by this, lecture 8 did not help => already too optimized*)
   begin match i with
     | Binop (bop, ty, op1, op2) -> binop bop (op1, op2)
-    (* | Icmp  (cnd, ty, op1, op2) -> ((compile_operand ctxt (Reg Rax)) op2) ::
-                                   [(Cmpq, [top op1; Reg Rax])] *)
-    | Icmp  (cnd, ty, op1, op2) -> ((compile_operand ctxt (Reg Rax)) op2) :: 
-                                   (Cmpq, [top op1; Reg Rax]) ::
+    | Icmp  (cnd, ty, op1, op2) -> ((compile_operand ctxt (Reg Rax)) op1) :: 
+                                   (Cmpq, [top op2; Reg Rax]) ::
                                    [(Set (compile_cnd cnd), [top (Id uid)])]
     | _ -> failwith "not implemented non binops "     
   end
@@ -273,30 +264,18 @@ let mk_lbl (fn:string) (l:string) = fn ^ "." ^ l
    [fn] - the name of the function containing this terminator
 *)
 let compile_terminator (fn:string) (ctxt:ctxt) (t:Ll.terminator) : ins list =
-  let top = transl_operand ctxt in
   let fn_space = Imm (Lit (Int64.of_int (8 * (List.length ctxt.layout)))) in
   let stack_cleanup = [(Addq, [fn_space; Reg Rsp]);
                        (Popq, [Reg Rbp])] in
-  (*L: missing logic to reset stack and put result into %rax
-  let fn_stack_space = List.length ctxt.layout in*)
   begin match t with
     | Ret (Void, None)  -> stack_cleanup @ [(Retq, [])]
     | Ret (ty, Some op) -> ((compile_operand ctxt (Reg Rax)) op)::
                             (stack_cleanup @ [(Retq, [])])
     | Br lb             -> [(Jmp, [Imm (Lbl (mk_lbl fn lb))])]
-    (*F: no clue what to do with conditional branch, temporary solution for now*)
-    (*|  Cbr (op, l1, l2)  -> [(Cmpq, [(Imm (Lit 0L)); top op]); ((J X86.Eq), [Imm (Lbl (mk_lbl fn l2))]); (Jmp, [Imm (Lbl (mk_lbl fn l1))])] *)
-    | Cbr (op, l1, l2)  -> let isTrue c = 
-                            begin match c with
-                              | Null -> false
-                              | Const c -> c <> 0L
-                              | Id uid -> failwith ("cbr called with uid: " ^ uid ^
-                                          "\n uid stores: " ^ string_of_operand (top (Id uid)))
-                              | _ -> failwith "cbr called with non boolean op"
-                            end in
-                           ((compile_operand ctxt (Reg Rax)) op) ::
-                           if(isTrue op) then [(Jmp, [top (Id l1)])]
-                           else [(Jmp, [top (Id l2)])]
+    | Cbr (op, l1, l2)  -> ((compile_operand ctxt (Reg Rax)) op) ::
+                           (Cmpq, [Imm (Lit 0L); Reg Rax]) ::
+                           (J X86.Neq, [Imm (Lbl (mk_lbl fn l1))]) ::
+                           [(Jmp, [Imm (Lbl (mk_lbl fn l2))])]
     | _ -> failwith "compile_terminator or vscode gets mad"
   end
   
