@@ -131,6 +131,60 @@ let transl_operand (ctxt:ctxt) : Ll.operand -> X86.operand =
    needed). ]
 *)
 
+let arg_loc_rbp (n : int) : operand =
+  begin match n with
+    | 0 -> Reg Rdi
+    | 1 -> Reg Rsi
+    | 2 -> Reg Rdx
+    | 3 -> Reg Rcx
+    | 4 -> Reg R08
+    | 5 -> Reg R09
+    | _ -> if(n<0) then failwith "can't locate negative arg"
+           else let offset = Lit (Int64.of_int (((n-7)+2)*8)) in 
+           Ind3 (offset, Rbp)
+  end
+
+(*F: do opposite of fdecl for args*)
+let compile_call (ctxt:ctxt) ((rty, fn, args):(ty * Ll.operand * (ty * Ll.operand) list)) (uid:uid) : ins list =
+  let int_to_Imm i = Imm (Lit (Int64.of_int i)) in
+  let alloc, dealloc = 
+    let caller_save = [Rax; Rcx; Rdx; Rsi;Rdi;R08;R09;R10;R11] in
+    let reg_to_ins (fn: reg -> ins) : ins list = 
+      List.map fn caller_save in
+    let to_push = fun reg -> (Pushq, [Reg reg]) in
+    let to_pop  = fun reg -> (Popq,  [Reg reg]) in
+    (Subq, [int_to_Imm 72; Reg Rsp]) :: (reg_to_ins to_push),
+    (reg_to_ins to_pop) @ [(Addq, [int_to_Imm 72; Reg Rsp])] in
+  let num_args = List.length args in
+  let rec pass_args_ins (ls:(ty*Ll.operand) list) (acc:int) : ins list =
+    if (acc=num_args) then []
+    else
+      begin match ls with
+        | []      -> []
+        | ((t,o)::tl) -> (* print_endline("compile_call: passargs acc: ");
+                         print_int(acc);
+                         print_endline(" "); *)
+                         (compile_operand ctxt (arg_loc_rbp acc) o) :: (pass_args_ins tl (acc+1))
+      end
+  in
+  let unpack_Gid (Gid g) = g in
+  let call_ins = [(Callq, [Imm (Lbl (unpack_Gid fn))])] in
+  let write_return_val =
+    print_endline("compile_call: uid is: " ^ uid);
+    begin match uid with
+      | "" -> []
+      | loc -> [(Movq, [Reg Rax; lookup ctxt.layout loc])]
+    end
+  in
+  let call_routine_ins = alloc @ (pass_args_ins args 0) @ call_ins @ write_return_val in
+  if (num_args <= 6) then call_routine_ins @ dealloc
+  else [(Subq, [int_to_Imm ((num_args-6)*8); Reg Rsp])] @ call_routine_ins @ 
+       [(Addq, [int_to_Imm ((num_args-6)*8); Reg Rsp])] @ dealloc
+    
+
+
+
+
 
 
 
@@ -240,7 +294,8 @@ let compile_insn (ctxt:ctxt) ((uid:uid), (i:Ll.insn)) : X86.ins list =
     | Icmp  (cnd, ty, op1, op2) -> ((compile_operand ctxt (Reg Rax)) op1) :: 
                                    (Cmpq, [top op2; Reg Rax]) ::
                                    [(Set (compile_cnd cnd), [top (Id uid)])]
-    | _ -> failwith "not implemented non binops "     
+    | Call (ty, op, ls)         -> compile_call ctxt (ty, op, ls) uid 
+    | _ -> failwith "not implemented non binops "
   end
 
 
@@ -383,7 +438,7 @@ let compile_fdecl (tdecls:(tid * ty) list) (name:string) ({ f_ty; f_param; f_cfg
       | []    -> []
       | h::tl -> 
         if(acc = (List.length f_param)) then []
-        else (Movq, [arg_loc acc; lookup layout (fst h)])::(args_from_layout tl (acc+1))
+        else (Movq, [arg_loc_rbp acc; lookup layout (fst h)])::(args_from_layout tl (acc+1))
     end
   in
   let args_on_stack = args_from_layout layout 0 in
