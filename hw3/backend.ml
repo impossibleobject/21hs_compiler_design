@@ -131,7 +131,7 @@ let transl_operand (ctxt:ctxt) : Ll.operand -> X86.operand =
    needed). ]
 *)
 
-let arg_loc_rbp (n : int) : operand =
+let arg_put (n : int) : operand =
   begin match n with
     | 0 -> Reg Rdi
     | 1 -> Reg Rsi
@@ -141,45 +141,54 @@ let arg_loc_rbp (n : int) : operand =
     | 5 -> Reg R09
     | _ -> if(n<0) then failwith "can't locate negative arg"
            else let offset = Lit (Int64.of_int (((n-7)+2)*8)) in 
-           Ind3 (offset, Rbp)
+           Ind3 (offset, Rsp)
   end
 
 (*F: do opposite of fdecl for args*)
 let compile_call (ctxt:ctxt) ((rty, fn, args):(ty * Ll.operand * (ty * Ll.operand) list)) (uid:uid) : ins list =
+  let top = transl_operand ctxt in
   let int_to_Imm i = Imm (Lit (Int64.of_int i)) in
-  let alloc, dealloc = 
-    let caller_save = [Rax; Rcx; Rdx; Rsi;Rdi;R08;R09;R10;R11] in
-    let reg_to_ins (fn: reg -> ins) : ins list = 
-      List.map fn caller_save in
-    let to_push = fun reg -> (Pushq, [Reg reg]) in
-    let to_pop  = fun reg -> (Popq,  [Reg reg]) in
-    (Subq, [int_to_Imm 72; Reg Rsp]) :: (reg_to_ins to_push),
-    (reg_to_ins to_pop) @ [(Addq, [int_to_Imm 72; Reg Rsp])] in
   let num_args = List.length args in
+  let reg_args, stack_args = 
+    let rec take a ls = 
+      begin match a with
+        | 0 -> ls
+        | _ -> take (a-1) (ls @ [List.nth args a])
+      end in
+    let rec drop a (h::tl) = 
+      begin match a with
+        | 0 -> h::tl
+        | _ -> drop (a-1) tl
+      end in
+    if(num_args <= 6) then (args, [])
+    (*L: have to reverse args on stack*)
+    else (take 6 args, List.rev (drop 6 args))
+  in
   let rec pass_args_ins (ls:(ty*Ll.operand) list) (acc:int) : ins list =
     if (acc=num_args) then []
     else
       begin match ls with
         | []      -> []
-        | ((t,o)::tl) -> (* print_endline("compile_call: passargs acc: ");
-                         print_int(acc);
-                         print_endline(" "); *)
-                         (compile_operand ctxt (arg_loc_rbp acc) o) :: (pass_args_ins tl (acc+1))
-      end
+        | ((t,o)::tl) -> if(acc >= 0 && acc <= 5) then
+                          (compile_operand ctxt (arg_put acc) o) ::
+                          (pass_args_ins tl (acc+1))
+                         else
+                          (Pushq, [top o]) ::
+                          (pass_args_ins tl (acc+1))
+        end
   in
-  let unpack_Gid (Gid g) = g in
+  let unpack_Gid (Gid g) = Platform.mangle g in
   let call_ins = [(Callq, [Imm (Lbl (unpack_Gid fn))])] in
   let write_return_val =
-    print_endline("compile_call: uid is: " ^ uid);
     begin match uid with
       | "" -> []
       | loc -> [(Movq, [Reg Rax; lookup ctxt.layout loc])]
     end
   in
-  let call_routine_ins = alloc @ (pass_args_ins args 0) @ call_ins @ write_return_val in
-  if (num_args <= 6) then call_routine_ins @ dealloc
+  let call_routine_ins = (pass_args_ins (reg_args @ stack_args) 0) @ call_ins @ write_return_val in
+  if (num_args <= 6) then call_routine_ins
   else [(Subq, [int_to_Imm ((num_args-6)*8); Reg Rsp])] @ call_routine_ins @ 
-       [(Addq, [int_to_Imm ((num_args-6)*8); Reg Rsp])] @ dealloc
+       [(Addq, [int_to_Imm ((num_args-6)*8); Reg Rsp])]
     
 
 
@@ -270,9 +279,10 @@ failwith "compile_gep not implemented"
    - Bitcast: does nothing interesting at the assembly level
 *)
 let compile_insn (ctxt:ctxt) ((uid:uid), (i:Ll.insn)) : X86.ins list =
-  let dest = lookup ctxt.layout uid in 
   let top = transl_operand ctxt in
+  
   let binop (bop:bop) ((op1, op2):(Ll.operand * Ll.operand)) : X86.ins list =
+    let dest = lookup ctxt.layout uid in 
     let ins = 
       begin match bop with 
         | Add  -> Addq
@@ -291,11 +301,19 @@ let compile_insn (ctxt:ctxt) ((uid:uid), (i:Ll.insn)) : X86.ins list =
   in 
   begin match i with
     | Binop (bop, ty, op1, op2) -> binop bop (op1, op2)
-    | Icmp  (cnd, ty, op1, op2) -> ((compile_operand ctxt (Reg Rax)) op1) :: 
-                                   (Cmpq, [top op2; Reg Rax]) ::
+    | Icmp  (cnd, ty, op1, op2) -> ((compile_operand ctxt (Reg Rax)) op2) :: 
+                                   (Cmpq, [top op1; Reg Rax]) ::
+                                   (Movq, [Imm (Lit 0L); top (Id uid)]) ::
                                    [(Set (compile_cnd cnd), [top (Id uid)])]
-    | Call (ty, op, ls)         -> compile_call ctxt (ty, op, ls) uid 
-    | _ -> failwith "not implemented non binops "
+    | Call (ty, op, ls)         -> compile_call ctxt (ty, op, ls) uid
+    | Alloca ty                 -> []
+    | Store (ty, op1, op2)      -> ((compile_operand ctxt (Reg R12)) op1)::
+                                   [(Movq, [Reg R12; top op2])]
+    | Load (ty, op)             -> let dest = lookup ctxt.layout uid in
+                                   ((compile_operand ctxt (Reg R12)) op)::
+                                   [(Movq, [Reg R12; dest])]
+    | Bitcast (ty1, op, ty2)    -> []
+    | _ -> failwith "not implemented GEP "
   end
 
 
@@ -321,6 +339,7 @@ let mk_lbl (fn:string) (l:string) = fn ^ "." ^ l
 let compile_terminator (fn:string) (ctxt:ctxt) (t:Ll.terminator) : ins list =
   let fn_space = Imm (Lit (Int64.of_int (8 * (List.length ctxt.layout)))) in
   let stack_cleanup = [(Addq, [fn_space; Reg Rsp]);
+                       (* (Movq, [Reg Rbp; Reg Rsp]); *)
                        (Popq, [Reg Rbp])] in
   begin match t with
     | Ret (Void, None)  -> stack_cleanup @ [(Retq, [])]
@@ -329,7 +348,7 @@ let compile_terminator (fn:string) (ctxt:ctxt) (t:Ll.terminator) : ins list =
     | Br lb             -> [(Jmp, [Imm (Lbl (mk_lbl fn lb))])]
     | Cbr (op, l1, l2)  -> ((compile_operand ctxt (Reg Rax)) op) ::
                            (Cmpq, [Imm (Lit 0L); Reg Rax]) ::
-                           (J X86.Neq, [Imm (Lbl (mk_lbl fn l1))]) ::
+                           (J X86.Eq, [Imm (Lbl (mk_lbl fn l1))]) ::
                            [(Jmp, [Imm (Lbl (mk_lbl fn l2))])]
     | _ -> failwith "compile_terminator or vscode gets mad"
   end
@@ -375,7 +394,7 @@ let arg_loc (n : int) : operand =
     | 5 -> Reg R09
     | _ -> if(n<0) then failwith "can't locate negative arg"
            else let offset = Lit (Int64.of_int (((n-7)+2)*8)) in 
-           Ind3 (offset, Rsp)
+           Ind3 (offset, Rbp)
   end
 
 
@@ -392,7 +411,7 @@ let stack_layout (args : uid list) ((block, lbled_blocks):cfg) : layout =
   let length = List.length args in
   let rec fill_params (layout : layout) (acc: int) : layout = 
     if(acc = length) then layout
-    else fill_params ((List.nth args acc,arg_loc ((*L:not sure about +6*)acc+6))::layout) (acc+1)
+    else fill_params ((List.nth args acc,arg_put ((*L:not sure about +6*)acc+6))::layout) (acc+1)
   in
   let rec get_locals ((cnt, acc): (int * layout)) (blk:block) : (int * layout) =
     let ils = blk.insns in
@@ -400,8 +419,8 @@ let stack_layout (args : uid list) ((block, lbled_blocks):cfg) : layout =
       | []      -> (cnt, acc) (*F: terminator uid left out, should not be problematic*)
       | (uid, i)::tl  -> 
         begin match i with
-          | (Call _ | Store _) -> get_locals (cnt, acc) {insns = tl; term = blk.term}
-          | _ ->  get_locals (cnt+1, List.append acc [(uid, arg_loc cnt)]) {insns = tl; term = blk.term}
+          | (Call (Void, _, _) | Store _) -> get_locals (cnt, acc) {insns = tl; term = blk.term}
+          | _ ->  get_locals (cnt+1, List.append acc [(uid, arg_put cnt)]) {insns = tl; term = blk.term}
         end
     end 
   in
@@ -438,11 +457,20 @@ let compile_fdecl (tdecls:(tid * ty) list) (name:string) ({ f_ty; f_param; f_cfg
       | []    -> []
       | h::tl -> 
         if(acc = (List.length f_param)) then []
-        else (Movq, [arg_loc_rbp acc; lookup layout (fst h)])::(args_from_layout tl (acc+1))
+        else 
+          if(acc >= 0 && acc <= 5) then 
+            (Movq, [arg_loc acc; lookup layout (fst h)])::
+            (args_from_layout tl (acc+1))
+          else 
+            (Movq, [arg_loc acc; Reg R12])::
+            (Movq, [Reg R12; lookup layout (fst h)]) :: 
+            (args_from_layout tl (acc+1))
+            
+            
     end
   in
   let args_on_stack = args_from_layout layout 0 in
-  let stack_alloc = [(Pushq, [Reg Rbp]); (Subq, [arg_space; Reg Rsp])] in
+  let stack_alloc = [(Pushq, [Reg Rbp]); (* (Movq, [Reg Rsp; Reg Rbp]); *) (Subq, [arg_space; Reg Rsp])] in
   let asm_entry = Text (stack_alloc @ args_on_stack @ (compile_block name ctxt entry)) in
   let elem_entry = [{lbl = name; global = true; asm = asm_entry}] in
   let compile_cfg_elem ((lbl, blk):(lbl * block)) : elem = 
