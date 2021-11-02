@@ -222,7 +222,14 @@ let compile_call (ctxt:ctxt) ((rty, fn, args):(ty * Ll.operand * (ty * Ll.operan
      Your function should simply return 0 in those cases
 *)
 let rec size_ty (tdecls:(tid * ty) list) (t:Ll.ty) : int =
-failwith "size_ty not implemented"
+  let rec_call = size_ty tdecls in
+  begin match t with
+    | (Void | I8 | Fun _) -> 0
+    | (I1 | I64 | Ptr _)  -> 8
+    | Array (i, t)        -> i * (rec_call t)
+    | Namedt tid          -> rec_call (lookup tdecls tid)
+    | Struct ls           -> List.fold_left (+) 0 (List.map rec_call ls)
+  end
 
 
 
@@ -301,6 +308,10 @@ let compile_insn (ctxt:ctxt) ((uid:uid), (i:Ll.insn)) : X86.ins list =
      (ins, [top op2; (Reg Rax)]);
      (Movq, [Reg Rax; dest])]
   in 
+  let load_instr (op:Ll.operand) : ins list= 
+    let dest = lookup ctxt.layout uid in
+    ((compile_operand ctxt (Reg R10)) op)::
+    [(Movq, [Reg R10; dest])] in
   begin match i with
     | Binop (bop, ty, op1, op2) -> binop bop (op1, op2)
     | Icmp  (cnd, ty, op1, op2) -> ((compile_operand ctxt (Reg R10)) op1) :: 
@@ -311,10 +322,8 @@ let compile_insn (ctxt:ctxt) ((uid:uid), (i:Ll.insn)) : X86.ins list =
     | Alloca ty                 -> []
     | Store (ty, op1, op2)      -> ((compile_operand ctxt (Reg R10)) op1)::
                                    [(Movq, [Reg R10; top op2])]
-    | Load (ty, op)             -> let dest = lookup ctxt.layout uid in
-                                   ((compile_operand ctxt (Reg R10)) op)::
-                                   [(Movq, [Reg R10; dest])]
-    | Bitcast (ty1, op, ty2)    -> []
+    | Load (ty, op)             -> load_instr op
+    | Bitcast (ty1, op, ty2)    -> load_instr op
     | _ -> failwith "not implemented GEP "
   end
 
