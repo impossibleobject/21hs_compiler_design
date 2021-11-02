@@ -22,14 +22,6 @@ let compile_cnd = function
   | Ll.Sgt -> X86.Gt
   | Ll.Sge -> X86.Ge
 
-let compile_cnd_opp = function
-| Ll.Eq  -> X86.Neq
-| Ll.Ne  -> X86.Eq
-| Ll.Slt -> X86.Ge
-| Ll.Sle -> X86.Gt
-| Ll.Sgt -> X86.Le
-| Ll.Sge -> X86.Lt
-
 
 (* locals and layout -------------------------------------------------------- *)
 
@@ -189,7 +181,6 @@ let compile_call (ctxt:ctxt) ((rty, fn, args):(ty * Ll.operand * (ty * Ll.operan
   let call_ins = 
     let unpack_Gid (Gid g) = Platform.mangle g in
     [(Callq, [Imm (Lbl (unpack_Gid fn))])] in
-  (* let call_ins = [(Callq, [top fn])] in *)
   let write_return_val =
     begin match uid with
       | "" -> []
@@ -260,7 +251,16 @@ let rec size_ty (tdecls:(tid * ty) list) (t:Ll.ty) : int =
       by the path so far
 *)
 let compile_gep (ctxt:ctxt) (op : Ll.ty * Ll.operand) (path: Ll.operand list) : ins list =
-failwith "compile_gep not implemented"
+  let top = transl_operand ctxt in
+  let ty = fst op in
+  let base_addr = compile_operand ctxt (Reg R10) (snd op) in
+  let depth = List.length path in
+  let idx_op::tl = path in
+  let idx = top idx_op in
+    
+    
+  [base_addr]
+  
 
 
 
@@ -324,7 +324,8 @@ let compile_insn (ctxt:ctxt) ((uid:uid), (i:Ll.insn)) : X86.ins list =
                                    [(Movq, [Reg R10; top op2])]
     | Load (ty, op)             -> load_instr op
     | Bitcast (ty1, op, ty2)    -> load_instr op
-    | _ -> failwith "not implemented GEP "
+    | Gep (ty, op, ls)          -> compile_gep ctxt (ty, op) ls
+    | _ -> failwith "not an op"
   end
 
 
