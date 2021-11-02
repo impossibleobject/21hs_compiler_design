@@ -252,14 +252,25 @@ let rec size_ty (tdecls:(tid * ty) list) (t:Ll.ty) : int =
 *)
 let compile_gep (ctxt:ctxt) (op : Ll.ty * Ll.operand) (path: Ll.operand list) : ins list =
   let top = transl_operand ctxt in
+  let int_to_imm i = Imm (Lit (Int64.of_int i)) in
   let ty = fst op in
   let base_addr = compile_operand ctxt (Reg R10) (snd op) in
   let depth = List.length path in
+  let scale_by_ty (op_curr:Ll.operand) (ty:ty) : ins list =
+    (compile_operand ctxt (Reg R10) op_curr) ::
+    (Imulq, [int_to_imm (size_ty ctxt.tdecls ty); Reg R10])::
+    [(Addq, [Reg R10; top (snd op)])]
+  in
   let idx_op::tl = path in
   let idx = top idx_op in
-    
-    
-  [base_addr]
+  let middlepart =
+    begin match ty with
+      | Array (l, elem_ty) -> scale_by_ty idx_op ty 
+      | Struct elems -> []
+      | _ -> failwith "compile_gep: path is invalid"
+    end in 
+  
+  [base_addr] @ middlepart
   
 
 
@@ -324,7 +335,9 @@ let compile_insn (ctxt:ctxt) ((uid:uid), (i:Ll.insn)) : X86.ins list =
                                    [(Movq, [Reg R10; top op2])]
     | Load (ty, op)             -> load_instr op
     | Bitcast (ty1, op, ty2)    -> load_instr op
-    | Gep (ty, op, ls)          -> compile_gep ctxt (ty, op) ls
+    | Gep (ty, op, ls)          -> let dest = lookup ctxt.layout uid in
+                                   (compile_gep ctxt (ty, op) ls) @
+                                   [(Movq, [Reg R10; dest])]
     | _ -> failwith "not an op"
   end
 
