@@ -22,6 +22,13 @@ let compile_cnd = function
   | Ll.Sgt -> X86.Gt
   | Ll.Sge -> X86.Ge
 
+let compile_cnd_opp = function
+| Ll.Eq  -> X86.Neq
+| Ll.Ne  -> X86.Eq
+| Ll.Slt -> X86.Ge
+| Ll.Sle -> X86.Gt
+| Ll.Sgt -> X86.Le
+| Ll.Sge -> X86.Lt
 
 
 (* locals and layout -------------------------------------------------------- *)
@@ -296,12 +303,11 @@ let compile_insn (ctxt:ctxt) ((uid:uid), (i:Ll.insn)) : X86.ins list =
   in 
   begin match i with
     | Binop (bop, ty, op1, op2) -> binop bop (op1, op2)
-    | Icmp  (cnd, ty, op1, op2) -> ((compile_operand ctxt (Reg Rax)) op2) :: 
-                                   (Cmpq, [top op1; Reg Rax]) ::
+    | Icmp  (cnd, ty, op1, op2) -> ((compile_operand ctxt (Reg R10)) op1) :: 
                                    (Movq, [Imm (Lit 0L); top (Id uid)]) ::
+                                   (Cmpq, [top op2; Reg R10]) ::
                                    [(Set (compile_cnd cnd), [top (Id uid)])]
-    | Call (ty, op, ls)         -> print_endline("compile_ins, Entering call!");
-                                   compile_call ctxt (ty, op, ls) uid
+    | Call (ty, op, ls)         -> compile_call ctxt (ty, op, ls) uid
     | Alloca ty                 -> []
     | Store (ty, op1, op2)      -> ((compile_operand ctxt (Reg R10)) op1)::
                                    [(Movq, [Reg R10; top op2])]
@@ -343,7 +349,7 @@ let compile_terminator (fn:string) (ctxt:ctxt) (t:Ll.terminator) : ins list =
                             (stack_cleanup @ [(Retq, [])])
     | Br lb             -> [(Jmp, [Imm (Lbl (mk_lbl fn lb))])]
     | Cbr (op, l1, l2)  -> ((compile_operand ctxt (Reg Rax)) op) ::
-                           (Cmpq, [Imm (Lit 0L); Reg Rax]) ::
+                           (Cmpq, [Imm (Lit 1L); Reg Rax]) ::
                            (J X86.Eq, [Imm (Lbl (mk_lbl fn l1))]) ::
                            [(Jmp, [Imm (Lbl (mk_lbl fn l2))])]
     | _ -> failwith "compile_terminator or vscode gets mad"
