@@ -71,10 +71,14 @@ let rec take  (i:int) (ls: 'a list) : 'a list =
            end
   end
 
-let rec drop a (h::tl) = 
-  begin match a with
-    | 0 -> h::tl
-    | _ -> drop (a-1) tl
+let rec drop (i:int) (ls:'a list) : 'a list = 
+  begin match i with
+    | 0 -> ls
+    | _ -> 
+      begin match ls with
+        | []    -> failwith "tried dropping from an empty list"
+        | h::tl -> drop (i-1) tl
+      end
   end
 
 let reg_move (src:X86.operand) (dest:X86.operand) : ins list = 
@@ -311,6 +315,7 @@ let compile_gep (ctxt:ctxt) (op : Ll.ty * Ll.operand) (path: Ll.operand list) : 
                           trav_path rem_path (lookup ctxt.tdecls tid)
           | Array (l, elem_type) -> trav_arr h elem_type @ trav_path tl elem_type
           | Struct tyls -> trav_struct h tyls @ trav_path tl (List.nth tyls (unpack_cnst h))
+          | Ptr ty -> trav_path rem_path ty 
           | _ -> failwith "can't call gep on function or void"
         end
     end in 
