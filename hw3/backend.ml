@@ -163,7 +163,7 @@ let arg_stack_setup (n : int) : operand =
   end
 
 (*F: do opposite of fdecl for args*)
-let compile_call (ctxt:ctxt) ((rty, fn, args):(ty * Ll.operand * (ty * Ll.operand) list)) (uid:uid) : ins list =
+let compile_call (ctxt:ctxt) ((rty, fn, args):(ty * Ll.operand * (ty * Ll.operand) list)) (uid:uid option) : ins list =
   let num_args = List.length args in
   let top = transl_operand ctxt in
   let int_to_Imm i = Imm (Lit (Int64.of_int i)) in
@@ -201,8 +201,8 @@ let compile_call (ctxt:ctxt) ((rty, fn, args):(ty * Ll.operand * (ty * Ll.operan
     [(Callq, [Imm (Lbl (unpack_Gid fn))])] in
   let write_return_val =
     begin match uid with
-      | "" -> []
-      | loc -> [(Movq, [Reg Rax; lookup ctxt.layout loc])]
+      | None -> []
+      | Some loc -> [(Movq, [Reg Rax; lookup ctxt.layout loc])]
     end
   in
   !reg_setup @ stack_setup @ call_ins @ cleanup_stack @ write_return_val
@@ -269,6 +269,7 @@ let rec size_ty (tdecls:(tid * ty) list) (t:Ll.ty) : int =
       by the path so far
 *)
 let compile_gep (ctxt:ctxt) (op : Ll.ty * Ll.operand) (path: Ll.operand list) : ins list =
+(*   print_endline("entering compile_gep");*)  
   let int_to_imm i = Imm (Lit (Int64.of_int i)) in
   let unpack_pointer p = 
     begin match p with 
@@ -355,8 +356,9 @@ let compile_gep (ctxt:ctxt) (op : Ll.ty * Ll.operand) (path: Ll.operand list) : 
    - Bitcast: does nothing interesting at the assembly level
 *)
 let compile_insn (ctxt:ctxt) ((uid:uid), (i:Ll.insn)) : X86.ins list =
+  (* print_endline("entering compile_insn, uid: ");
+  print_endline(uid); *)
   let top = transl_operand ctxt in
-  
   let binop (bop:bop) ((op1, op2):(Ll.operand * Ll.operand)) : X86.ins list =
     let dest = lookup ctxt.layout uid in 
     let ins = 
@@ -375,35 +377,37 @@ let compile_insn (ctxt:ctxt) ((uid:uid), (i:Ll.insn)) : X86.ins list =
      (ins, [top op2; (Reg Rax)]);
      (Movq, [Reg Rax; dest])]
   in 
-  let load_instr (op:Ll.operand) : ins list= 
+  let load_instr (op:Ll.operand): ins list = 
     let dest = lookup ctxt.layout uid in
-    let global_load =
+    (* let mov_val_into_dest =
       begin match op with
-        | Gid g -> [(Movq, [Ind2(R10); Reg R10])]
-        | _ -> []
-      end in
+        | Gid g -> (reg_move (Reg R10) dest)
+        | _ -> (reg_move (Ind2 R10) dest)
+      end in *)
     ((compile_operand ctxt (Reg R10)) op)::
-    global_load @ [(Movq, [Reg R10; dest])] in
+    reg_move (Ind2 R10) dest in
   begin match i with
     | Binop (bop, ty, op1, op2) -> binop bop (op1, op2)
     | Icmp  (cnd, ty, op1, op2) -> ((compile_operand ctxt (Reg R10)) op1) :: 
                                    (Movq, [Imm (Lit 0L); top (Id uid)]) ::
                                    (Cmpq, [top op2; Reg R10]) ::
                                    [(Set (compile_cnd cnd), [top (Id uid)])]
-    | Call (ty, op, ls)         -> compile_call ctxt (ty, op, ls) uid
+    | Call (ty, op, ls)         -> begin match ty with
+                                    | Void -> compile_call ctxt (ty, op, ls) None
+                                    | _    -> compile_call ctxt (ty, op, ls) (Some uid)
+                                   end
     | Alloca ty                 -> []
-    | Store (ty, op1, op2)      -> ((compile_operand ctxt (Reg R10)) op1)::
-                                   [(Movq, [Reg R10; top op2])]
-    | Load (ty, op)             -> let is_pointer = 
-                                    begin match ty with 
-                                      | Ptr _ -> true
-                                      | _ -> false
-                                    end in
-                                   load_instr op 
-    | Bitcast (ty1, op, ty2)    -> load_instr op
-    | Gep (ty, op, ls)          -> let dest = lookup ctxt.layout uid in
+    | Store (ty, src, dst)      -> ((compile_operand ctxt (Reg R10)) src)::
+                                   ((compile_operand ctxt (Reg R11)) dst)::
+                                   [(Movq, [Reg R10; Ind2 R11])] 
+    | Load (ty, op)             -> load_instr op
+    | Bitcast (ty1, op, ty2)    -> let dest = lookup ctxt.layout uid in
+                                   ((compile_operand ctxt (Reg R10)) op)::
+                                   [(Movq, [Reg R10; dest])]
+    | Gep (ty, op, ls)          -> (* print_endline("calling compile_gep"); *)
+                                   let dest = lookup ctxt.layout uid in
                                    (compile_gep ctxt (ty, op) ls) @
-                                   reg_move (Ind2 R11) dest
+                                   reg_move (Reg R11) dest
                                    (* failwith "GEP not implemented" *)
   end
 
