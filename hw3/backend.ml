@@ -80,6 +80,8 @@ let rec drop a (h::tl) =
 let reg_move (src:X86.operand) (dest:X86.operand) : ins list = 
   [(Movq, [src; Reg R09]); (Movq, [Reg R09; dest])]
 
+let int_to_imm i = Imm (Lit (Int64.of_int i))
+
 (* compiling operands  ------------------------------------------------------ *)
 
 
@@ -166,7 +168,6 @@ let arg_stack_setup (n : int) : operand =
 let compile_call (ctxt:ctxt) ((rty, fn, args):(ty * Ll.operand * (ty * Ll.operand) list)) (uid:uid option) : ins list =
   let num_args = List.length args in
   let top = transl_operand ctxt in
-  let int_to_Imm i = Imm (Lit (Int64.of_int i)) in
   let num_ovfw = num_args - 6 in
   let use_stack = num_ovfw > 0 in
   let stack_setup = 
@@ -189,7 +190,7 @@ let compile_call (ctxt:ctxt) ((rty, fn, args):(ty * Ll.operand * (ty * Ll.operan
     reg_setup := !reg_setup @ [(Movq, [top (snd (List.nth args i)); arg_stack_setup i])]
   done;
   let cleanup_stack = 
-    if(use_stack) then [(Addq, [int_to_Imm (8*num_ovfw); Reg Rsp])]
+    if(use_stack) then [(Addq, [int_to_imm (8*num_ovfw); Reg Rsp])]
     else []
   in
   let call_ins = 
@@ -270,7 +271,6 @@ let rec size_ty (tdecls:(tid * ty) list) (t:Ll.ty) : int =
 *)
 let compile_gep (ctxt:ctxt) (op : Ll.ty * Ll.operand) (path: Ll.operand list) : ins list =
 (*   print_endline("entering compile_gep");*)  
-  let int_to_imm i = Imm (Lit (Int64.of_int i)) in
   let unpack_pointer p = 
     begin match p with 
       | Ptr ty -> ty
@@ -396,7 +396,10 @@ let compile_insn (ctxt:ctxt) ((uid:uid), (i:Ll.insn)) : X86.ins list =
                                     | Void -> compile_call ctxt (ty, op, ls) None
                                     | _    -> compile_call ctxt (ty, op, ls) (Some uid)
                                    end
-    | Alloca ty                 -> []
+    | Alloca ty                 -> (* print_endline("alloca uid: " ^ uid ^ " corresponds to: " ^(string_of_operand (top (Id uid)))); *)
+                                   let dest = lookup ctxt.layout uid in
+                                   (Subq, [int_to_imm (size_ty ctxt.tdecls ty); Reg Rsp]) ::
+                                   [(Movq, [Reg Rsp; dest])]
     | Store (ty, src, dst)      -> ((compile_operand ctxt (Reg R10)) src)::
                                    ((compile_operand ctxt (Reg R11)) dst)::
                                    [(Movq, [Reg R10; Ind2 R11])] 
@@ -432,10 +435,8 @@ let mk_lbl (fn:string) (l:string) = fn ^ "." ^ l
    [fn] - the name of the function containing this terminator
 *)
 let compile_terminator (fn:string) (ctxt:ctxt) (t:Ll.terminator) : ins list =
-  let fn_space = Imm (Lit (Int64.of_int (8 * (List.length ctxt.layout)))) in
-  let stack_cleanup = [(Addq, [fn_space; Reg Rsp]);
-                       (* (Movq, [Reg Rbp; Reg Rsp]); *)
-                       (Popq, [Reg Rbp])] in
+  let stack_cleanup = (Movq, [Reg Rbp; Reg Rsp]) ::
+                      [(Popq, [Reg Rbp])] in
   begin match t with
     | Ret (Void, None)  -> stack_cleanup @ [(Retq, [])]
     | Ret (ty, Some op) -> ((compile_operand ctxt (Reg Rax)) op)::
