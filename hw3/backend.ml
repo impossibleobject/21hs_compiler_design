@@ -71,6 +71,15 @@ let rec take  (i:int) (ls: 'a list) : 'a list =
            end
   end
 
+let rec drop a (h::tl) = 
+  begin match a with
+    | 0 -> h::tl
+    | _ -> drop (a-1) tl
+  end
+
+let reg_move (src:X86.operand) (dest:X86.operand) : ins list = 
+  [(Movq, [src; Reg R09]); (Movq, [Reg R09; dest])]
+
 (* compiling operands  ------------------------------------------------------ *)
 
 
@@ -168,11 +177,6 @@ let compile_call (ctxt:ctxt) ((rty, fn, args):(ty * Ll.operand * (ty * Ll.operan
       end
     in
     let stack_args = 
-      let rec drop a (h::tl) = 
-        begin match a with
-          | 0 -> h::tl
-          | _ -> drop (a-1) tl
-        end in
       if(not use_stack) then []
       (*L: have to reverse args on stack*)
       else List.rev (drop 6 args)
@@ -316,7 +320,9 @@ let compile_gep (ctxt:ctxt) (op : Ll.ty * Ll.operand) (path: Ll.operand list) : 
       if(idx_into_basetype) then failwith "Invalid path"
       else [base_addr]
     (* | Namedt tid -> failwith ("not handling name types yet, tid: " ^ tid) *)
-    | _ -> base_addr :: (trav_path path ptr_ty)
+    | _ -> base_addr :: 
+          if(first_idx = 0) then (trav_path (drop 1 path) ptr_ty)
+          else trav_path path ptr_ty
     end
    
   
@@ -388,11 +394,16 @@ let compile_insn (ctxt:ctxt) ((uid:uid), (i:Ll.insn)) : X86.ins list =
     | Alloca ty                 -> []
     | Store (ty, op1, op2)      -> ((compile_operand ctxt (Reg R10)) op1)::
                                    [(Movq, [Reg R10; top op2])]
-    | Load (ty, op)             -> load_instr op
+    | Load (ty, op)             -> let is_pointer = 
+                                    begin match ty with 
+                                      | Ptr _ -> true
+                                      | _ -> false
+                                    end in
+                                   load_instr op 
     | Bitcast (ty1, op, ty2)    -> load_instr op
     | Gep (ty, op, ls)          -> let dest = lookup ctxt.layout uid in
                                    (compile_gep ctxt (ty, op) ls) @
-                                   [(Movq, [Reg R11; dest])]
+                                   reg_move (Ind2 R11) dest
                                    (* failwith "GEP not implemented" *)
   end
 
