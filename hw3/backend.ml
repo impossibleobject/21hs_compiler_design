@@ -61,6 +61,16 @@ type ctxt = { tdecls : (tid * ty) list
 let lookup m x = List.assoc x m
 
 
+(*L: helper take, stupid it's not in list library*)
+let rec take  (i:int) (ls: 'a list) : 'a list = 
+  begin match i with
+    | 0 -> []
+    | i -> begin match ls with
+            | [] -> []
+            | h::tl -> h :: take (i-1) tl
+           end
+  end
+
 (* compiling operands  ------------------------------------------------------ *)
 
 
@@ -179,7 +189,11 @@ let compile_call (ctxt:ctxt) ((rty, fn, args):(ty * Ll.operand * (ty * Ll.operan
     else []
   in
   let call_ins = 
-    let unpack_Gid (Gid g) = Platform.mangle g in
+    let unpack_Gid (gid:Ll.operand) : gid =
+      begin match gid with
+        | Gid g -> Platform.mangle g
+        | _ -> failwith "not a gid"
+      end in
     [(Callq, [Imm (Lbl (unpack_Gid fn))])] in
   let write_return_val =
     begin match uid with
@@ -251,26 +265,62 @@ let rec size_ty (tdecls:(tid * ty) list) (t:Ll.ty) : int =
       by the path so far
 *)
 let compile_gep (ctxt:ctxt) (op : Ll.ty * Ll.operand) (path: Ll.operand list) : ins list =
-  let top = transl_operand ctxt in
   let int_to_imm i = Imm (Lit (Int64.of_int i)) in
-  let ty = fst op in
-  let base_addr = compile_operand ctxt (Reg R10) (snd op) in
-  let depth = List.length path in
-  let scale_by_ty (op_curr:Ll.operand) (ty:ty) : ins list =
+  let unpack_pointer p = 
+    begin match p with 
+      | Ptr ty -> ty
+      | _ -> failwith "not a pointer"
+    end in
+  let ptr_ty = unpack_pointer (fst op) in
+  let unpack_cnst (op:Ll.operand) : int = 
+    begin match op with
+      | Const n -> Int64.to_int n
+      | _ -> failwith "compile_gep: tried to unpack non-const"
+    end in
+  let base_addr = compile_operand ctxt (Reg R11) (snd op) in
+  let trav_arr (op_curr:Ll.operand) (elem_ty:ty) : ins list =
     (compile_operand ctxt (Reg R10) op_curr) ::
-    (Imulq, [int_to_imm (size_ty ctxt.tdecls ty); Reg R10])::
-    [(Addq, [Reg R10; top (snd op)])]
+    (Imulq, [int_to_imm (size_ty ctxt.tdecls elem_ty); Reg R10])::
+    [(Addq, [Reg R10; Reg R11])]
   in
-  let idx_op::tl = path in
-  let idx = top idx_op in
-  let middlepart =
-    begin match ty with
-      | Array (l, elem_ty) -> scale_by_ty idx_op ty 
-      | Struct elems -> []
-      | _ -> failwith "compile_gep: path is invalid"
-    end in 
+  let idx_op = List.nth path 0 in
+  (* print_int(size_ty ctxt.tdecls ptr_ty);
+  print_endline(" compile_gep input type"); *)
+  let trav_struct (op_offset:Ll.operand) (types: ty list) : ins list =
+    let offset =
+      let offset_nr = unpack_cnst op_offset in
+      let cutoff_type_sizes = List.map (size_ty ctxt.tdecls) (take offset_nr types) in 
+    List.fold_left (+) 0 cutoff_type_sizes in
+    [(Addq, [int_to_imm offset; Reg R11])]
+  in
   
-  [base_addr] @ middlepart
+  let rec trav_path (rem_path: Ll.operand list) (curr_ty: ty) : ins list =
+    begin match rem_path with
+      | [] -> []
+      | h::tl -> 
+        begin match curr_ty with
+          | (I1 | I8 | I64) -> 
+            if(List.length tl > 0) then failwith "trav_path: Invalid path"
+            else []
+          | Namedt tid -> (* print_endline("trav_path, name tid: " ^ tid); *)
+                          trav_path rem_path (lookup ctxt.tdecls tid)
+          | Array (l, elem_type) -> trav_arr h elem_type @ trav_path tl elem_type
+          | Struct tyls -> trav_struct h tyls @ trav_path tl (List.nth tyls (unpack_cnst h))
+          | _ -> failwith "can't call gep on function or void"
+        end
+    end in 
+  let first_idx = unpack_cnst idx_op in 
+  let idx_into_basetype : bool = (List.length path > 1) || (first_idx <> 0) in 
+  begin match ptr_ty with 
+    | (I1 | I8 | I64) -> 
+      if(idx_into_basetype) then failwith "Invalid path"
+      else [base_addr]
+    (* | Namedt tid -> failwith ("not handling name types yet, tid: " ^ tid) *)
+    | _ -> base_addr :: (trav_path path ptr_ty)
+    end
+   
+  
+    
   
 
 
@@ -321,8 +371,13 @@ let compile_insn (ctxt:ctxt) ((uid:uid), (i:Ll.insn)) : X86.ins list =
   in 
   let load_instr (op:Ll.operand) : ins list= 
     let dest = lookup ctxt.layout uid in
+    let global_load =
+      begin match op with
+        | Gid g -> [(Movq, [Ind2(R10); Reg R10])]
+        | _ -> []
+      end in
     ((compile_operand ctxt (Reg R10)) op)::
-    [(Movq, [Reg R10; dest])] in
+    global_load @ [(Movq, [Reg R10; dest])] in
   begin match i with
     | Binop (bop, ty, op1, op2) -> binop bop (op1, op2)
     | Icmp  (cnd, ty, op1, op2) -> ((compile_operand ctxt (Reg R10)) op1) :: 
@@ -337,8 +392,8 @@ let compile_insn (ctxt:ctxt) ((uid:uid), (i:Ll.insn)) : X86.ins list =
     | Bitcast (ty1, op, ty2)    -> load_instr op
     | Gep (ty, op, ls)          -> let dest = lookup ctxt.layout uid in
                                    (compile_gep ctxt (ty, op) ls) @
-                                   [(Movq, [Reg R10; dest])]
-    | _ -> failwith "not an op"
+                                   [(Movq, [Reg R11; dest])]
+                                   (* failwith "GEP not implemented" *)
   end
 
 
