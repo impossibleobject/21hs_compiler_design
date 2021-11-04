@@ -191,26 +191,16 @@ let compile_call (ctxt:ctxt) ((rty, fn, args):(ty * Ll.operand * (ty * Ll.operan
   let reg_setup = ref [] in
   let min (a:int) (b:int) : int = if(a<b) then a else b in
   for i=0 to ((min num_args 6)-1) do
-    reg_setup := !reg_setup @ [(Movq, [top (snd (List.nth args i)); arg_stack_setup i])]
+    reg_setup := !reg_setup @ [compile_operand ctxt (arg_stack_setup i) (snd (List.nth args i))]
   done;
-  let cleanup_stack = 
-    if(use_stack) then [(Addq, [int_to_imm (8*num_ovfw); Reg Rsp])]
-    else []
-  in
-  let call_ins = 
-    let unpack_Gid (gid:Ll.operand) : gid =
-      begin match gid with
-        | Gid g -> Platform.mangle g
-        | _ -> failwith "not a gid"
-      end in
-    [(Callq, [Imm (Lbl (unpack_Gid fn))])] in
+  let call_ins = [compile_operand ctxt (Reg R10) fn; Callq, [Reg R10]] in
   let write_return_val =
     begin match uid with
       | None -> []
       | Some loc -> [(Movq, [Reg Rax; lookup ctxt.layout loc])]
     end
   in
-  !reg_setup @ stack_setup @ call_ins @ cleanup_stack @ write_return_val
+  !reg_setup @ stack_setup @ call_ins @ write_return_val
 
 
 (* compiling getelementptr (gep)  ------------------------------------------- *)
@@ -579,7 +569,12 @@ let compile_fdecl (tdecls:(tid * ty) list) (name:string) ({f_ty; f_param; f_cfg 
   let args_on_stack = args_from_layout layout 0 in
   let stack_alloc = [(Pushq, [Reg Rbp]); (Movq, [Reg Rsp; Reg Rbp]); (Subq, [arg_space; Reg Rsp])] in
   let asm_entry = Text (stack_alloc @ args_on_stack @ (compile_block name ctxt entry)) in
-  let elem_entry = [{lbl = name; global = true; asm = asm_entry}] in
+  let is_main : bool =
+    begin match name with
+      | "main" -> true
+      | _      -> false
+    end in
+  let elem_entry = [{lbl = name; global = is_main; asm = asm_entry}] in
   let compile_cfg_elem ((lbl, blk):(lbl * block)) : elem = 
     compile_lbl_block name lbl ctxt blk in
   let elem_cfg = List.map compile_cfg_elem body in 
