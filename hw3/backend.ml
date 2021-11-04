@@ -62,7 +62,7 @@ let lookup m x = List.assoc x m
 
 
 (*L: helper take, stupid it's not in list library*)
-let rec take  (i:int) (ls: 'a list) : 'a list = 
+let rec take (i:int) (ls: 'a list) : 'a list = 
   begin match i with
     | 0 -> []
     | i -> begin match ls with
@@ -84,7 +84,7 @@ let rec drop (i:int) (ls:'a list) : 'a list =
 let reg_move (src:X86.operand) (dest:X86.operand) : ins list = 
   [(Movq, [src; Reg R09]); (Movq, [Reg R09; dest])]
 
-let int_to_imm i = Imm (Lit (Int64.of_int i))
+let int_to_imm (i:int) : X86.operand = Imm (Lit (Int64.of_int i))
 
 (* compiling operands  ------------------------------------------------------ *)
 
@@ -114,16 +114,6 @@ let int_to_imm i = Imm (Lit (Int64.of_int i))
    the X86 instruction that moves an LLVM operand into a designated
    destination (usually a register).
 *)
-let compile_operand (ctxt:ctxt) (dest:X86.operand) : Ll.operand -> ins =
-  fun op ->
-    begin match op with
-      | Null    -> (Movq, [(Imm (Lit 0L)); dest])
-      | Const c -> (Movq, [(Imm (Lit c)); dest])
-      | Gid g   -> (Leaq, [Ind3(Lbl (Platform.mangle g), Rip); dest])
-      | Id l    -> (Movq, [(lookup ctxt.layout l); dest] )
-    end
-
-(*L: did not get point of helper above, transformed it for our purposes*)
 let transl_operand (ctxt:ctxt) : Ll.operand -> X86.operand =
   fun op ->
     begin match op with
@@ -132,6 +122,15 @@ let transl_operand (ctxt:ctxt) : Ll.operand -> X86.operand =
       | Gid g   -> Ind3(Lbl (Platform.mangle g), Rip)
       | Id l    -> lookup ctxt.layout l
     end
+  
+let compile_operand (ctxt:ctxt) (dst:X86.operand) : Ll.operand -> ins =
+  fun op ->
+    let src = transl_operand ctxt op in
+    begin match op with
+      | Gid g -> (Leaq, [src;dst])
+      | _     -> (Movq, [src;dst])
+    end
+
 
 
 
@@ -351,11 +350,13 @@ let compile_gep (ctxt:ctxt) (op : Ll.ty * Ll.operand) (path: Ll.operand list) : 
    - Bitcast: does nothing interesting at the assembly level
 *)
 let compile_insn (ctxt:ctxt) ((uid:uid), (i:Ll.insn)) : X86.ins list =
-  (* print_endline("entering compile_insn, uid: ");
-  print_endline(uid); *)
   let top = transl_operand ctxt in
+  let dst = 
+    begin match i with
+      | (Icmp _ | Call _ | Store _) -> Imm (Lit 0L) (*L:placeholder*)
+      | _                           -> lookup ctxt.layout uid
+    end in
   let binop (bop:bop) ((op1, op2):(Ll.operand * Ll.operand)) : X86.ins list =
-    let dest = lookup ctxt.layout uid in 
     let ins = 
       begin match bop with 
         | Add  -> Addq
@@ -370,17 +371,8 @@ let compile_insn (ctxt:ctxt) ((uid:uid), (i:Ll.insn)) : X86.ins list =
       end in
     [compile_operand ctxt (Reg Rax) op1;
      (ins, [top op2; (Reg Rax)]);
-     (Movq, [Reg Rax; dest])]
-  in 
-  let load_instr (op:Ll.operand): ins list = 
-    let dest = lookup ctxt.layout uid in
-    (* let mov_val_into_dest =
-      begin match op with
-        | Gid g -> (reg_move (Reg R10) dest)
-        | _ -> (reg_move (Ind2 R10) dest)
-      end in *)
-    ((compile_operand ctxt (Reg R10)) op)::
-    reg_move (Ind2 R10) dest in
+     (Movq, [Reg Rax; dst])]
+  in
   begin match i with
     | Binop (bop, ty, op1, op2) -> binop bop (op1, op2)
     | Icmp  (cnd, ty, op1, op2) -> ((compile_operand ctxt (Reg R10)) op1) :: 
@@ -391,23 +383,19 @@ let compile_insn (ctxt:ctxt) ((uid:uid), (i:Ll.insn)) : X86.ins list =
                                     | Void -> compile_call ctxt (ty, op, ls) None
                                     | _    -> compile_call ctxt (ty, op, ls) (Some uid)
                                    end
-    | Alloca ty                 -> (* print_endline("alloca uid: " ^ uid ^ " corresponds to: " ^(string_of_operand (top (Id uid)))); *)
-                                   let dest = lookup ctxt.layout uid in
-                                   (Subq, [int_to_imm (size_ty ctxt.tdecls ty); Reg Rsp]) ::
-                                   [(Movq, [Reg Rsp; dest])]
+    | Alloca ty                 -> (Subq, [int_to_imm (size_ty ctxt.tdecls ty); Reg Rsp]) ::
+                                   [(Movq, [Reg Rsp; dst])]
     | Store (ty, src, dst)      -> ((compile_operand ctxt (Reg R10)) src)::
                                    ((compile_operand ctxt (Reg R11)) dst)::
                                    [(Movq, [Reg R10; Ind2 R11])] 
-    | Load (ty, op)             -> load_instr op
-    | Bitcast (ty1, op, ty2)    -> let dest = lookup ctxt.layout uid in
-                                   ((compile_operand ctxt (Reg R10)) op)::
-                                   [(Movq, [Reg R10; dest])]
-    | Gep (ty, op, ls)          -> (* print_endline("calling compile_gep"); *)
-                                   let dest = lookup ctxt.layout uid in
-                                   (compile_gep ctxt (ty, op) ls) @
-                                   reg_move (Reg R11) dest
-                                   (* failwith "GEP not implemented" *)
+    | Load (ty, op)             -> ((compile_operand ctxt (Reg R10)) op)::
+                                   reg_move (Ind2 R10) dst
+    | Bitcast (ty1, op, ty2)    -> ((compile_operand ctxt (Reg R10)) op)::
+                                   [(Movq, [Reg R10; dst])]
+    | Gep (ty, op, ls)          -> (compile_gep ctxt (ty, op) ls) @
+                                   reg_move (Reg R11) dst
   end
+
 
 
 
@@ -434,14 +422,14 @@ let compile_terminator (fn:string) (ctxt:ctxt) (t:Ll.terminator) : ins list =
                       [(Popq, [Reg Rbp])] in
   begin match t with
     | Ret (Void, None)  -> stack_cleanup @ [(Retq, [])]
-    | Ret (ty, Some op) -> ((compile_operand ctxt (Reg Rax)) op)::
-                            (stack_cleanup @ [(Retq, [])])
+    | Ret (ty, Some op) -> (compile_operand ctxt (Reg Rax) op)::
+                           stack_cleanup @ [(Retq, [])]
     | Br lb             -> [(Jmp, [Imm (Lbl (mk_lbl fn lb))])]
-    | Cbr (op, l1, l2)  -> ((compile_operand ctxt (Reg Rax)) op) ::
+    | Cbr (op, l1, l2)  -> (compile_operand ctxt (Reg Rax) op) ::
                            (Cmpq, [Imm (Lit 1L); Reg Rax]) ::
                            (J X86.Eq, [Imm (Lbl (mk_lbl fn l1))]) ::
                            [(Jmp, [Imm (Lbl (mk_lbl fn l2))])]
-    | _ -> failwith "compile_terminator or vscode gets mad"
+    | _ -> failwith "compile_terminator got wrong input"
   end
   
   
