@@ -508,26 +508,15 @@ let arg_put (n:int) : X86.operand =
   Ind3(imm, Rbp)
 
 let stack_layout (args : uid list) ((block, lbled_blocks):cfg) : layout =
-  let length = List.length args in
-  let rec get_params (layout : layout) (acc: int) : layout = 
-    if(acc = length) then layout
-    else get_params ((List.nth args acc,arg_put acc)::layout) (acc+1)
-  in
-  let rec get_locals ((cnt, acc): (int * layout)) (blk:block) : (int * layout) =
-    let ils = blk.insns in
-    begin match ils with
-      | []      -> (cnt, acc) (*F: terminator uid left out, should not be problematic*)
-      | (uid, i)::tl  -> 
-        begin match i with
-          | (Call (Void, _, _) | Store _) -> get_locals (cnt, acc) {insns = tl; term = blk.term}
-          | _ ->  get_locals (cnt+1, acc @ [(uid, arg_put cnt)]) {insns = tl; term = blk.term}
-        end
-    end 
-  in
-  let entry_layout = get_locals (length, []) block in
-  let fold_block = fun (c, a) (_, blk) -> get_locals (c, a) blk in 
-  let local_vars = List.fold_left fold_block entry_layout lbled_blocks in
-  (get_params [] 0) @ (snd local_vars)
+  let uids_from_block (blk:block) : uid list = 
+    fst (List.split blk.insns) @ [fst blk.term] in
+  let get_blocks (lbl_blks:(lbl * block) list) : block list = 
+    snd (List.split lbl_blks) in
+  let local_uids = List.concat (List.map uids_from_block (get_blocks lbled_blocks)) in 
+  let uid_list = args @ uids_from_block block @ local_uids in
+  let map_uids (i:int) (uid:uid) : (uid * X86.operand) =
+    (uid, arg_put i) in
+  List.mapi map_uids uid_list
 
 (* The code for the entry-point of a function must do several things:
 
