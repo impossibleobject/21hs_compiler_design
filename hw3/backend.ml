@@ -71,20 +71,23 @@ let rec take (i:int) (ls: 'a list) : 'a list =
            end
   end
 
+(*L: helper to drop from list if list empty just returns empty*)
 let rec drop (i:int) (ls:'a list) : 'a list = 
-  begin match i with
-    | 0 -> ls
-    | _ -> 
-      begin match ls with
-        | []    -> failwith "tried dropping from an empty list"
-        | h::tl -> drop (i-1) tl
-      end
-  end
+begin match i with
+  | 0 -> ls
+  | _ -> 
+    begin match ls with
+      | []    -> []
+      | h::tl -> drop (i-1) tl
+    end
+end
 
 let reg_move (src:X86.operand) (dest:X86.operand) : ins list = 
   [(Movq, [src; Reg R09]); (Movq, [Reg R09; dest])]
 
 let int_to_imm (i:int) : X86.operand = Imm (Lit (Int64.of_int i))
+
+let min (a:int) (b:int) : int = if(a<=b) then a else b
 
 (* compiling operands  ------------------------------------------------------ *)
 
@@ -154,7 +157,7 @@ let compile_operand (ctxt:ctxt) (dst:X86.operand) : Ll.operand -> ins =
    needed). ]
 *)
 
-let arg_stack_setup (n : int) : operand =
+let reg_arg_cc (n : int) : operand =
   begin match n with
     | 0 -> Reg Rdi
     | 1 -> Reg Rsi
@@ -162,44 +165,30 @@ let arg_stack_setup (n : int) : operand =
     | 3 -> Reg Rcx
     | 4 -> Reg R08
     | 5 -> Reg R09
-    | _ -> if(n<0) then failwith "can't locate negative arg"
-           else let offset = Lit (Int64.of_int (((n-7)+2)*8)) in 
-           Ind3 (offset, Rsp)
+    | _ -> failwith "arg is not a reg"
   end
 
 (*F: do opposite of fdecl for args*)
 let compile_call (ctxt:ctxt) ((rty, fn, args):(ty * Ll.operand * (ty * Ll.operand) list)) (uid:uid option) : ins list =
-  let num_args = List.length args in
   let top = transl_operand ctxt in
-  let num_ovfw = num_args - 6 in
-  let use_stack = num_ovfw > 0 in
+  let reg_setup =
+    let arg_into_reg (i:int) (arg:(ty * Ll.operand)) : X86.ins =
+      compile_operand ctxt (reg_arg_cc i) (snd arg) in
+    List.mapi arg_into_reg (take 6 args)
+  in
   let stack_setup = 
-    let rec push_args (args: (ty * Ll.operand) list) : ins list = 
-      begin match args with
-        | [] -> []
-        | h::tl -> (Pushq, [top (snd h)]) :: (push_args tl)
-      end
-    in
-    let stack_args = 
-      if(not use_stack) then []
-      (*L: have to reverse args on stack*)
-      else List.rev (drop 6 args)
-    in
-    push_args stack_args in 
-
-  let reg_setup = ref [] in
-  let min (a:int) (b:int) : int = if(a<b) then a else b in
-  for i=0 to ((min num_args 6)-1) do
-    reg_setup := !reg_setup @ [compile_operand ctxt (arg_stack_setup i) (snd (List.nth args i))]
-  done;
+    let push_stack_arg = fun arg -> (Pushq, [top (snd arg)]) in
+    let stack_args = List.rev (drop 6 args) in
+    List.map push_stack_arg stack_args
+  in
   let call_ins = [compile_operand ctxt (Reg R10) fn; Callq, [Reg R10]] in
   let write_return_val =
     begin match uid with
-      | None -> []
+      | None     -> []
       | Some loc -> [(Movq, [Reg Rax; lookup ctxt.layout loc])]
     end
   in
-  !reg_setup @ stack_setup @ call_ins @ write_return_val
+  reg_setup @ stack_setup @ call_ins @ write_return_val
 
 
 (* compiling getelementptr (gep)  ------------------------------------------- *)
@@ -467,12 +456,7 @@ let compile_lbl_block fn lbl ctxt blk : elem =
 *)
 let arg_loc (n : int) : operand =
   begin match n with
-    | 0 -> Reg Rdi
-    | 1 -> Reg Rsi
-    | 2 -> Reg Rdx
-    | 3 -> Reg Rcx
-    | 4 -> Reg R08
-    | 5 -> Reg R09
+    | (0|1|2|3|4|5) -> reg_arg_cc n
     | _ -> if(n<0) then failwith "can't locate negative arg"
            (*L: official formula didn't account for return addr loc => 2 -> 3*)
            else let offset = Lit (Int64.of_int (((n-7)+3)*8)) in 
