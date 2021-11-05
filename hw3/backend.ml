@@ -89,6 +89,8 @@ let int_to_imm (i:int) : X86.operand = Imm (Lit (Int64.of_int i))
 
 let min (a:int) (b:int) : int = if(a<=b) then a else b
 
+let sum (ls:'a list) : int = List.fold_left (+) 0 ls
+
 (* compiling operands  ------------------------------------------------------ *)
 
 
@@ -220,7 +222,7 @@ let rec size_ty (tdecls:(tid * ty) list) (t:Ll.ty) : int =
     | (I1 | I64 | Ptr _)  -> 8
     | Array (i, t)        -> i * (rec_call t)
     | Namedt tid          -> rec_call (lookup tdecls tid)
-    | Struct ls           -> List.fold_left (+) 0 (List.map rec_call ls)
+    | Struct ls           -> sum (List.map rec_call ls)
   end
 
 
@@ -252,61 +254,60 @@ let rec size_ty (tdecls:(tid * ty) list) (t:Ll.ty) : int =
       by the path so far
 *)
 let compile_gep (ctxt:ctxt) (op : Ll.ty * Ll.operand) (path: Ll.operand list) : ins list =
-(*   print_endline("entering compile_gep");*)  
-  let unpack_pointer p = 
-    begin match p with 
-      | Ptr ty -> ty
-      | _ -> failwith "not a pointer"
-    end in
-  let ptr_ty = unpack_pointer (fst op) in
   let unpack_cnst (op:Ll.operand) : int = 
     begin match op with
       | Const n -> Int64.to_int n
       | _ -> failwith "compile_gep: tried to unpack non-const"
     end in
+  
+  let ptr_ty = begin match fst op with 
+                | Ptr ty -> ty
+                | _ -> failwith "not a pointer"
+               end in
   let base_addr = compile_operand ctxt (Reg R11) (snd op) in
+  let first_idx = 
+    let idx_op = List.nth path 0 in
+    unpack_cnst idx_op in 
+  
+  (*L: helpers that go through subtypes*)
   let trav_arr (op_curr:Ll.operand) (elem_ty:ty) : ins list =
     (compile_operand ctxt (Reg R10) op_curr) ::
     (Imulq, [int_to_imm (size_ty ctxt.tdecls elem_ty); Reg R10])::
     [(Addq, [Reg R10; Reg R11])]
   in
-  let idx_op = List.nth path 0 in
-  (* print_int(size_ty ctxt.tdecls ptr_ty);
-  print_endline(" compile_gep input type"); *)
   let trav_struct (op_offset:Ll.operand) (types: ty list) : ins list =
     let offset =
       let offset_nr = unpack_cnst op_offset in
       let cutoff_type_sizes = List.map (size_ty ctxt.tdecls) (take offset_nr types) in 
-    List.fold_left (+) 0 cutoff_type_sizes in
+      sum cutoff_type_sizes in
     [(Addq, [int_to_imm offset; Reg R11])]
   in
-  
   let rec trav_path (rem_path: Ll.operand list) (curr_ty: ty) : ins list =
     begin match rem_path with
       | [] -> []
       | h::tl -> 
         begin match curr_ty with
-          | (I1 | I8 | I64) -> 
-            if(List.length tl > 0) then failwith "trav_path: Invalid path"
-            else []
-          | Namedt tid -> (* print_endline("trav_path, name tid: " ^ tid); *)
-                          trav_path rem_path (lookup ctxt.tdecls tid)
-          | Array (l, elem_type) -> trav_arr h elem_type @ trav_path tl elem_type
-          | Struct tyls -> trav_struct h tyls @ trav_path tl (List.nth tyls (unpack_cnst h))
-          | Ptr ty -> trav_path rem_path ty 
-          | _ -> failwith "can't call gep on function or void"
+          | (I1 | I8 | I64)    -> if(List.length tl > 0) then 
+                                      failwith "trav_path: Invalid path"
+                                    else []
+          | Namedt tid         -> trav_path rem_path (lookup ctxt.tdecls tid)
+          | Array (l, elem_ty) -> trav_arr h elem_ty @ trav_path tl elem_ty
+          | Struct tyls        -> trav_struct h tyls 
+                                    @ trav_path tl (List.nth tyls (unpack_cnst h))
+          | Ptr ty             -> trav_path rem_path ty 
+          | _                  -> failwith "can't call gep on function or void"
         end
     end in 
-  let first_idx = unpack_cnst idx_op in 
+  
   let idx_into_basetype : bool = (List.length path > 1) || (first_idx <> 0) in 
   begin match ptr_ty with 
-    | (I1 | I8 | I64) -> 
-      if(idx_into_basetype) then failwith "Invalid path"
-      else [base_addr]
-    (* | Namedt tid -> failwith ("not handling name types yet, tid: " ^ tid) *)
-    | _ -> base_addr :: 
-          if(first_idx = 0) then (trav_path (drop 1 path) ptr_ty)
-          else trav_path path ptr_ty
+    | (I1 | I8 | I64) -> if(idx_into_basetype) 
+                           then failwith "Invalid path"
+                         else [base_addr]
+    | _               -> base_addr :: 
+                         if(first_idx = 0) 
+                          then (trav_path (drop 1 path) ptr_ty)
+                         else trav_path path ptr_ty
     end
    
   
