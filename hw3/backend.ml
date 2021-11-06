@@ -438,7 +438,7 @@ let compile_terminator (fn:string) (ctxt:ctxt) (t:Ll.terminator) : ins list =
 let compile_block (fn:string) (ctxt:ctxt) (blk:Ll.block) : ins list =
   let instr_list ((insns, term):((uid * insn) list * terminator)) : X86.ins list = 
     let insls = List.concat (List.map (compile_insn ctxt) insns) in
-    List.append insls (compile_terminator fn ctxt term) in
+    insls @ (compile_terminator fn ctxt term) in
   instr_list (blk.insns, snd blk.term)
 
 let compile_lbl_block fn lbl ctxt blk : elem =
