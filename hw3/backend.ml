@@ -283,24 +283,22 @@ let compile_gep (ctxt:ctxt) (op : Ll.ty * Ll.operand) (path: Ll.operand list) : 
     [(Addq, [int_to_imm offset; Reg R11])]
   in
   
-  let trav_path_fold (rem_path: Ll.operand list) (curr_ty: ty) : ins list =
-    let fold_step ((ty, insls):(ty * ins list)) (op:Ll.operand) : ty * ins list = 
-      let rec unpack_ty (to_unpack:ty) : ty =
-        begin match to_unpack with
-          | Ptr ty     -> unpack_ty ty
-          | Namedt tid -> lookup ctxt.tdecls tid
-          | _          -> to_unpack
-        end in
-      begin match unpack_ty ty with
-          | (I1 | I8 | I64)    -> (*L: if rempath non-empty next call falls through*)
-                                  (Void, insls) 
-          | Array (l, elem_ty) -> (elem_ty, insls @ trav_arr op elem_ty)
-          | Struct tyls        -> (List.nth tyls (unpack_cnst op), 
-                                  insls @ (trav_struct op tyls))
-          | _                  -> failwith "can't call gep on function or void or invalid path"
-        end in
-    snd (List.fold_left fold_step (curr_ty, []) rem_path) in
-    
+  let rec trav_path (rem_path: Ll.operand list) (curr_ty: ty) : ins list =
+    begin match rem_path with
+      | [] -> []
+      | h::tl -> 
+        begin match curr_ty with
+          | (I1 | I8 | I64) -> 
+            if(List.length tl > 0) then failwith "trav_path: Invalid path"
+            else []
+          | Namedt tid -> (* print_endline("trav_path, name tid: " ^ tid); *)
+                          trav_path rem_path (lookup ctxt.tdecls tid)
+          | Array (l, elem_type) -> trav_arr h elem_type @ trav_path tl elem_type
+          | Struct tyls -> trav_struct h tyls @ trav_path tl (List.nth tyls (unpack_cnst h))
+          | Ptr ty -> trav_path rem_path ty 
+          | _ -> failwith "can't call gep on function or void"
+        end
+    end in 
   
   let idx_into_basetype : bool = (List.length path > 1) || (first_idx <> 0) in 
   begin match in_ty with 
@@ -309,8 +307,8 @@ let compile_gep (ctxt:ctxt) (op : Ll.ty * Ll.operand) (path: Ll.operand list) : 
                          else [base_addr]
     | _               -> base_addr :: 
                          if(first_idx = 0) 
-                          then (trav_path_fold (drop 1 path) in_ty)
-                         else trav_path_fold path in_ty
+                          then (trav_path (drop 1 path) in_ty)
+                         else trav_path path in_ty
     end
    
   
