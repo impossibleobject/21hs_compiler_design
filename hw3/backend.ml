@@ -278,13 +278,13 @@ let compile_gep (ctxt:ctxt) (op : Ll.ty * Ll.operand) (path: Ll.operand list) : 
   let trav_struct (op_offset:Ll.operand) (types: ty list) : ins list =
     let offset =
       let offset_nr = unpack_cnst op_offset in
-      let cutoff_type_sizes = List.map (size_ty ctxt.tdecls) (take offset_nr types) in 
-      sum cutoff_type_sizes in
+      let types_till_offset = take offset_nr types in 
+      sum (List.map (size_ty ctxt.tdecls) types_till_offset) in
     [(Addq, [int_to_imm offset; Reg R11])]
   in
   let rec trav_path (rem_path: Ll.operand list) (curr_ty: ty) : ins list =
     begin match rem_path with
-      | [] -> []
+      | []    -> []
       | h::tl -> 
         begin match curr_ty with
           | (I1 | I8 | I64)    -> if(List.length tl > 0) then 
@@ -297,7 +297,8 @@ let compile_gep (ctxt:ctxt) (op : Ll.ty * Ll.operand) (path: Ll.operand list) : 
           | Ptr ty             -> trav_path rem_path ty 
           | _                  -> failwith "can't call gep on function or void"
         end
-    end in 
+    end 
+  in 
   
   let idx_into_basetype : bool = (List.length path > 1) || (first_idx <> 0) in 
   begin match ptr_ty with 
@@ -513,22 +514,14 @@ let compile_fdecl (tdecls:(tid * ty) list) (name:string) ({f_ty; f_param; f_cfg 
   let entry, body = f_cfg in
   let nr_args = List.length f_param in
   let arg_space = Imm (Lit (Int64.of_int (8 * List.length layout))) in
-  let rec args_from_layout (l:layout) (acc:int) : (ins list) =
-    begin match l with
-      | []    -> []
-      | h::tl -> 
-        if(acc = (nr_args)) then []
-        else 
-          if((nr_args-acc-1) >= 0 && (nr_args-acc-1) <= 5) then 
-            (Movq, [arg_loc (nr_args-acc-1); lookup layout (fst h)])::
-            (args_from_layout tl (acc+1))
-          else 
-            (Movq, [arg_loc (nr_args-acc-1); Reg R10])::
-            (Movq, [Reg R10; lookup layout (fst h)]) :: 
-            (args_from_layout tl (acc+1))  
-    end
+  let layout_args = take nr_args layout in
+  let arg_on_stack (i:int) (arg:(uid * X86.operand)) : ins list =
+    if((nr_args-i-1) >= 0 && (nr_args-i-1) <= 5) then 
+      [(Movq, [arg_loc (nr_args-i-1); lookup layout (fst arg)])]
+    else 
+      reg_move (arg_loc (nr_args-i-1)) (lookup layout (fst arg))
   in
-  let args_on_stack = args_from_layout layout 0 in
+  let args_on_stack = List.concat (List.mapi arg_on_stack layout_args) in
   let stack_alloc = [(Pushq, [Reg Rbp]); (Movq, [Reg Rsp; Reg Rbp]); (Subq, [arg_space; Reg Rsp])] in
   let asm_entry = Text (stack_alloc @ args_on_stack @ (compile_block name ctxt entry)) in
   let is_main : bool =
@@ -540,7 +533,7 @@ let compile_fdecl (tdecls:(tid * ty) list) (name:string) ({f_ty; f_param; f_cfg 
   let compile_cfg_elem ((lbl, blk):(lbl * block)) : elem = 
     compile_lbl_block name lbl ctxt blk in
   let elem_cfg = List.map compile_cfg_elem body in 
-  List.append elem_entry elem_cfg
+  elem_entry @ elem_cfg
 
 
 
