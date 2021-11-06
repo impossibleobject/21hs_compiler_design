@@ -180,7 +180,7 @@ let compile_call (ctxt:ctxt) ((rty, fn, args):(ty * Ll.operand * (ty * Ll.operan
   in
   let stack_setup = 
     let push_stack_arg = fun arg -> (Pushq, [top (snd arg)]) in
-    let stack_args = List.rev (drop 6 args) in
+    let stack_args = (* List.rev *) (drop 6 args) in
     List.map push_stack_arg stack_args
   in
   let call_ins = [compile_operand ctxt (Reg R10) fn; Callq, [Reg R10]] in
@@ -260,10 +260,10 @@ let compile_gep (ctxt:ctxt) (op : Ll.ty * Ll.operand) (path: Ll.operand list) : 
       | _ -> failwith "compile_gep: tried to unpack non-const"
     end in
   
-  let ptr_ty = begin match fst op with 
+  let in_ty = begin match fst op with 
                 | Ptr ty -> ty
                 | _ -> failwith "not a pointer"
-               end in
+              end in
   let base_addr = compile_operand ctxt (Reg R11) (snd op) in
   let first_idx = 
     let idx_op = List.nth path 0 in
@@ -301,14 +301,14 @@ let compile_gep (ctxt:ctxt) (op : Ll.ty * Ll.operand) (path: Ll.operand list) : 
   in 
   
   let idx_into_basetype : bool = (List.length path > 1) || (first_idx <> 0) in 
-  begin match ptr_ty with 
+  begin match in_ty with 
     | (I1 | I8 | I64) -> if(idx_into_basetype) 
                            then failwith "Invalid path"
                          else [base_addr]
     | _               -> base_addr :: 
                          if(first_idx = 0) 
-                          then (trav_path (drop 1 path) ptr_ty)
-                         else trav_path path ptr_ty
+                          then (trav_path (drop 1 path) in_ty)
+                         else trav_path path in_ty
     end
    
   
@@ -512,28 +512,27 @@ let compile_fdecl (tdecls:(tid * ty) list) (name:string) ({f_ty; f_param; f_cfg 
   let layout = stack_layout f_param f_cfg in
   let ctxt = {tdecls = tdecls; layout = layout} in
   let entry, body = f_cfg in
-  let nr_args = List.length f_param in
-  let arg_space = Imm (Lit (Int64.of_int (8 * List.length layout))) in
-  let layout_args = take nr_args layout in
-  let arg_on_stack (i:int) (arg:(uid * X86.operand)) : ins list =
-    if((nr_args-i-1) >= 0 && (nr_args-i-1) <= 5) then 
-      [(Movq, [arg_loc (nr_args-i-1); lookup layout (fst arg)])]
-    else 
-      reg_move (arg_loc (nr_args-i-1)) (lookup layout (fst arg))
-  in
-  let args_on_stack = List.concat (List.mapi arg_on_stack layout_args) in
-  let stack_alloc = [(Pushq, [Reg Rbp]); (Movq, [Reg Rsp; Reg Rbp]); (Subq, [arg_space; Reg Rsp])] in
-  let asm_entry = Text (stack_alloc @ args_on_stack @ (compile_block name ctxt entry)) in
-  let is_main : bool =
-    begin match name with
-      | "main" -> true
-      | _      -> false
-    end in
-  let elem_entry = [{lbl = name; global = is_main; asm = asm_entry}] in
-  let compile_cfg_elem ((lbl, blk):(lbl * block)) : elem = 
-    compile_lbl_block name lbl ctxt blk in
-  let elem_cfg = List.map compile_cfg_elem body in 
-  elem_entry @ elem_cfg
+  
+  let elem_entry = 
+    let args_on_stack = 
+      let layout_args = take (List.length f_param) layout in
+      let arg_on_stack (i:int) (arg:(uid * X86.operand)) : ins list =
+        reg_move (arg_loc i) (lookup layout (fst arg)) in
+      List.concat (List.mapi arg_on_stack layout_args) in
+    let stack_alloc = 
+      let layout_space = int_to_imm (8 * List.length layout) in
+      [(Pushq, [Reg Rbp]); (Movq, [Reg Rsp; Reg Rbp])
+      ; (Subq, [layout_space; Reg Rsp])] in
+    let asm_entry = 
+      Text (stack_alloc @ args_on_stack @ (compile_block name ctxt entry)) in
+      {lbl = name; global = true; asm = asm_entry} in
+  
+  let elems_cfg =
+    let compile_cfg_elem ((lbl, blk):(lbl * block)) : elem = 
+      compile_lbl_block name lbl ctxt blk in
+    List.map compile_cfg_elem body in 
+
+  elem_entry :: elems_cfg
 
 
 
