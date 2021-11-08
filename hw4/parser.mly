@@ -12,6 +12,7 @@ let loc (startpos:Lexing.position) (endpos:Lexing.position) (elt:'a) : 'a node =
 %token NULL
 %token <string> STRING
 %token <string> IDENT
+%token <bool>   BOOL
 
 %token TINT     /* int */
 %token TVOID    /* void */
@@ -38,6 +39,31 @@ let loc (startpos:Lexing.position) (endpos:Lexing.position) (elt:'a) : 'a node =
 %token BANG     /* ! */
 %token GLOBAL   /* global */
 
+(*L: our tokens*)
+%token NEQ
+%token LT
+%token LTE
+%token GT
+%token GTE
+%token IAND
+%token IOR
+%token AND
+%token OR
+%token SHL
+%token SHR
+%token SAR
+
+%token TRUE
+%token FALSE
+%token TBOOL
+
+%left IOR
+%left IAND
+%left OR
+%left AND
+%left NEQ EQEQ
+%left GTE GT LTE LT
+%left SHL SHR SAR
 %left PLUS DASH
 %left STAR
 %nonassoc BANG
@@ -81,6 +107,7 @@ arglist:
 ty:
   | TINT   { TInt }
   | r=rtyp { TRef r } 
+  | TBOOL  { TBool }
 
 %inline ret_ty:
   | TVOID  { RetVoid }
@@ -95,6 +122,19 @@ ty:
   | DASH   { Sub }
   | STAR   { Mul }
   | EQEQ   { Eq }
+  | NEQ    { Neq }
+  | LT     { Lt }
+  | LTE    { Lte }
+  | GT     { Gt }
+  | GTE    { Gte }
+  | AND    { And }
+  | OR     { Or }
+  | IAND   { IAnd }
+  | IOR    { IOr }  
+  | SHL    { Shl }
+  | SHR    { Shr }
+  | SAR    { Sar }
+  
 
 %inline uop:
   | DASH  { Neg }
@@ -103,7 +143,8 @@ ty:
 
 gexp:
   | t=rtyp NULL  { loc $startpos $endpos @@ CNull t }
-  | i=INT      { loc $startpos $endpos @@ CInt i }
+  | i=INT        { loc $startpos $endpos @@ CInt i }
+  | b=BOOL       { loc $startpos $endpos @@ CBool b }
 
 lhs:  
   | id=IDENT            { loc $startpos $endpos @@ Id id }
@@ -112,7 +153,9 @@ lhs:
 
 exp:
   | i=INT               { loc $startpos $endpos @@ CInt i }
-  | t=rtyp NULL           { loc $startpos $endpos @@ CNull t }
+  | b=BOOL              { loc $startpos $endpos @@ CBool b }
+  | t=rtyp NULL         { loc $startpos $endpos @@ CNull t }
+  /* | t=rtyp INT          { loc $startpos $endpos @@ CArr CInt ls} */
   | e1=exp b=bop e2=exp { loc $startpos $endpos @@ Bop (b, e1, e2) }
   | u=uop e=exp         { loc $startpos $endpos @@ Uop (u, e) }
   | id=IDENT            { loc $startpos $endpos @@ Id id }
