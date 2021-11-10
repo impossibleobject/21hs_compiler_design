@@ -40,6 +40,8 @@
   ("true", TRUE);
   ("false", FALSE);
   ("bool", TBOOL);
+  ("new", NEW);
+  ("for", FOR);
 
   (* Symbols *)
   ( ";", SEMI);
