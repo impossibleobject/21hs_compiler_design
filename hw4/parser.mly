@@ -168,16 +168,10 @@ exp:
   | b=FALSE             { loc $startpos $endpos @@ CBool false }
   | t=rtyp NULL         { loc $startpos $endpos @@ CNull t }
   | s=STRING            { loc $startpos $endpos @@ CStr s }
-  | NEW TINT LBRACKET e=exp RBRACKET       
-                        { loc $startpos $endpos @@ NewArr (TInt, e)}
-  | NEW TBOOL LBRACKET e=exp RBRACKET       
-                        { loc $startpos $endpos @@ NewArr (TBool, e)}
-  /* | NEW TINT LRBRACKET LBRACE ls=separated_list(COMMA, exp) RBRACE
-                        { loc $startpos $endpos @@ CArr (TInt, ls)}
-  | NEW TBOOL LRBRACKET LBRACE ls=separated_list(COMMA, exp) RBRACE
-                        { loc $startpos $endpos @@ CArr (TBool, ls)} */
+  | NEW t=ty LBRACKET e=exp RBRACKET       
+                        { loc $startpos $endpos @@ NewArr (t, e)}
   | NEW t=ty LBRACKET RBRACKET LBRACE ls=separated_list(COMMA, exp) RBRACE
-                        { loc $startpos $endpos @@ CArr (t, ls)}
+                        { loc $startpos $endpos @@ CArr (t, ls)} 
   | e1=exp b=bop e2=exp { loc $startpos $endpos @@ Bop (b, e1, e2) }
   | u=uop e=exp         { loc $startpos $endpos @@ Uop (u, e) }
   | id=IDENT            { loc $startpos $endpos @@ Id id }
@@ -207,6 +201,12 @@ stmt:
                         { loc $startpos $endpos @@ While(e, b) }
   | FOR LPAREN ds=vdecls SEMI e=exp SEMI  s=stmt RPAREN block=block
                         { loc $startpos $endpos @@ For (ds, Some e, Some s, block) }
+  | FOR LPAREN ds=vdecls SEMI SEMI s=stmt RPAREN block=block
+                        { loc $startpos $endpos @@ For (ds, None, Some s, block) }
+  | FOR LPAREN ds=vdecls SEMI e=exp SEMI RPAREN block=block
+                        { loc $startpos $endpos @@ For (ds, Some e, None, block) }
+  | FOR LPAREN ds=vdecls SEMI SEMI RPAREN block=block
+                        { loc $startpos $endpos @@ For (ds, None, None, block) }
 
 block:
   | LBRACE stmts=list(stmt) RBRACE { stmts }
