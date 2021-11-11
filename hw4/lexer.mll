@@ -42,7 +42,6 @@
   ("bool", TBOOL);
   ("new", NEW);
   ("for", FOR);
-  ("[]", LRBRACKET);
 
   (* Symbols *)
   ( ";", SEMI);

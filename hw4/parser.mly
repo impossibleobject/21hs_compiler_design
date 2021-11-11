@@ -57,7 +57,6 @@ let loc (startpos:Lexing.position) (endpos:Lexing.position) (elt:'a) : 'a node =
 %token TBOOL
 %token NEW
 %token FOR
-%token LRBRACKET
 
 %left IOR
 %left IAND
@@ -72,10 +71,6 @@ let loc (startpos:Lexing.position) (endpos:Lexing.position) (elt:'a) : 'a node =
 %nonassoc TILDE
 %nonassoc LBRACKET
 %nonassoc LPAREN
-/* %nonassoc LBRACE */
-/* %nonassoc RBRACKET
-%nonassoc RPAREN
-%nonassoc RBRACE */
 
 /* ---------------------------------------------------------------------- */
 

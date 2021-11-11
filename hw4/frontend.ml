@@ -239,7 +239,7 @@ let typ_of_unop : Ast.unop -> Ast.ty * Ast.ty = function
 
   (10) just like for %_x9, load the array value that is stored in @arr 
 
-  (11)  calculate the array index offset
+  (11) calculate the array index offset
 
   (12) load the array value at the index 
 
@@ -366,7 +366,38 @@ let cmp_function_ctxt (c:Ctxt.t) (p:Ast.prog) : Ctxt.t =
    in well-formed programs. (The constructors starting with C). 
 *)
 let cmp_global_ctxt (c:Ctxt.t) (p:Ast.prog) : Ctxt.t =
-  failwith "cmp_global_ctxt unimplemented"
+
+  let decl_to_ctxt_elem (d:Ast.decl) : (string * (Ll.ty * Ll.operand)) =
+    let exp_to_ctxt_elem (g:Ast.gdecl) : (string * (Ll.ty * Ll.operand)) =
+      let tyop = 
+        begin match g.init.elt with
+          | CNull rty -> (cmp_rty rty, Null)
+          | CBool b -> begin match b with
+                        | true  -> (I1, Const 1L)
+                        | false -> (I1, Const 0L)
+                      end
+          | CInt i -> (I64, Const i)
+          | CStr s -> (Ptr I8, Gid s) (*L: really not sure about what second part of tuple is here*)
+          | CArr _ -> failwith "cmp_global_ctxt can't handle arrays yet"
+          | _      -> (I1, Null) (*L: placeholder to remove undesirables*)
+        end in
+      (g.name, tyop) in
+    begin match d with
+      | Gvdecl g -> exp_to_ctxt_elem g.elt
+      | Gfdecl f -> (f.elt.fname, (I1, Null))
+    end in
+
+  let is_global ((id, tyop):(string * (Ll.ty * Ll.operand))) : bool =
+    begin match tyop with
+      | (I1, Null) -> false
+      | _          -> true
+    end in
+
+  let ginit_ls = List.filter is_global (List.map decl_to_ctxt_elem p) in
+
+  let ginit_into_ctxt (c:Ctxt.t) ((id, tyop):(string * (Ll.ty * Ll.operand))) : Ctxt.t =  
+    Ctxt.add c id tyop in
+  List.fold_left ginit_into_ctxt c ginit_ls
 
 (* Compile a function declaration in global context c. Return the LLVMlite cfg
    and a list of global declarations containing the string literals appearing
