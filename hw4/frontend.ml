@@ -380,7 +380,7 @@ let cmp_global_ctxt (c:Ctxt.t) (p:Ast.prog) : Ctxt.t =
                         | false -> (I1, Const 0L)
                       end
           | CInt i -> (I64, Const i)
-          | CStr s -> (Ptr I8, Gid s) (*L: really not sure about what second part of tuple is here*)
+          | CStr s -> (Array (String.length s + 1,I8), Null)
           | CArr _ -> failwith "cmp_global_ctxt can't handle arrays yet"
           | _      -> (I1, Null) (*L: placeholder to remove non-globals*)
         end in
@@ -416,7 +416,32 @@ let cmp_global_ctxt (c:Ctxt.t) (p:Ast.prog) : Ctxt.t =
  *)
 
 let cmp_fdecl (c:Ctxt.t) (f:Ast.fdecl node) : Ll.fdecl * (Ll.gid * Ll.gdecl) list =
-  failwith "cmp_fdecl not implemented"
+  let ast_fdecl = f.elt in
+  let f_param = List.map snd ast_fdecl.args in
+  let f_ty = 
+    let ast_arg_tys = List.map fst ast_fdecl.args in
+    cmp_fty (ast_arg_tys, ast_fdecl.frtyp) in
+  let ctxt_args, alloca_ls =
+    let fold ((ctxt, llstms):Ctxt.t * (uid * Ll.insn) list) ((ty,uid):Ast.ty * Ast.id) 
+             : Ctxt.t * (uid * Ll.insn) list = 
+      let arg_uid = gensym uid in
+      let arg_ty = cmp_ty ty in
+      let ret_stms = 
+        llstms @ [(arg_uid, Alloca arg_ty)
+                 ;("store_placeholder", Store (arg_ty,(Id uid),(Id arg_uid)))] in
+      let new_ctxt = Ctxt.add ctxt uid (arg_ty, Id arg_uid) in
+      (new_ctxt, ret_stms) in
+    List.fold_left fold (c, []) ast_fdecl.args in 
+  
+  let ctxt_stms, stream = cmp_block ctxt_args (snd f_ty) ast_fdecl.body in
+  
+  let cfg_init, glob_ids_and_decls = cfg_of_stream stream in
+  let cfg = 
+    let init_blk = {insns = (fst cfg_init).insns >@ alloca_ls; term = (fst cfg_init).term} in
+    (init_blk, snd cfg_init) in
+  let fdecl = {f_ty = f_ty; f_param = f_param; f_cfg = cfg} in
+  (fdecl, glob_ids_and_decls)
+
 
 (* Compile a global initializer, returning the resulting LLVMlite global
    declaration, and a list of additional global declarations.
@@ -431,8 +456,8 @@ let cmp_fdecl (c:Ctxt.t) (f:Ast.fdecl node) : Ll.fdecl * (Ll.gid * Ll.gdecl) lis
 *)
 
 let rec cmp_gexp c (e:Ast.exp node) : Ll.gdecl * (Ll.gid * Ll.gdecl) list =
-  let ginit =
-    begin match e.elt with
+  let expr_to_ginit (e:Ast.exp) : Ll.ginit =
+    begin match e with
       | CNull _ -> GNull
       | CBool b -> begin match b with
                     | true  -> GBitcast (I64, (GInt 1L), I1)
@@ -444,8 +469,8 @@ let rec cmp_gexp c (e:Ast.exp node) : Ll.gdecl * (Ll.gid * Ll.gdecl) list =
       | _      -> failwith "cmp_gexp not well formed OAT program, wrong init type"
     end in
   let ty = fst (Ctxt.lookup (fst_trp e.loc) c) in
-  let gdecl = (ty, ginit) in
-  (gdecl, [])
+  (*L :recursion aspect most likely for Arrays *)
+  ((ty, expr_to_ginit e.elt), [])
 
   
 
