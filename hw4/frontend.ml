@@ -370,9 +370,10 @@ let cmp_function_ctxt (c:Ctxt.t) (p:Ast.prog) : Ctxt.t =
 *)
 let cmp_global_ctxt (c:Ctxt.t) (p:Ast.prog) : Ctxt.t =
   
-    let gdecl_to_ctxt_elem (g:Ast.gdecl node) : (string * (Ll.ty * Ll.operand)) =
+  let decl_to_ctxt_elem (d:Ast.decl) : (string * (Ll.ty * Ll.operand)) =
+    let exp_to_ctxt_elem (g:Ast.gdecl) : (string * (Ll.ty * Ll.operand)) =
       let tyop = 
-        begin match g.elt.init.elt with
+        begin match g.init.elt with
           | CNull rty -> (cmp_rty rty, Null)
           | CBool b -> begin match b with
                         | true  -> (I1, Const 1L)
@@ -381,26 +382,26 @@ let cmp_global_ctxt (c:Ctxt.t) (p:Ast.prog) : Ctxt.t =
           | CInt i -> (I64, Const i)
           | CStr s -> (Ptr I8, Gid s) (*L: really not sure about what second part of tuple is here*)
           | CArr _ -> failwith "cmp_global_ctxt can't handle arrays yet"
-          | _      -> failwith "cmp_global_ctxt not well formed oats program"
+          | _      -> (I1, Null) (*L: placeholder to remove non-globals*)
         end in
-      (g.elt.name, tyop) in
-  let gdecl_ls : gdecl node list =   
-    let is_gvdecl (d:Ast.decl) : bool =
-      begin match d with
-        | Gvdecl g -> true
-        | Gfdecl f -> false
-      end in
-    let decl_to_gdecl (d:decl) : gdecl node = 
-      begin match d with
-        | Gvdecl g -> g 
-        | Gfdecl _ -> failwith "filter didn't work"
-      end in
-    List.map decl_to_gdecl (List.filter is_gvdecl p) in
-  let ctxt_elems = List.map gdecl_to_ctxt_elem gdecl_ls in
+      (g.name, tyop) in
+    begin match d with
+      | Gvdecl g -> exp_to_ctxt_elem g.elt
+      | Gfdecl f -> (f.elt.fname, (I1, Null)) (*L: placeholder to remove functions*)
+    end in
 
-  let into_ctxt (c:Ctxt.t) ((id, tyop):(string * (Ll.ty * Ll.operand))) : Ctxt.t =  
+  let ctxt_elems : (string * (Ll.ty * Ll.operand)) list = 
+    let is_global_or_f ((id, tyop):(string * (Ll.ty * Ll.operand))) : bool =
+      begin match tyop with
+        | (I1, Null) -> false
+        | _          -> true
+      end in
+    List.filter is_global_or_f (List.map decl_to_ctxt_elem p) in
+
+  let elems_into_ctxt (c:Ctxt.t) ((id, tyop):(string * (Ll.ty * Ll.operand))) : Ctxt.t =  
     Ctxt.add c id tyop in
-  List.fold_left into_ctxt c ctxt_elems
+  List.fold_left elems_into_ctxt c ctxt_elems
+
 
 (* Compile a function declaration in global context c. Return the LLVMlite cfg
    and a list of global declarations containing the string literals appearing
@@ -440,7 +441,7 @@ let rec cmp_gexp c (e:Ast.exp node) : Ll.gdecl * (Ll.gid * Ll.gdecl) list =
       | CInt i -> GInt i
       | CStr s -> GString s
       | CArr _ -> failwith "cmp_gexp can't handle arrays yet"
-      | _      -> GGid "" (*L: placeholder to remove undesirables*)
+      | _      -> failwith "cmp_gexp not well formed OAT program, wrong init type"
     end in
   let ty = fst (Ctxt.lookup (fst_trp e.loc) c) in
   let gdecl = (ty, ginit) in
