@@ -308,7 +308,63 @@ let oat_alloc_array (t:Ast.ty) (size:Ll.operand) : Ll.ty * operand * stream =
 *)
 
 let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
-  failwith "cmp_exp unimplemented"
+  let map_bop (ast_bop:Ast.binop) : Ll.bop =
+    begin match ast_bop with
+      | Add -> Add
+      | Sub -> Sub
+      | Mul -> Mul
+      | And | IAnd -> And
+      | Or | IOr   -> Or
+      | Shl -> Shl
+      | Shr -> Lshr
+      | Sar -> Ashr
+      | _ -> failwith "cmp_exp: ast binop not bop"
+    end in
+  let map_cnd (ast_bop:Ast.binop) : Ll.cnd =
+    begin match ast_bop with
+      | Eq  -> Eq
+      | Neq -> Ne
+      | Lt  -> Slt
+      | Lte -> Sle
+      | Gt  -> Sgt
+      | Gte -> Sge
+      | _ -> failwith "cmp_exp: ast binop not cnd"
+    end in
+    let uid = gensym "" in
+  begin match exp.elt with
+    | CNull rty -> (cmp_rty rty, Null, [])
+    | CBool b -> begin match b with
+                  | true  -> (I1, Const 1L, [])
+                  | false -> (I1, Const 0L, [])
+                 end
+    | CInt i -> (I64, Const i, [])
+    (* | CStr s *)
+    (* | CArr ty * exp node list
+    | NewArr of ty * exp node
+    | Id of id
+    | Index of exp node * exp node
+    | Call of exp node * exp node list *)
+    | Bop (binop,en1,en2) -> 
+      let a, b, ret = typ_of_binop binop in
+      let ty1, op1, s1 = cmp_exp c en1 in
+      let ty2, op2, s2 = cmp_exp c en2 in
+      if(ty1 <> cmp_ty a || ty2 <> cmp_ty b) 
+        then failwith "cmp_exp operands not of correct type";
+      let insn = begin match binop with
+                  | Eq | Neq | Lt | Lte | Gt | Gte -> 
+                    Icmp (map_cnd binop, cmp_ty ret, op1, op2)
+                  | _ -> 
+                    Binop (map_bop binop, cmp_ty ret, op1, op2)
+                 end in
+      (cmp_ty ret, Id uid , s1 @ s2 @ [E (uid, insn)])                       
+    | Uop (unop,en) -> let ty, op, s = cmp_exp c en in
+      begin match unop with 
+        | Neg    -> (ty, Id uid, s @ [E (uid, Binop (Sub, ty, Const 0L, op))])
+        | Lognot -> (ty,  Id uid, s @ [E (uid, Icmp (Eq, ty, Const 0L, op))])
+        | Bitnot -> (ty, Id uid, s @ [E (uid, Binop (Xor, ty, Const (Int64.min_int), op))])
+      end
+    | _ -> failwith "cmp_exp not implemented for non int yet"
+  end
 
 (* Compile a statement in context c with return typ rt. Return a new context, 
    possibly extended with new local bindings, and the instruction stream
@@ -338,7 +394,12 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
  *)
 
 let rec cmp_stmt (c:Ctxt.t) (rt:Ll.ty) (stmt:Ast.stmt node) : Ctxt.t * stream =
-  failwith "cmp_stmt not implemented"
+  begin match stmt.elt with
+    | Ret None    -> (c, [T (Ret (rt, None))])
+    | Ret Some en -> let ty, op, stream = cmp_exp c en in
+                     (c, stream @ [T (Ret (rt, Some op))])
+    | _ -> failwith "cmp_stmt not implemented yet for non-ret"
+  end
 
 (* Compile a series of statements *)
 and cmp_block (c:Ctxt.t) (rt:Ll.ty) (stmts:Ast.block) : Ctxt.t * stream =
