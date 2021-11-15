@@ -340,9 +340,16 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
     | CInt i -> (I64, Const i, [])
     (* | CStr s *)
     (* | CArr ty * exp node list
-    | NewArr of ty * exp node
-    | Id of id
-    | Index of exp node * exp node
+    | NewArr of ty * exp node *)
+    | Id id -> (* print_endline("cmp_exp, Id case: " ^ id); *)
+               let ty, op = Ctxt.lookup id c in
+               let uid = gensym "" in
+               begin match ty with 
+                | Ptr t -> (t, Id uid, [E (uid, Load (ty, op))])
+                | _     -> (ty, op, [])
+               end
+               
+    (* | Index of exp node * exp node
     | Call of exp node * exp node list *)
     | Bop (binop,en1,en2) -> 
       let a, b, ret = typ_of_binop binop in
@@ -363,7 +370,7 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
         | Lognot -> (ty,  Id uid, s @ [E (uid, Icmp (Eq, ty, Const 0L, op))])
         | Bitnot -> (ty, Id uid, s @ [E (uid, Binop (Xor, ty, Const (Int64.min_int), op))])
       end
-    | _ -> failwith "cmp_exp not implemented for non int yet"
+    | _ -> failwith "cmp_exp not implemented for arrays, strings, indices, calls yet"
   end
 
 (* Compile a statement in context c with return typ rt. Return a new context, 
@@ -395,10 +402,14 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
 
 let rec cmp_stmt (c:Ctxt.t) (rt:Ll.ty) (stmt:Ast.stmt node) : Ctxt.t * stream =
   begin match stmt.elt with
+    | Decl (id, en)   -> let uid = gensym id in
+                         let ty, op, s = cmp_exp c en in
+                         let c_new = Ctxt.add c id (Ptr ty, Id uid) in
+                         (c_new, s @ [E ("", Store (ty, op, Id uid)); E (uid, Alloca I64)])
     | Ret None    -> (c, [T (Ret (rt, None))])
     | Ret Some en -> let ty, op, stream = cmp_exp c en in
                      (c, stream @ [T (Ret (rt, Some op))])
-    | _ -> failwith "cmp_stmt not implemented yet for non-ret"
+    | _ -> failwith "cmp_stmt not implemented yet for non-ret or decl"
   end
 
 (* Compile a series of statements *)
@@ -435,21 +446,22 @@ let cmp_global_ctxt (c:Ctxt.t) (p:Ast.prog) : Ctxt.t =
     let exp_to_ctxt_elem (g:Ast.gdecl) : (string * (Ll.ty * Ll.operand)) =
       let tyop = 
         begin match g.init.elt with
-          | CNull rty -> (cmp_rty rty, Null)
+          (* | CNull rty -> ((cmp_rty rty), Null) *)
           | CBool b -> begin match b with
                         | true  -> (I1, Const 1L)
                         | false -> (I1, Const 0L)
                       end
           | CInt i -> (I64, Const i)
           | CStr s -> (Array (String.length s + 1,I8), Null)
-          | CArr _ -> failwith "cmp_global_ctxt can't handle arrays yet"
+          | (CArr _ | CNull _) -> failwith "cmp_global_ctxt can't handle arrays yet"
           | _      -> (I1, Null) (*L: placeholder to remove non-globals*)
         end in
-      (g.name, tyop) in
-    begin match d with
-      | Gvdecl g -> exp_to_ctxt_elem g.elt
-      | Gfdecl f -> (f.elt.fname, (I1, Null)) (*L: placeholder to remove functions*)
-    end in
+    (* print_endline("cmp_global_ctxt, current global: " ^ g.name); *)
+    (g.name, tyop) in
+  begin match d with
+    | Gvdecl g -> exp_to_ctxt_elem g.elt
+    | Gfdecl f -> (f.elt.fname, (I1, Null)) (*L: placeholder to remove functions*)
+  end in
 
   let ctxt_elems : (string * (Ll.ty * Ll.operand)) list = 
     let is_global_or_f ((id, tyop):(string * (Ll.ty * Ll.operand))) : bool =
@@ -457,7 +469,7 @@ let cmp_global_ctxt (c:Ctxt.t) (p:Ast.prog) : Ctxt.t =
         | (I1, Null) -> false
         | _          -> true
       end in
-    List.filter is_global_or_f (List.map decl_to_ctxt_elem p) in
+  List.filter is_global_or_f (List.map decl_to_ctxt_elem p) in
 
   let elems_into_ctxt (c:Ctxt.t) ((id, tyop):(string * (Ll.ty * Ll.operand))) : Ctxt.t =  
     Ctxt.add c id tyop in
@@ -517,21 +529,20 @@ let cmp_fdecl (c:Ctxt.t) (f:Ast.fdecl node) : Ll.fdecl * (Ll.gid * Ll.gdecl) lis
 *)
 
 let rec cmp_gexp c (e:Ast.exp node) : Ll.gdecl * (Ll.gid * Ll.gdecl) list =
-  let expr_to_ginit (e:Ast.exp) : Ll.ginit =
+  let expr_to_ginit (e:Ast.exp) : (Ll.ty * Ll.ginit) =
     begin match e with
-      | CNull _ -> GNull
+      | CNull _ -> (Void, GNull)
       | CBool b -> begin match b with
-                    | true  -> GBitcast (I64, (GInt 1L), I1)
-                    | false -> GBitcast (I64, (GInt 0L), I1)
+                    | true  -> (I1, GBitcast (I64, (GInt 1L), I1))
+                    | false -> (I1, GBitcast (I64, (GInt 0L), I1))
                     end
-      | CInt i -> GInt i
-      | CStr s -> GString s
+      | CInt i -> (I64, GInt i)
+      | CStr s -> (Array (String.length s + 1, I8), GString s)
       | CArr _ -> failwith "cmp_gexp can't handle arrays yet"
       | _      -> failwith "cmp_gexp not well formed OAT program, wrong init type"
     end in
-  let ty = fst (Ctxt.lookup (fst_trp e.loc) c) in
   (*L :recursion aspect most likely for Arrays *)
-  ((ty, expr_to_ginit e.elt), [])
+  (expr_to_ginit e.elt, [])
 
   
 
