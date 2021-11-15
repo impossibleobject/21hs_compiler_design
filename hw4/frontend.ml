@@ -359,16 +359,16 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
         then failwith "cmp_exp operands not of correct type";
       let insn = begin match binop with
                   | Eq | Neq | Lt | Lte | Gt | Gte -> 
-                    Icmp (map_cnd binop, cmp_ty ret, op1, op2)
+                    Icmp (map_cnd binop, cmp_ty a, op1, op2)
                   | _ -> 
-                    Binop (map_bop binop, cmp_ty ret, op1, op2)
+                    Binop (map_bop binop, cmp_ty a, op1, op2)
                  end in
       (cmp_ty ret, Id uid , s1 @ s2 @ [E (uid, insn)])                       
     | Uop (unop,en) -> let ty, op, s = cmp_exp c en in
       begin match unop with 
         | Neg    -> (ty, Id uid, s @ [E (uid, Binop (Sub, ty, Const 0L, op))])
         | Lognot -> (ty,  Id uid, s @ [E (uid, Icmp (Eq, ty, Const 0L, op))])
-        | Bitnot -> (ty, Id uid, s @ [E (uid, Binop (Xor, ty, Const (Int64.min_int), op))])
+        | Bitnot -> (ty, Id uid, s @ [E (uid, Binop (Xor, ty, Const (-1L), op))])
       end
     | _ -> failwith "cmp_exp not implemented for arrays, strings, indices, calls yet"
   end
@@ -406,9 +406,37 @@ let rec cmp_stmt (c:Ctxt.t) (rt:Ll.ty) (stmt:Ast.stmt node) : Ctxt.t * stream =
                          let ty, op, s = cmp_exp c en in
                          let c_new = Ctxt.add c id (Ptr ty, Id uid) in
                          (c_new, s @ [E ("", Store (ty, op, Id uid)); E (uid, Alloca I64)])
+    | Assn (lhs, rhs) -> let ty1, op1, s1 = cmp_exp c lhs in
+                         let ty2, op2, s2 = cmp_exp c rhs in
+                         let uid =
+                          begin match lhs.elt with 
+                            | Id id -> id
+                            | Index _ -> failwith "cmp_stmt array indexes not handled"
+                            | _ -> failwith "cmp_stmt illegal lhs"
+                          end in
+                         let new_ctxt = Ctxt.add c uid (ty2, op2) in
+                         (new_ctxt, s2)
     | Ret None    -> (c, [T (Ret (rt, None))])
     | Ret Some en -> let ty, op, stream = cmp_exp c en in
                      (c, stream @ [T (Ret (rt, Some op))])
+    | If (ec, s_then, s_else) ->
+      let ty, op, s = cmp_exp c ec in
+      if(ty <> I1) then failwith "cmp_stmt, if cnd not bool"
+      else 
+        let then_lbl = [L "then"] in
+        let else_lbl = [L "else"] in
+        let _, then_s = cmp_block c rt s_then in 
+        let _, else_s = cmp_block c rt s_else in
+        (c, List.rev (s @ [T (Cbr (op, "then", "else"))] @ 
+        then_lbl @ then_s @ else_lbl @ else_s))
+    | While (ec, s_body) -> 
+      let ty, op, s = cmp_exp c ec in
+      let loop_cnd = [L "start"] in
+      let loop_body = [L "body"] in
+      let loop_end = [L "end"] in
+      let _, body_s = cmp_block c rt s_body in 
+      (c, List.rev (s @ loop_cnd @ [T (Cbr (op, "body", "end"))] @ 
+      loop_body @ body_s @ [T (Br "start")] @ loop_end))
     | _ -> failwith "cmp_stmt not implemented yet for non-ret or decl"
   end
 
@@ -533,8 +561,8 @@ let rec cmp_gexp c (e:Ast.exp node) : Ll.gdecl * (Ll.gid * Ll.gdecl) list =
     begin match e with
       | CNull _ -> (Void, GNull)
       | CBool b -> begin match b with
-                    | true  -> (I1, GBitcast (I64, (GInt 1L), I1))
-                    | false -> (I1, GBitcast (I64, (GInt 0L), I1))
+                    | true  -> (I1, GInt 1L)
+                    | false -> (I1, GInt 0L)
                     end
       | CInt i -> (I64, GInt i)
       | CStr s -> (Array (String.length s + 1, I8), GString s)
