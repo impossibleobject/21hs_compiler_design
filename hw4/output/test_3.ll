@@ -1,23 +1,25 @@
-; generated from: oatprograms/easyrun6.oat
+; generated from: oatprograms/easyrun5.oat
 target triple = "x86_64-unknown-linux"
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc69 = alloca i64
-  store i64 %argc, i64* %_argc69
-  %_argv70 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv70
-  %_72 = icmp eq i1 0, 1
-  %_77 = sub i64 0, 4
-  %_76 = add i64 %_77, 5
-  %_75 = icmp sgt i64 %_76, 0
-  %_82 = mul i64 6, 4
-  %_81 = icmp slt i64 %_82, 25
-  %_74 = and i1 %_75, %_81
-  %_71 = or i1 %_72, %_74
-  br i1 %_71, label %then, label %else
+  %_argc41 = alloca i64
+  store i64 %argc, i64* %_argc41
+  %_argv42 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv42
+  %_x43 = alloca i64
+  store i64 %_44, i64* %_x43
+  %_y47 = alloca i64
+  store i64 %_48, i64* %_y47
+  %_44 = lshr i64 100, 3
+  %_48 = shl i64 100, 3
+  %_51 = icmp sle i64 %_52, 0
+  %_52 = sub i64 %_54, %_56
+  %_56 = load i64, i64* %_y47
+  %_54 = load i64, i64* %_x43
+  br i1 %_51, label %then, label %else
 then:
-  ret i64 9
+  ret i64 %_58
 else:
-  ret i64 4
+  ret i64 %_64
 }
 
 
