@@ -132,6 +132,8 @@ let typ_of_unop : Ast.unop -> Ast.ty * Ast.ty = function
 
 let fst_trp ((a, b, c):('a * 'b * 'c)) : 'a = a
 
+let mk_elt_l (l:string) : elt list = [L l]
+
 (* Compiler Invariants
 
    The LLVM IR type of a variable (whether global or local) that stores an Oat
@@ -424,22 +426,26 @@ let rec cmp_stmt (c:Ctxt.t) (rt:Ll.ty) (stmt:Ast.stmt node) : Ctxt.t * stream =
       let ty, op, s = cmp_exp c ec in
       if(ty <> I1) then failwith "cmp_stmt, if cnd not bool"
       else 
-        let then_lbl = [L "then"] in
-        let else_lbl = [L "else"] in
-        let _, then_s = cmp_block c rt s_then in 
-        let _, else_s = cmp_block c rt s_else in
-        (c, List.rev (s @ [T (Cbr (op, "then", "else"))] @ 
-        then_lbl @ then_s @ else_lbl @ else_s))
+        let then_lbl = gensym "then" in
+        let else_lbl = gensym "else" in
+        let done_lbl = gensym "end" in
+        let then_blk =
+          let _, then_blk_t = cmp_block c rt s_then in 
+          then_blk_t >@ [T (Br (done_lbl))] in
+        let else_blk = 
+          let _, else_blk_t = cmp_block c rt s_else in
+          else_blk_t >@ [T (Br (done_lbl))] in
+        (c, s >@ [T (Cbr (op, then_lbl, else_lbl))] >@ 
+        (mk_elt_l then_lbl) >@ then_blk >@ mk_elt_l else_lbl >@
+        else_blk >@ mk_elt_l done_lbl)
     | While (ec, s_body) -> 
       let ty, op, s = cmp_exp c ec in
-      let loop_cnd = [L "start"] in
-      let loop_body = [L "body"] in
-      let loop_end = [L "end"] in
+      let cnd = gensym "start" in
+      let bdy = gensym "body" in
+      let fin = gensym "end" in
       let _, body_s = cmp_block c rt s_body in 
-      (* (c, List.rev ([T (Br "start")] @ loop_cnd @ s @ [T (Cbr (op, "body", "end"))] @ 
-      loop_body @ body_s @ [T (Br "start")] @ loop_end)) *)
-      (c, loop_end @ [T (Br "start")] @ body_s @ loop_body @ [T (Cbr (op, "body", "end"))] 
-      @ s @ loop_cnd @ [T (Br "start")])
+      (c, [T (Br cnd)] >@ mk_elt_l cnd >@ s >@ [T (Cbr (op, bdy, fin))] >@ 
+      mk_elt_l bdy >@ body_s >@ [T (Br cnd)] >@ mk_elt_l fin)
     | _ -> failwith "cmp_stmt not implemented yet for non-ret or decl"
   end
 
