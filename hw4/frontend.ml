@@ -351,8 +351,15 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
                 | _     -> (ty, op, [])
                end
                
-    (* | Index of exp node * exp node
-    | Call of exp node * exp node list *)
+    (* | Index of exp node * exp node *)
+    | Call (en, ens) -> 
+      let rty, rop, s = cmp_exp c en in
+      let arg_tuples = List.map (cmp_exp c) ens in
+      let arg_tyops = List.map (fun (a, b, c) -> (a,b)) arg_tuples in
+      let stream_ls = List.map (fun (_, _, c) -> c) arg_tuples in
+      let stream = s >@ List.rev (List.concat stream_ls) >@ 
+      [I ("", Call (rty, rop, arg_tyops))] in
+      (rty, rop, stream)
     | Bop (binop,en1,en2) -> 
       let a, b, ret = typ_of_binop binop in
       let ty1, op1, s1 = cmp_exp c en1 in
@@ -446,6 +453,20 @@ let rec cmp_stmt (c:Ctxt.t) (rt:Ll.ty) (stmt:Ast.stmt node) : Ctxt.t * stream =
       let _, body_s = cmp_block c rt s_body in 
       (c, [T (Br cnd)] >@ mk_elt_l cnd >@ s >@ [T (Cbr (op, bdy, fin))] >@ 
       mk_elt_l bdy >@ body_s >@ [T (Br cnd)] >@ mk_elt_l fin)
+    | For (vdecls, check_o, update_o, bdy) ->
+      let true_en = no_loc (CBool true) in
+      let wc, wb =
+        begin match check_o, update_o with
+          | None, None     -> true_en, bdy
+          | None, Some u   -> true_en, bdy @ [u]
+          | Some c, None   -> c, bdy
+          | Some c, Some u -> c, bdy @ [u]
+        end in
+      let decls = List.map (fun x -> no_loc (Decl x)) vdecls in
+      let ctxt_w_vdecls, decl_s = cmp_block c rt decls in
+      let _, s = cmp_stmt ctxt_w_vdecls rt (no_loc (While (wc, wb))) in
+      c, s @ decl_s (*L: Leon not sure whether we have to add decls to the stream*)
+    (* | SCall (en, ens) -> *)
     | _ -> failwith "cmp_stmt not implemented yet for non-ret or decl"
   end
 
