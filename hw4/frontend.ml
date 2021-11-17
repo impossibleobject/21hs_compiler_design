@@ -347,19 +347,26 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
                let ty, op = Ctxt.lookup id c in
                let uid = gensym "" in
                begin match ty with 
-                | Ptr t -> (t, Id uid, [I (uid, Load (ty, op))])
+                | Ptr t -> (* print_endline("cmp_exp, Id case: load emitted "); *)
+                           (t, Id uid, [I (uid, Load (ty, op))])
                 | _     -> (ty, op, [])
                end
                
     (* | Index of exp node * exp node *)
     | Call (en, ens) -> 
-      let rty, rop, s = cmp_exp c en in
+      let id = 
+        begin match en.elt with
+          | Id id -> id
+          | _     -> failwith "cmp_exp: call with wrong symbol"
+        end in
+      let rty, rop = Ctxt.lookup id c in
       let arg_tuples = List.map (cmp_exp c) ens in
-      let arg_tyops = List.map (fun (a, b, c) -> (a,b)) arg_tuples in
+      let arg_tyops = List.map (fun (a, b, _) -> (a,b)) arg_tuples in
       let stream_ls = List.map (fun (_, _, c) -> c) arg_tuples in
-      let stream = s >@ List.rev (List.concat stream_ls) >@ 
-      [I ("", Call (rty, rop, arg_tyops))] in
-      (rty, rop, stream)
+      let retval_uid = gensym "retval" in
+      let stream = List.rev (List.concat stream_ls) >@ 
+      [I (retval_uid, Call (rty, rop, arg_tyops))] in
+      (rty, Id retval_uid, stream)
     | Bop (binop,en1,en2) -> 
       let a, b, ret = typ_of_binop binop in
       let ty1, op1, s1 = cmp_exp c en1 in
@@ -423,12 +430,19 @@ let rec cmp_stmt (c:Ctxt.t) (rt:Ll.ty) (stmt:Ast.stmt node) : Ctxt.t * stream =
                             | Index _ -> failwith "cmp_stmt array indexes not handled"
                             | _ -> failwith "cmp_stmt illegal lhs"
                           end in
-                         let dty, dop = Ctxt.lookup uid c in
+                         let dty, dop_unprocessed = Ctxt.lookup uid c in
+                         let dop = if(dty=ty2) then Gid uid else dop_unprocessed in
                          let new_ctxt = Ctxt.add c uid (ty2, op2) in
                          (new_ctxt, [I (uid, Store (ty1, op2, dop))] @ s2)
     | Ret None    -> (c, [T (Ret (rt, None))])
     | Ret Some en -> let ty, op, stream = cmp_exp c en in
-                     (c, stream >@ [T (Ret (rt, Some op))])
+                      let uid = gensym "" in
+                      let rop, insn = 
+                        begin match ty with 
+                          | Ptr t -> Ll.Id uid, [I (uid, Load (ty, op))]
+                          | _     -> op, []
+                        end in
+                     (c, stream >@ insn >@ [T (Ret (rt, Some rop))])
     | If (ec, s_then, s_else) ->
       let ty, op, s = cmp_exp c ec in
       if(ty <> I1) then failwith "cmp_stmt, if cnd not bool"
@@ -466,8 +480,9 @@ let rec cmp_stmt (c:Ctxt.t) (rt:Ll.ty) (stmt:Ast.stmt node) : Ctxt.t * stream =
       let ctxt_w_vdecls, decl_s = cmp_block c rt decls in
       let _, s = cmp_stmt ctxt_w_vdecls rt (no_loc (While (wc, wb))) in
       c, s @ decl_s (*L: Leon not sure whether we have to add decls to the stream*)
-    (* | SCall (en, ens) -> *)
-    | _ -> failwith "cmp_stmt not implemented yet for non-ret or decl"
+    | SCall (en, ens) -> (*L: assume this works like calling a void func -> ignore return*)
+      let _, _, s = cmp_exp c (no_loc (Call (en, ens))) in
+      (c, s)
   end
 
 (* Compile a series of statements *)
@@ -553,13 +568,15 @@ let cmp_fdecl (c:Ctxt.t) (f:Ast.fdecl node) : Ll.fdecl * (Ll.gid * Ll.gdecl) lis
     let ast_arg_tys = List.map fst ast_fdecl.args in
     cmp_fty (ast_arg_tys, ast_fdecl.frtyp) in
   let ctxt_args, alloca_ls =
-    let fold ((ctxt, llstms):Ctxt.t * (uid * Ll.insn) list) ((ty,uid):Ast.ty * Ast.id) 
+    let fold ((ctxt, curr_insns):Ctxt.t * (uid * Ll.insn) list) ((ty,uid):Ast.ty * Ast.id) 
              : Ctxt.t * (uid * Ll.insn) list = 
       let arg_uid = gensym uid in
       let arg_ty = cmp_ty ty in
       let ret_stms = 
-        llstms @ [(arg_uid, Alloca arg_ty)
-                 ;("store_placeholder", Store (arg_ty,(Id uid),(Id arg_uid)))] in
+        let tmp_uid = gensym "" in
+        curr_insns @ [(tmp_uid, Alloca arg_ty)
+                 ;("store_placeholder", Store (arg_ty,(Id uid),(Id tmp_uid)))
+                 ; (arg_uid, Load (Ptr arg_ty, Id tmp_uid))] in
       let new_ctxt = Ctxt.add ctxt uid (arg_ty, Id arg_uid) in
       (new_ctxt, ret_stms) in
     List.fold_left fold (c, []) ast_fdecl.args in 

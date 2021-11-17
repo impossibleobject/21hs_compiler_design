@@ -3,12 +3,12 @@ target triple = "x86_64-unknown-linux"
 @i = global i64 8
 
 define i64 @f() {
-  %_j409 = alloca i64
-  store i64 0, i64* %_j409
-  %_415 = load i64 (), i64 ()* @g
-  % = call i64 () %_415()
-  store i64 %_415, i64* %_j409
-  ret i64 %_415
+  %_j514 = alloca i64
+  store i64 0, i64* %_j514
+  %_retval519 = call i64 ()* @g()
+  store i64 %_retval519, i64* %_j514
+  %_521 = load i64 (), i64 ()* %_retval519
+  ret i64 %_521
 }
 
 define i64 @g() {
@@ -16,13 +16,15 @@ define i64 @g() {
 }
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc402 = alloca i64
-  store i64 %argc, i64* %_argc402
-  %_argv403 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv403
-  %_406 = load i64 (), i64 ()* @f
-  % = call i64 () %_406()
-  ret i64 %_406
+  %_505 = alloca i64
+  store i64 %argc, i64* %_505
+  %_argc504 = load i64, i64* %_505
+  %_507 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_507
+  %_argv506 = load { i64, [0 x i8*] }*, { i64, [0 x i8*] }** %_507
+  %_retval509 = call i64 ()* @f()
+  %_510 = load i64 (), i64 ()* %_retval509
+  ret i64 %_510
 }
 
 

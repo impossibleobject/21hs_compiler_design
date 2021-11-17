@@ -1,83 +1,94 @@
 ; generated from: oatprograms/run39.oat
 target triple = "x86_64-unknown-linux"
 define i64 @f1(i64 %i) {
-  %_i396 = alloca i64
-  store i64 %i, i64* %_i396
-  %_399 = load i64 (i64), i64 (i64)* @f2
-  % = call i64 (i64) %_399(i64 %_i396)
-  ret i64 %_399
+  %_498 = alloca i64
+  store i64 %i, i64* %_498
+  %_i497 = load i64, i64* %_498
+  %_retval502 = call i64 (i64)* @f2(i64 %_i497)
+  %_503 = load i64 (i64), i64 (i64)* %_retval502
+  ret i64 %_503
 }
 
 define i64 @f2(i64 %i) {
-  %_i390 = alloca i64
-  store i64 %i, i64* %_i390
-  %_393 = load i64 (i64), i64 (i64)* @f3
-  % = call i64 (i64) %_393(i64 %_i390)
-  ret i64 %_393
+  %_491 = alloca i64
+  store i64 %i, i64* %_491
+  %_i490 = load i64, i64* %_491
+  %_retval495 = call i64 (i64)* @f3(i64 %_i490)
+  %_496 = load i64 (i64), i64 (i64)* %_retval495
+  ret i64 %_496
 }
 
 define i64 @f3(i64 %i) {
-  %_i384 = alloca i64
-  store i64 %i, i64* %_i384
-  %_387 = load i64 (i64), i64 (i64)* @f4
-  % = call i64 (i64) %_387(i64 %_i384)
-  ret i64 %_387
+  %_484 = alloca i64
+  store i64 %i, i64* %_484
+  %_i483 = load i64, i64* %_484
+  %_retval488 = call i64 (i64)* @f4(i64 %_i483)
+  %_489 = load i64 (i64), i64 (i64)* %_retval488
+  ret i64 %_489
 }
 
 define i64 @f4(i64 %i) {
-  %_i378 = alloca i64
-  store i64 %i, i64* %_i378
-  %_381 = load i64 (i64), i64 (i64)* @f5
-  % = call i64 (i64) %_381(i64 %_i378)
-  ret i64 %_381
+  %_477 = alloca i64
+  store i64 %i, i64* %_477
+  %_i476 = load i64, i64* %_477
+  %_retval481 = call i64 (i64)* @f5(i64 %_i476)
+  %_482 = load i64 (i64), i64 (i64)* %_retval481
+  ret i64 %_482
 }
 
 define i64 @f5(i64 %i) {
-  %_i372 = alloca i64
-  store i64 %i, i64* %_i372
-  %_375 = load i64 (i64), i64 (i64)* @f6
-  % = call i64 (i64) %_375(i64 %_i372)
-  ret i64 %_375
+  %_470 = alloca i64
+  store i64 %i, i64* %_470
+  %_i469 = load i64, i64* %_470
+  %_retval474 = call i64 (i64)* @f6(i64 %_i469)
+  %_475 = load i64 (i64), i64 (i64)* %_retval474
+  ret i64 %_475
 }
 
 define i64 @f6(i64 %i) {
-  %_i366 = alloca i64
-  store i64 %i, i64* %_i366
-  %_369 = load i64 (i64), i64 (i64)* @f7
-  % = call i64 (i64) %_369(i64 %_i366)
-  ret i64 %_369
+  %_463 = alloca i64
+  store i64 %i, i64* %_463
+  %_i462 = load i64, i64* %_463
+  %_retval467 = call i64 (i64)* @f7(i64 %_i462)
+  %_468 = load i64 (i64), i64 (i64)* %_retval467
+  ret i64 %_468
 }
 
 define i64 @f7(i64 %i) {
-  %_i360 = alloca i64
-  store i64 %i, i64* %_i360
-  %_363 = load i64 (i64), i64 (i64)* @f8
-  % = call i64 (i64) %_363(i64 %_i360)
-  ret i64 %_363
+  %_456 = alloca i64
+  store i64 %i, i64* %_456
+  %_i455 = load i64, i64* %_456
+  %_retval460 = call i64 (i64)* @f8(i64 %_i455)
+  %_461 = load i64 (i64), i64 (i64)* %_retval460
+  ret i64 %_461
 }
 
 define i64 @f8(i64 %i) {
-  %_i354 = alloca i64
-  store i64 %i, i64* %_i354
-  %_357 = load i64 (i64), i64 (i64)* @f9
-  % = call i64 (i64) %_357(i64 %_i354)
-  ret i64 %_357
+  %_449 = alloca i64
+  store i64 %i, i64* %_449
+  %_i448 = load i64, i64* %_449
+  %_retval453 = call i64 (i64)* @f9(i64 %_i448)
+  %_454 = load i64 (i64), i64 (i64)* %_retval453
+  ret i64 %_454
 }
 
 define i64 @f9(i64 %i) {
-  %_i351 = alloca i64
-  store i64 %i, i64* %_i351
-  ret i64 %_i351
+  %_444 = alloca i64
+  store i64 %i, i64* %_444
+  %_i443 = load i64, i64* %_444
+  ret i64 %_i443
 }
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc344 = alloca i64
-  store i64 %argc, i64* %_argc344
-  %_argv345 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv345
-  %_348 = load i64 (i64), i64 (i64)* @f1
-  % = call i64 (i64) %_348(i64 %_argc344)
-  ret i64 %_348
+  %_435 = alloca i64
+  store i64 %argc, i64* %_435
+  %_argc434 = load i64, i64* %_435
+  %_437 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_437
+  %_argv436 = load { i64, [0 x i8*] }*, { i64, [0 x i8*] }** %_437
+  %_retval441 = call i64 (i64)* @f1(i64 %_argc434)
+  %_442 = load i64 (i64), i64 (i64)* %_retval441
+  ret i64 %_442
 }
 
 
