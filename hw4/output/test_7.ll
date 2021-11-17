@@ -1,25 +1,23 @@
 ; generated from: oatprograms/easyrun8.oat
 target triple = "x86_64-unknown-linux"
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_160 = alloca i64
-  store i64 %argc, i64* %_160
-  %_argc159 = load i64, i64* %_160
-  %_162 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_162
-  %_argv161 = load { i64, [0 x i8*] }*, { i64, [0 x i8*] }** %_162
-  %_163 = icmp ne i64 6, 5
-  br i1 %_163, label %_then166, label %_else167
-_then166:
-  %_172 = xor i64 -1, %_173
-  %_177 = sub i64 0, 6
-  %_175 = lshr i64 5, %_177
-  %_174 = shl i64 %_175, 9
-  %_173 = ashr i64 %_174, 10
-  %_171 = mul i64 %_172, 2
-  %_170 = sub i64 %_171, 100
-  %_169 = add i64 %_170, 6
-  ret i64 %_169
-_else167:
+  %_argc145 = alloca i64
+  store i64 %argc, i64* %_argc145
+  %_argv146 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv146
+  %_147 = icmp ne i64 6, 5
+  br i1 %_147, label %_then150, label %_else151
+_then150:
+  %_156 = xor i64 -1, %_157
+  %_161 = sub i64 0, 6
+  %_159 = lshr i64 5, %_161
+  %_158 = shl i64 %_159, 9
+  %_157 = ashr i64 %_158, 10
+  %_155 = mul i64 %_156, 2
+  %_154 = sub i64 %_155, 100
+  %_153 = add i64 %_154, 6
+  ret i64 %_153
+_else151:
   ret i64 2
 }
 

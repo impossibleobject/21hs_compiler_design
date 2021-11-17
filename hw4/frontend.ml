@@ -359,7 +359,13 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
           | Id id -> id
           | _     -> failwith "cmp_exp: call with wrong symbol"
         end in
-      let rty, rop = Ctxt.lookup id c in
+      let fty, rop = Ctxt.lookup id c in
+      let rty =
+        begin match fty with
+          | Ptr (Fun (arg_ts, rt)) -> rt
+          | _ -> failwith ("cmp_exp: Call case " ^ id ^ " is not a proper function" ^ "\n its' type is: " 
+                 ^ string_of_ty fty)
+        end in
       let arg_tuples = List.map (cmp_exp c) ens in
       let arg_tyops = List.map (fun (a, b, _) -> (a,b)) arg_tuples in
       let stream_ls = List.map (fun (_, _, c) -> c) arg_tuples in
@@ -573,11 +579,9 @@ let cmp_fdecl (c:Ctxt.t) (f:Ast.fdecl node) : Ll.fdecl * (Ll.gid * Ll.gdecl) lis
       let arg_uid = gensym uid in
       let arg_ty = cmp_ty ty in
       let ret_stms = 
-        let tmp_uid = gensym "" in
-        curr_insns @ [(tmp_uid, Alloca arg_ty)
-                 ;("store_placeholder", Store (arg_ty,(Id uid),(Id tmp_uid)))
-                 ; (arg_uid, Load (Ptr arg_ty, Id tmp_uid))] in
-      let new_ctxt = Ctxt.add ctxt uid (arg_ty, Id arg_uid) in
+        curr_insns @ [(arg_uid, Alloca arg_ty)
+                 ;("store_placeholder", Store (arg_ty,(Id uid),(Id arg_uid)))] in
+      let new_ctxt = Ctxt.add ctxt uid (Ptr arg_ty, Id arg_uid) in
       (new_ctxt, ret_stms) in
     List.fold_left fold (c, []) ast_fdecl.args in 
   let ctxt_stms, stream = cmp_block ctxt_args (snd f_ty) ast_fdecl.body in

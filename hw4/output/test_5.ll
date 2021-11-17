@@ -1,24 +1,22 @@
 ; generated from: oatprograms/easyrun6.oat
 target triple = "x86_64-unknown-linux"
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_115 = alloca i64
-  store i64 %argc, i64* %_115
-  %_argc114 = load i64, i64* %_115
-  %_117 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_117
-  %_argv116 = load { i64, [0 x i8*] }*, { i64, [0 x i8*] }** %_117
-  %_119 = icmp eq i1 0, 1
-  %_124 = sub i64 0, 4
-  %_123 = add i64 %_124, 5
-  %_122 = icmp sgt i64 %_123, 0
-  %_129 = mul i64 6, 4
-  %_128 = icmp slt i64 %_129, 25
-  %_121 = and i1 %_122, %_128
-  %_118 = or i1 %_119, %_121
-  br i1 %_118, label %_then133, label %_else134
-_then133:
+  %_argc104 = alloca i64
+  store i64 %argc, i64* %_argc104
+  %_argv105 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv105
+  %_107 = icmp eq i1 0, 1
+  %_112 = sub i64 0, 4
+  %_111 = add i64 %_112, 5
+  %_110 = icmp sgt i64 %_111, 0
+  %_117 = mul i64 6, 4
+  %_116 = icmp slt i64 %_117, 25
+  %_109 = and i1 %_110, %_116
+  %_106 = or i1 %_107, %_109
+  br i1 %_106, label %_then121, label %_else122
+_then121:
   ret i64 9
-_else134:
+_else122:
   ret i64 4
 }
 
