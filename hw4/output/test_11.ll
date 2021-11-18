@@ -1,14 +1,17 @@
-; generated from: oatprograms/path1.oat
+; generated from: oatprograms/globals4.oat
 target triple = "x86_64-unknown-linux"
-define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc207 = alloca i64
-  store i64 %argc, i64* %_argc207
-  %_argv208 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv208
-  %_x209 = alloca i64
-  store i64 17, i64* %_x209
-  %_212 = load i64, i64* %_x209
-  ret i64 %_212
+@arr = global [4 x i64] [ i64 1, i64 2, i64 3, i64 4 ]
+@_203 = global i64 1
+@_204 = global i64 2
+@_205 = global i64 3
+@_206 = global i64 4
+
+define i64 @program(i64 %argc, { i64, [0 x i8*] }* %args) {
+  %_argc199 = alloca i64
+  store i64 %argc, i64* %_argc199
+  %_args200 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %args, { i64, [0 x i8*] }** %_args200
+  ret i64 5
 }
 
 

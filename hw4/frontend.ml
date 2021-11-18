@@ -531,14 +531,14 @@ let cmp_global_ctxt (c:Ctxt.t) (p:Ast.prog) : Ctxt.t =
     let exp_to_ctxt_elem (g:Ast.gdecl) : (string * (Ll.ty * Ll.operand)) =
       let tyop = 
         begin match g.init.elt with
-          (* | CNull rty -> ((cmp_rty rty), Null) *)
+          | CNull rty -> (Ptr (cmp_rty rty), Null)
           | CBool b -> begin match b with
                         | true  -> (I1, Const 1L)
                         | false -> (I1, Const 0L)
                       end
           | CInt i -> (I64, Const i)
           | CStr s -> (Ptr (Array (String.length s + 1,I8)), Gid g.name)
-          | (CArr _ | CNull _) -> failwith "cmp_global_ctxt can't handle arrays yet"
+          | CArr (ty, ens)  -> (Array (List.length ens, cmp_ty ty), Gid g.name)
           | _      -> (I1, Null) (*L: placeholder to remove non-globals*)
         end in
     (* print_endline("cmp_global_ctxt, current global: " ^ g.name); *)
@@ -613,20 +613,26 @@ let cmp_fdecl (c:Ctxt.t) (f:Ast.fdecl node) : Ll.fdecl * (Ll.gid * Ll.gdecl) lis
 *)
 
 let rec cmp_gexp c (e:Ast.exp node) : Ll.gdecl * (Ll.gid * Ll.gdecl) list =
-  let expr_to_ginit (e:Ast.exp) : (Ll.ty * Ll.ginit) =
-    begin match e with
-      | CNull _ -> (Void, GNull)
-      | CBool b -> begin match b with
-                    | true  -> (I1, GInt 1L)
-                    | false -> (I1, GInt 0L)
-                    end
-      | CInt i -> (I64, GInt i)
-      | CStr s -> (Array (String.length s + 1, I8), GString s)
-      | CArr _ -> failwith "cmp_gexp can't handle arrays yet"
-      | _      -> failwith "cmp_gexp not well formed OAT program, wrong init type"
-    end in
+  begin match e.elt with
+    | CNull rty -> (Ptr (cmp_rty rty), GNull), []
+    | CBool b -> begin match b with
+                  | true  -> (I1, GInt 1L), []
+                  | false -> (I1, GInt 0L), []
+                  end
+    | CInt i -> (I64, GInt i), []
+    | CStr s -> (Array (String.length s + 1, I8), GString s), []
+    | CArr (ty, ens) -> 
+      let gid_gdecl_ls = 
+        let map_subelem (e:Ast.exp node) : (Ll.gid * Ll.gdecl) =
+          (gensym "", fst (cmp_gexp c e)) in
+        List.map map_subelem ens in
+      let gdecl_ls = List.map snd gid_gdecl_ls in
+      let gdecl = ((Array (List.length ens, cmp_ty ty)), GArray gdecl_ls) in
+      (gdecl, gid_gdecl_ls)
+    | _      -> failwith "cmp_gexp not well formed OAT program, wrong init type"
+  end 
   (*L :recursion aspect most likely for Arrays *)
-  (expr_to_ginit e.elt, [])
+
 
   
 
