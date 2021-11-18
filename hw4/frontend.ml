@@ -344,9 +344,9 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
       let ty = Array (String.length s + 1, I8) in 
       let string_uid = gensym "str" in
       let uid1 = gensym "" in
-      let gdecl = ((ty), GString s) in
-      let stream =  [G (string_uid, gdecl); I (uid1, Gep (ty, Gid string_uid, [Const 0L]))] in
-      (Ptr (Ptr I8), Id uid1, stream)
+      let gdecl = (ty, GString s) in
+      let stream =  [G (string_uid, gdecl); I (uid1, Gep (Ptr ty, Gid string_uid, [Const 0L; Const 0L]))] in
+      (Ptr I8, Id uid1, stream)
     (* | CArr ty * exp node list
     | NewArr of ty * exp node *)
     | Id id -> (* print_endline("cmp_exp, Id case: " ^ id); *)
@@ -454,7 +454,7 @@ let rec cmp_stmt (c:Ctxt.t) (rt:Ll.ty) (stmt:Ast.stmt node) : Ctxt.t * stream =
                          let ty, op, s = cmp_exp c en in
                          let c_new = Ctxt.add c id (Ptr ty, Id uid) in
                         (*  print_endline("cmp_stmt: type of uid: " ^ (string_of_ty ty)); *)
-                         (c_new, s @ [E ("", Store (ty, op, Id uid)); E (uid, Alloca I64)])
+                         (c_new, s @ [I ("", Store (ty, op, Id uid)); E (uid, Alloca ty)])
     | Assn (lhs, rhs) -> let ty1, _, _ = cmp_exp c lhs in
                          let ty2, op2, s2 = cmp_exp c rhs in
                          let uid =
