@@ -340,7 +340,13 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
                   | false -> (I1, Const 0L, [])
                  end
     | CInt i -> (I64, Const i, [])
-    (* | CStr s *)
+    | CStr s -> 
+      let ty = Array (String.length s + 1, I8) in 
+      let string_uid = gensym "str" in
+      let local_uid = gensym "" in
+      let gdecl = (Ptr (ty), GString s) in
+      let stream = [I (local_uid, Gep (ty, Gid string_uid, [Const 0L])); G (string_uid, gdecl)] in
+      (Ptr I8, Id local_uid, stream)
     (* | CArr ty * exp node list
     | NewArr of ty * exp node *)
     | Id id -> (* print_endline("cmp_exp, Id case: " ^ id); *)
@@ -392,7 +398,7 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
         | Lognot -> (ty, Id uid, s @ [I (uid, Icmp (Eq, ty, Const 0L, op))])
         | Bitnot -> (ty, Id uid, s @ [I (uid, Binop (Xor, ty, Const (-1L), op))])
       end
-    | _ -> failwith "cmp_exp not implemented for arrays, strings, indices, calls yet"
+    | _ -> failwith "cmp_exp not implemented for arrays, strings, indices yet"
   end
 
 (* Compile a statement in context c with return typ rt. Return a new context, 
@@ -531,7 +537,7 @@ let cmp_global_ctxt (c:Ctxt.t) (p:Ast.prog) : Ctxt.t =
                         | false -> (I1, Const 0L)
                       end
           | CInt i -> (I64, Const i)
-          | CStr s -> (Array (String.length s + 1,I8), Null)
+          | CStr s -> (Ptr (Array (String.length s + 1,I8)), Gid g.name)
           | (CArr _ | CNull _) -> failwith "cmp_global_ctxt can't handle arrays yet"
           | _      -> (I1, Null) (*L: placeholder to remove non-globals*)
         end in
