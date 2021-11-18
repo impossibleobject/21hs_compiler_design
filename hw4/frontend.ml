@@ -343,16 +343,19 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
     | CStr s -> 
       let ty = Array (String.length s + 1, I8) in 
       let string_uid = gensym "str" in
-      let uid = gensym "" in
-      let gdecl = (Ptr (ty), GString s) in
-      let stream = [I (uid, Gep (ty, Gid string_uid, [Const 0L])); G (string_uid, gdecl)] in
-      (Ptr I8, Id uid, stream)
+      let uid1 = gensym "" in
+      let gdecl = ((ty), GString s) in
+      let stream =  [G (string_uid, gdecl); I (uid1, Gep (ty, Gid string_uid, [Const 0L]))] in
+      (Ptr (Ptr I8), Id uid1, stream)
     (* | CArr ty * exp node list
     | NewArr of ty * exp node *)
     | Id id -> (* print_endline("cmp_exp, Id case: " ^ id); *)
                let ty, op = Ctxt.lookup id c in
                let uid = gensym "" in
-               begin match ty with 
+               begin match ty with
+                | Ptr (Array (i,t)) -> 
+                  let stream = [I (uid, Gep (Array (i,t), op, [Const 0L]))] in
+                  (Ptr I8, Id uid, stream)
                 | Ptr t -> (* print_endline("cmp_exp, Id case: load emitted "); *)
                            (t, Id uid, [I (uid, Load (ty, op))])
                 | _     -> (ty, op, [])
@@ -450,6 +453,7 @@ let rec cmp_stmt (c:Ctxt.t) (rt:Ll.ty) (stmt:Ast.stmt node) : Ctxt.t * stream =
     | Decl (id, en)   -> let uid = gensym id in
                          let ty, op, s = cmp_exp c en in
                          let c_new = Ctxt.add c id (Ptr ty, Id uid) in
+                        (*  print_endline("cmp_stmt: type of uid: " ^ (string_of_ty ty)); *)
                          (c_new, s @ [E ("", Store (ty, op, Id uid)); E (uid, Alloca I64)])
     | Assn (lhs, rhs) -> let ty1, _, _ = cmp_exp c lhs in
                          let ty2, op2, s2 = cmp_exp c rhs in
@@ -555,7 +559,7 @@ let cmp_global_ctxt (c:Ctxt.t) (p:Ast.prog) : Ctxt.t =
                       end
           | CInt i -> (I64, Const i)
           | CStr s -> (Ptr (Array (String.length s + 1,I8)), Gid g.name)
-          | CArr (ty, ens)  -> (Array (List.length ens, cmp_ty ty), Gid g.name)
+          | CArr (ty, ens)  -> (Ptr (Struct [I64; Array (List.length ens, cmp_ty ty)]), Gid g.name)
           | _      -> (I1, Null) (*L: placeholder to remove non-globals*)
         end in
     (* print_endline("cmp_global_ctxt, current global: " ^ g.name); *)
@@ -637,14 +641,16 @@ let rec cmp_gexp c (e:Ast.exp node) : Ll.gdecl * (Ll.gid * Ll.gdecl) list =
                   | false -> (I1, GInt 0L), []
                   end
     | CInt i -> (I64, GInt i), []
-    | CStr s -> (Array (String.length s + 1, I8), GString s), []
+    | CStr s -> (Array (String.length s + 1, I8), GString s), [] (**)
     | CArr (ty, ens) -> 
       let gid_gdecl_ls = 
         let map_subelem (e:Ast.exp node) : (Ll.gid * Ll.gdecl) =
           (gensym "", fst (cmp_gexp c e)) in
         List.map map_subelem ens in
       let gdecl_ls = List.map snd gid_gdecl_ls in
-      let gdecl = ((Array (List.length ens, cmp_ty ty)), GArray gdecl_ls) in
+      let ens_length = List.length ens in
+      let ginit_array = (Array (ens_length, cmp_ty ty)), GArray gdecl_ls in
+      let gdecl = (Struct [I64; (Array (ens_length, cmp_ty ty))], GStruct [(I64, GInt (Int64.of_int ens_length)); ginit_array]) in
       (gdecl, gid_gdecl_ls)
     | _      -> failwith "cmp_gexp not well formed OAT program, wrong init type"
   end 
