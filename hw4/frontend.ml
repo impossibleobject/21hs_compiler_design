@@ -354,31 +354,39 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
                let uid = gensym "" in
                begin match ty with
                 | Ptr (Array (i,t)) -> 
-                  let stream = [I (uid, Gep (Array (i,t), op, [Const 0L]))] in
+                  let stream = [I (uid, Gep (Array (i,t), op, [Const 0L; Const 0L]))] in
                   (Ptr I8, Id uid, stream)
+                | Ptr (Struct ts) -> 
+                  let array_ty = 
+                    begin match ts with
+                    | ([] | _::[]) -> failwith "cmp_exp: Id: invalid struct type" 
+                    | it::at::tl -> at
+                    end in
+                  let stream = [I (uid, Gep (Struct ts, op, [Const 0L; Const 1L]))] in (*F: Const 1L needed to access second element of struct (ie the array)*)
+                  (Ptr array_ty, Id uid, stream)
                 | Ptr t -> (* print_endline("cmp_exp, Id case: load emitted "); *)
                            (t, Id uid, [I (uid, Load (ty, op))])
                 | _     -> (ty, op, [])
                end
-               
     | Index (en1, en2) -> 
-      let ty1, op1 = 
-        begin match en1.elt with
-          | Id id -> Ctxt.lookup id c
-          | _     -> failwith "cmp_exp: Index with wrong symbol"
-        end in  
+      let ty1, op1, s1 = cmp_exp c en1 in (*F: need to compile id part, example case: arrayargs1.oat*)
       let ty2, op2, s2 = cmp_exp c en2 in
       if(ty2 <> I64) then failwith "cmp_exp: index is not I64"
       else 
         let uid = gensym "" in
+        let uid2 = gensym "" in 
         let stream = [I (uid, Gep (ty1, op1, [op2]))] in
         let elem_ty =
           begin match ty1 with
-            | Array (i, t) -> t
-            | Struct (f::s::tl) -> s
-            | _ -> failwith "cmp_exp wrong index type"
+            | Ptr (Array (i, t)) -> t
+            | Ptr (Struct (f::s::tl)) -> 
+              begin match s with 
+              | Array (si,st) -> st
+              | _ -> failwith "cmp_exp: Index: invalid struct structure"
+              end
+            | _ -> failwith ("cmp_exp wrong index type: " ^ (string_of_ty ty1))
           end in
-        (elem_ty, Id uid, s2 >@ stream)
+        (elem_ty, Id uid2, s1 >@ s2 >@ [I (uid2, Load(elem_ty, Id uid))] >@ stream )
     | Call (en, ens) -> 
       let id = 
         begin match en.elt with
@@ -404,7 +412,7 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
       let ty1, op1, s1 = cmp_exp c en1 in
       let ty2, op2, s2 = cmp_exp c en2 in
       if(ty1 <> cmp_ty a || ty2 <> cmp_ty b) 
-        then failwith "cmp_exp operands not of correct type";
+        then failwith ("cmp_exp operands not of correct type: " ^ (string_of_ty ty1) ^ " " ^ (string_of_ty ty2));
       let insn = begin match binop with
                   | Eq | Neq | Lt | Lte | Gt | Gte -> 
                     Icmp (map_cnd binop, cmp_ty a, op1, op2)
@@ -455,18 +463,18 @@ let rec cmp_stmt (c:Ctxt.t) (rt:Ll.ty) (stmt:Ast.stmt node) : Ctxt.t * stream =
                          let c_new = Ctxt.add c id (Ptr ty, Id uid) in
                         (*  print_endline("cmp_stmt: type of uid: " ^ (string_of_ty ty)); *)
                          (c_new, s @ [I ("", Store (ty, op, Id uid)); E (uid, Alloca ty)])
-    | Assn (lhs, rhs) -> let ty1, _, _ = cmp_exp c lhs in
+    | Assn (lhs, rhs) -> let ty1, op1, s1 = cmp_exp c lhs in
                          let ty2, op2, s2 = cmp_exp c rhs in
-                         let uid =
-                          begin match lhs.elt with 
-                            | Id id -> id
-                            | Index _ -> failwith "cmp_stmt array indexes not handled"
-                            | _ -> failwith "cmp_stmt illegal lhs"
-                          end in
-                         let dty, dop_unprocessed = Ctxt.lookup uid c in
-                         let dop = if(dty=ty2) then Gid uid else dop_unprocessed in
-                         let new_ctxt = Ctxt.add c uid (ty2, op2) in
-                         (new_ctxt, [I (uid, Store (ty1, op2, dop))] @ s2)
+                         begin match lhs.elt with 
+                          | Id id -> 
+                            let dty, dop_unprocessed = Ctxt.lookup id c in
+                            let dop = if(dty=ty2) then Gid id else dop_unprocessed in
+                            let new_ctxt = Ctxt.add c id (ty2, op2) in
+                            (new_ctxt, [I (id, Store (ty1, op2, dop))] @ s2)
+                          | Index (_,_) ->
+                            (c, [I ("", Store (ty1, op2, op1))] @ s2 @ s1) (*F: op1 should be uid, ptr to element to write*)
+                          | _ -> failwith "cmp_stmt illegal lhs"
+                         end 
     | Ret None    -> (c, [T (Ret (rt, None))])
     | Ret Some en -> let ty, op, stream = cmp_exp c en in
                       let uid = gensym "" in
