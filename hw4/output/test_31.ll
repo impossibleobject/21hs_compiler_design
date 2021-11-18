@@ -1,36 +1,36 @@
 ; generated from: oatprograms/fac.oat
 target triple = "x86_64-unknown-linux"
 define i64 @f(i64 %i) {
-  %_i904 = alloca i64
-  store i64 %i, i64* %_i904
-  %_r905 = alloca i64
-  store i64 0, i64* %_r905
-  %_909 = load i64, i64* %_i904
-  %_907 = icmp eq i64 %_909, 0
-  br i1 %_907, label %_then911, label %_else912
-_then911:
-  store i64 1, i64* %_r905
-  br label %_end913
-_else912:
-  %_921 = load i64, i64* %_i904
-  %_923 = sub i64 %_925, 1
-  %_925 = load i64, i64* %_i904
-  %_retval927 = call i64 @f(i64 %_923)
-  %_919 = mul i64 %_921, %_retval927
-  store i64 %_919, i64* %_r905
-  br label %_end913
-_end913:
-  %_929 = load i64, i64* %_r905
-  ret i64 %_929
+  %_i925 = alloca i64
+  store i64 %i, i64* %_i925
+  %_r926 = alloca i64
+  store i64 0, i64* %_r926
+  %_930 = load i64, i64* %_i925
+  %_928 = icmp eq i64 %_930, 0
+  br i1 %_928, label %_then932, label %_else933
+_then932:
+  store i64 1, i64* %_r926
+  br label %_end934
+_else933:
+  %_942 = load i64, i64* %_i925
+  %_944 = sub i64 %_946, 1
+  %_946 = load i64, i64* %_i925
+  %_retval948 = call i64 @f(i64 %_944)
+  %_940 = mul i64 %_942, %_retval948
+  store i64 %_940, i64* %_r926
+  br label %_end934
+_end934:
+  %_950 = load i64, i64* %_r926
+  ret i64 %_950
 }
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc898 = alloca i64
-  store i64 %argc, i64* %_argc898
-  %_argv899 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv899
-  %_retval902 = call i64 @f(i64 5)
-  ret i64 %_retval902
+  %_argc919 = alloca i64
+  store i64 %argc, i64* %_argc919
+  %_argv920 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv920
+  %_retval923 = call i64 @f(i64 5)
+  ret i64 %_retval923
 }
 
 

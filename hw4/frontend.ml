@@ -343,10 +343,10 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
     | CStr s -> 
       let ty = Array (String.length s + 1, I8) in 
       let string_uid = gensym "str" in
-      let local_uid = gensym "" in
+      let uid = gensym "" in
       let gdecl = (Ptr (ty), GString s) in
-      let stream = [I (local_uid, Gep (ty, Gid string_uid, [Const 0L])); G (string_uid, gdecl)] in
-      (Ptr I8, Id local_uid, stream)
+      let stream = [I (uid, Gep (ty, Gid string_uid, [Const 0L])); G (string_uid, gdecl)] in
+      (Ptr I8, Id uid, stream)
     (* | CArr ty * exp node list
     | NewArr of ty * exp node *)
     | Id id -> (* print_endline("cmp_exp, Id case: " ^ id); *)
@@ -358,7 +358,24 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
                 | _     -> (ty, op, [])
                end
                
-    (* | Index of exp node * exp node *)
+    | Index (en1, en2) -> 
+      let ty1, op1 = 
+        begin match en1.elt with
+          | Id id -> Ctxt.lookup id c
+          | _     -> failwith "cmp_exp: Index with wrong symbol"
+        end in  
+      let ty2, op2, s2 = cmp_exp c en2 in
+      if(ty2 <> I64) then failwith "cmp_exp: index is not I64"
+      else 
+        let uid = gensym "" in
+        let stream = [I (uid, Gep (ty1, op1, [op2]))] in
+        let elem_ty =
+          begin match ty1 with
+            | Array (i, t) -> t
+            | Struct (f::s::tl) -> s
+            | _ -> failwith "cmp_exp wrong index type"
+          end in
+        (elem_ty, Id uid, s2 >@ stream)
     | Call (en, ens) -> 
       let id = 
         begin match en.elt with
@@ -434,7 +451,7 @@ let rec cmp_stmt (c:Ctxt.t) (rt:Ll.ty) (stmt:Ast.stmt node) : Ctxt.t * stream =
                          let ty, op, s = cmp_exp c en in
                          let c_new = Ctxt.add c id (Ptr ty, Id uid) in
                          (c_new, s @ [E ("", Store (ty, op, Id uid)); E (uid, Alloca I64)])
-    | Assn (lhs, rhs) -> let ty1, op1, s1 = cmp_exp c lhs in
+    | Assn (lhs, rhs) -> let ty1, _, _ = cmp_exp c lhs in
                          let ty2, op2, s2 = cmp_exp c rhs in
                          let uid =
                           begin match lhs.elt with 
