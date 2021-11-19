@@ -347,23 +347,42 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
       let gdecl = (ty, GString s) in
       let stream =  [G (string_uid, gdecl); I (uid1, Gep (Ptr ty, Gid string_uid, [Const 0L; Const 0L]))] in
       (Ptr I8, Id uid1, stream)
-    (* | CArr ty * exp node list
-    | NewArr of ty * exp node *)
+    | CArr (ty, ens) -> 
+      let size = Const (Int64.of_int(List.length ens)) in
+      let ret_ty, ret_op, ret_str = oat_alloc_array ty size in
+      let stream =
+        let trip_ls = List.map (cmp_exp c) ens in
+        let elem_into_arr (i:int) ((ty, op, s):(Ll.ty * Ll.operand * stream)) : stream = 
+          let uid = gensym "" in
+          let idx = Const (Int64.of_int i) in
+          s >@ [I (uid, Gep (ret_ty, ret_op, [Const 0L; Const 1L; idx]))] >@ 
+          [I ("", Store (ty, op, Id uid))] in
+        ret_str >@ List.concat (List.mapi elem_into_arr trip_ls) in
+      (ret_ty, ret_op, stream)
+    | NewArr (ty, en) -> 
+      let ty_int, op, s = cmp_exp c en in
+      if(ty_int<>I64) then failwith ("cmp_exp -> Newarr, array length not int64, but: " ^ string_of_ty ty_int);
+      let ret_ty, ret_op, ret_str = oat_alloc_array ty op in
+      (ret_ty, ret_op, s >@ ret_str)
     | Id id -> (* print_endline("cmp_exp, Id case: " ^ id); *)
                let ty, op = Ctxt.lookup id c in
+               (* print_endline("got past the lookup " ^ string_of_ty ty); *)
                let uid = gensym "" in
                begin match ty with
-                | Ptr (Array (i,t)) -> 
+                | Ptr (Array (i,t)) -> (*L: string case*)
                   let stream = [I (uid, Gep (Array (i,t), op, [Const 0L; Const 0L]))] in
                   (Ptr I8, Id uid, stream)
-                | Ptr (Struct ts) -> 
-                  let array_ty = 
+                | Ptr (Struct ts) ->  (*L: array case*)
+                  (* let array_ty = 
                     begin match ts with
                     | ([] | _::[]) -> failwith "cmp_exp: Id: invalid struct type" 
-                    | it::at::tl -> at
+                    | it::at::tl -> print_endline("at type: " ^ string_of_ty at);
+                      at
                     end in
-                  let stream = [I (uid, Gep (Struct ts, op, [Const 0L; Const 1L]))] in (*F: Const 1L needed to access second element of struct (ie the array)*)
-                  (Ptr array_ty, Id uid, stream)
+                  let stream = [I (uid, Gep (Struct ts, op, [Const 0L; Const 1L; Const 0L]))] in (*F: Const 1L needed to access second element of struct (ie the array)*)
+                  (Ptr array_ty, Id uid, stream) *)
+                  let stream = [I (uid, Gep (Struct ts, op, [Const 0L]))] in
+                  (ty, Id uid, stream)
                 | Ptr t -> (* print_endline("cmp_exp, Id case: load emitted "); *)
                            (t, Id uid, [I (uid, Load (ty, op))])
                 | _     -> (ty, op, [])
@@ -375,17 +394,18 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
       else 
         let uid = gensym "" in
         let uid2 = gensym "" in 
-        let stream = [I (uid, Gep (ty1, op1, [op2]))] in
+        let stream = [I (uid, Gep (ty1, op1, [Const 0L; Const 1L; op2]))] in
         let elem_ty =
           begin match ty1 with
             | Ptr (Array (i, t)) -> t
-            | Ptr (Struct (f::s::tl)) -> 
+            | Ptr (Struct (f::s::tl)) -> (* print_endline("found struct in index"); *)
               begin match s with 
               | Array (si,st) -> st
               | _ -> failwith "cmp_exp: Index: invalid struct structure"
               end
             | _ -> failwith ("cmp_exp wrong index type: " ^ (string_of_ty ty1))
           end in
+        (* print_endline("elem type: " ^ string_of_ty elem_ty); *)
         (elem_ty, Id uid2, s1 >@ s2 >@ [I (uid2, Load(elem_ty, Id uid))] >@ stream )
     | Call (en, ens) -> 
       let id = 

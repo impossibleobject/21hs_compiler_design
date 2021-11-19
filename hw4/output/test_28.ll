@@ -1,14 +1,14 @@
-; generated from: oatprograms/run61.oat
+; generated from: oatprograms/run49.oat
 target triple = "x86_64-unknown-linux"
-@s = global [3 x i8] c"42\00"
+@_str1330 = global [4 x i8] c"abc\00"
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc576 = alloca i64
-  store i64 %argc, i64* %_argc576
-  %_argv577 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv577
-  %_580 = load [3 x i8], [3 x i8]* @s
-  call void @print_string([3 x i8] %_580)
+  %_argc1326 = alloca i64
+  store i64 %argc, i64* %_argc1326
+  %_argv1327 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv1327
+  %_1331 = getelementptr [4 x i8], [4 x i8]* @_str1330, i32 0, i32 0
+  call void @print_string(i8* %_1331)
   ret i64 0
 }
 

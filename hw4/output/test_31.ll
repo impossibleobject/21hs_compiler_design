@@ -1,36 +1,38 @@
-; generated from: oatprograms/fac.oat
+; generated from: oatprograms/fact.oat
 target triple = "x86_64-unknown-linux"
-define i64 @f(i64 %i) {
-  %_i925 = alloca i64
-  store i64 %i, i64* %_i925
-  %_r926 = alloca i64
-  store i64 0, i64* %_r926
-  %_930 = load i64, i64* %_i925
-  %_928 = icmp eq i64 %_930, 0
-  br i1 %_928, label %_then932, label %_else933
-_then932:
-  store i64 1, i64* %_r926
-  br label %_end934
-_else933:
-  %_942 = load i64, i64* %_i925
-  %_944 = sub i64 %_946, 1
-  %_946 = load i64, i64* %_i925
-  %_retval948 = call i64 @f(i64 %_944)
-  %_940 = mul i64 %_942, %_retval948
-  store i64 %_940, i64* %_r926
-  br label %_end934
-_end934:
-  %_950 = load i64, i64* %_r926
-  ret i64 %_950
+define i64 @fact(i64 %x) {
+  %_x1371 = alloca i64
+  store i64 %x, i64* %_x1371
+  %_acc1372 = alloca i64
+  store i64 1, i64* %_acc1372
+  br label %_start1378
+_start1378:
+  %_1376 = load i64, i64* %_x1371
+  %_1374 = icmp sgt i64 %_1376, 0
+  br i1 %_1374, label %_body1379, label %_end1380
+_body1379:
+  %_1385 = load i64, i64* %_acc1372
+  %_1387 = load i64, i64* %_x1371
+  %_1383 = mul i64 %_1385, %_1387
+  store i64 %_1383, i64* %_acc1372
+  %_1392 = load i64, i64* %_x1371
+  %_1390 = sub i64 %_1392, 1
+  store i64 %_1390, i64* %_x1371
+  br label %_start1378
+_end1380:
+  %_1395 = load i64, i64* %_acc1372
+  ret i64 %_1395
 }
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc919 = alloca i64
-  store i64 %argc, i64* %_argc919
-  %_argv920 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv920
-  %_retval923 = call i64 @f(i64 5)
-  ret i64 %_retval923
+  %_argc1360 = alloca i64
+  store i64 %argc, i64* %_argc1360
+  %_argv1361 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv1361
+  %_retval1367 = call i8* @string_of_int(i64 %_retval1366)
+  %_retval1366 = call i64 @fact(i64 5)
+  call void @print_string(i8* %_retval1367)
+  ret i64 0
 }
 
 

@@ -6,10 +6,10 @@ define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
   %_argv72 = alloca { i64, [0 x i8*] }*
   store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv72
   %_x73 = alloca i64
-  store i64 %_74, i64* %_x73
   %_y77 = alloca i64
-  store i64 %_78, i64* %_y77
+  store i64 %_74, i64* %_x73
   %_74 = lshr i64 100, 3
+  store i64 %_78, i64* %_y77
   %_78 = shl i64 100, 3
   %_84 = load i64, i64* %_x73
   %_86 = load i64, i64* %_y77
