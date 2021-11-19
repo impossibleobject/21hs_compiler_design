@@ -134,6 +134,12 @@ let fst_trp ((a, b, c):('a * 'b * 'c)) : 'a = a
 
 let mk_elt_l (l:string) : elt list = [L l]
 
+let unpack_ptr (ptr_ty:Ll.ty) : Ll.ty =
+  begin match ptr_ty with
+    | Ptr t -> t
+    | _     -> failwith "tried to unpack non-pointer"
+  end
+
 (* Compiler Invariants
 
    The LLVM IR type of a variable (whether global or local) that stores an Oat
@@ -355,7 +361,7 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
         let elem_into_arr (i:int) ((ty, op, s):(Ll.ty * Ll.operand * stream)) : stream = 
           let uid = gensym "" in
           let idx = Const (Int64.of_int i) in
-          s >@ [I (uid, Gep (ret_ty, ret_op, [Const 0L; Const 1L; idx]))] >@ 
+          s >@ [I (uid, Gep (unpack_ptr ret_ty, ret_op, [Const 0L; Const 1L; idx]))] >@ 
           [I ("", Store (ty, op, Id uid))] in
         ret_str >@ List.concat (List.mapi elem_into_arr trip_ls) in
       (ret_ty, ret_op, stream)
@@ -370,17 +376,9 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
                let uid = gensym "" in
                begin match ty with
                 | Ptr (Array (i,t)) -> (*L: string case*)
-                  let stream = [I (uid, Gep (Array (i,t), op, [Const 0L; Const 0L]))] in
+                  let stream = [I (uid, Gep (Ptr (Array (i,t)), op, [Const 0L; Const 0L]))] in
                   (Ptr I8, Id uid, stream)
                 | Ptr (Struct ts) ->  (*L: array case*)
-                  (* let array_ty = 
-                    begin match ts with
-                    | ([] | _::[]) -> failwith "cmp_exp: Id: invalid struct type" 
-                    | it::at::tl -> print_endline("at type: " ^ string_of_ty at);
-                      at
-                    end in
-                  let stream = [I (uid, Gep (Struct ts, op, [Const 0L; Const 1L; Const 0L]))] in (*F: Const 1L needed to access second element of struct (ie the array)*)
-                  (Ptr array_ty, Id uid, stream) *)
                   let stream = [I (uid, Gep (Struct ts, op, [Const 0L]))] in
                   (ty, Id uid, stream)
                 | Ptr t -> (* print_endline("cmp_exp, Id case: load emitted "); *)
@@ -394,7 +392,7 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
       else 
         let uid = gensym "" in
         let uid2 = gensym "" in 
-        let stream = [I (uid, Gep (ty1, op1, [Const 0L; Const 1L; op2]))] in
+        let stream = [I (uid, Gep (unpack_ptr ty1, op1, [Const 0L; Const 1L; op2]))] in
         let elem_ty =
           begin match ty1 with
             | Ptr (Array (i, t)) -> t
