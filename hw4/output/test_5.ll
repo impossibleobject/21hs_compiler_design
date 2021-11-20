@@ -1,23 +1,52 @@
-; generated from: oatprograms/easyrun6.oat
+; generated from: oatprograms/easyrun8.oat
 target triple = "x86_64-unknown-linux"
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc104 = alloca i64
-  store i64 %argc, i64* %_argc104
-  %_argv105 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv105
-  %_107 = icmp eq i1 0, 1
-  %_112 = sub i64 0, 4
-  %_111 = add i64 %_112, 5
-  %_110 = icmp sgt i64 %_111, 0
-  %_117 = mul i64 6, 4
-  %_116 = icmp slt i64 %_117, 25
-  %_109 = and i1 %_110, %_116
-  %_106 = or i1 %_107, %_109
-  br i1 %_106, label %_then121, label %_else122
-_then121:
-  ret i64 9
-_else122:
-  ret i64 4
+  %_argc213 = alloca i64
+  store i64 %argc, i64* %_argc213
+  %_argv214 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv214
+  store i64 6, i64* %_217
+  %_220 = load i64, i64* %_217
+  store i64 5, i64* %_219
+  %_221 = load i64, i64* %_219
+  %_215 = icmp ne i64 %_220, %_221
+  br i1 %_215, label %_then222, label %_else223
+_then222:
+  %_228 = xor i64 -1, %_248
+  store i64 5, i64* %_233
+  %_238 = load i64, i64* %_233
+  %_234 = sub i64 0, %_237
+  store i64 6, i64* %_236
+  %_237 = load i64, i64* %_236
+  %_239 = load i64, i64* %_234
+  %_231 = lshr i64 %_238, %_239
+  %_242 = load i64, i64* %_231
+  store i64 9, i64* %_241
+  %_243 = load i64, i64* %_241
+  %_230 = shl i64 %_242, %_243
+  %_246 = load i64, i64* %_230
+  store i64 10, i64* %_245
+  %_247 = load i64, i64* %_245
+  %_229 = ashr i64 %_246, %_247
+  %_248 = load i64, i64* %_229
+  %_251 = load i64, i64* %_228
+  store i64 2, i64* %_250
+  %_252 = load i64, i64* %_250
+  %_227 = mul i64 %_251, %_252
+  %_255 = load i64, i64* %_227
+  store i64 100, i64* %_254
+  %_256 = load i64, i64* %_254
+  %_226 = sub i64 %_255, %_256
+  %_259 = load i64, i64* %_226
+  store i64 6, i64* %_258
+  %_260 = load i64, i64* %_258
+  %_225 = add i64 %_259, %_260
+  %_261 = load i64, i64* %_225
+  ret i64 %_261
+_else223:
+  store i64 2, i64* %_263
+  %_264 = load i64, i64* %_263
+  ret i64 %_264
 }
 
 

@@ -5,7 +5,9 @@ define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
   store i64 %argc, i64* %_argc1
   %_argv2 = alloca { i64, [0 x i8*] }*
   store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv2
-  ret i64 17
+  store i64 17, i64* %_4
+  %_5 = load i64, i64* %_4
+  ret i64 %_5
 }
 
 

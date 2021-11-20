@@ -255,6 +255,13 @@ let unpack_or_return (ptr_ty:Ll.ty) : Ll.ty =
   %_index15 = load i64, i64* %_index_ptr14                         ;; (12)
   ret i64 %_index15
 
+  L: ours
+  %_370 = load { i64, [0 x i64] }, { i64, [0 x i64] }* %_360
+  %_index_ptr372 = getelementptr { i64, [0 x i64] }*, { i64, [0 x i64] }** %_370, i32 0, i32 1, i32 2
+  %_374 = load i64, i64* %_index_ptr372
+  ret i64 %_374
+  L end
+
   (10) just like for %_x9, load the array value that is stored in @arr 
 
   (11) calculate the array index offset
@@ -314,6 +321,11 @@ let load_if_ptr ((ty, op, str) : (Ll.ty * Ll.operand * stream)) : Ll.ty * Ll.ope
     (t, Id uid, str >@ insn)
   | _ -> (ty, op, str)
   end
+
+(*L: function to add primitives into pointers with corresponding stream*)
+let ptr_store (ty:Ll.ty) (v:int64) (s:stream) : (Ll.ty * Ll.operand * stream) =
+  let uid = gensym "" in
+  (Ptr ty, Id uid, s >@ [I (uid, Store (I64, Const v, Id uid))])
   
 
 (* Compiles an expression exp in context c, outputting the Ll operand that will
@@ -357,23 +369,24 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
       | _ -> failwith "cmp_exp: ast binop not cnd"
     end in
     let uid = gensym "" in
+  
   begin match exp.elt with
-    | CNull rty -> (cmp_rty rty, Null, [])
+    | CNull rty -> (Ptr (cmp_rty rty), Null, [])
     | CBool b -> begin match b with
-                  | true  -> (I1, Const 1L, [])
-                  | false -> (I1, Const 0L, [])
+                  | true  -> ptr_store I1 1L []
+                  | false -> ptr_store I1 0L []
                  end
-    | CInt i -> (I64, Const i, [])
+    | CInt i -> ptr_store I64 i []
     | CStr s -> 
-      let ty = Array (String.length s + 1, I8) in 
+      let ty = Ptr (Array (String.length s + 1, I8)) in (*L: not sure if this is Ptr*) 
       let string_uid = gensym "str" in
       let uid1 = gensym "" in
       let gdecl = (ty, GString s) in
-      let stream =  [G (string_uid, gdecl); I (uid1, Gep (Ptr ty, Gid string_uid, [Const 0L; Const 0L]))] in
-      (Ptr I8, Id uid1, stream)
-    | CArr (ty, ens) -> 
+      let stream =  [G (string_uid, gdecl); I (uid1, Gep (ty, Gid string_uid, [Const 0L; Const 0L]))] in
+      (Ptr (Ptr I8), Id uid1, stream)
+    | CArr (ast_ty, ens) -> 
       let size = Const (Int64.of_int(List.length ens)) in
-      let ret_ty, ret_op, ret_str = oat_alloc_array ty size in
+      let ret_ty, ret_op, ret_str = oat_alloc_array ast_ty size in (*L:single pointer to struct*)
       let stream =
         let trip_ls = List.map (cmp_exp c) ens in
         let elem_into_arr (i:int) ((ty, op, s):(Ll.ty * Ll.operand * stream)) : stream = 
@@ -382,12 +395,12 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
           s >@ [I (uid, Gep (unpack_ptr ret_ty, ret_op, [Const 0L; Const 1L; idx]))] >@ 
           [I ("", Store (ty, op, Id uid))] in
         ret_str >@ List.concat (List.mapi elem_into_arr trip_ls) in
-      (ret_ty, ret_op, stream)
-    | NewArr (ty, en) -> 
+      (Ptr ret_ty, ret_op, stream)
+    | NewArr (ast_ty, en) -> 
       let ty_int, op, s = cmp_exp c en in
-      if(ty_int<>I64) then failwith ("cmp_exp -> Newarr, array length not int64, but: " ^ string_of_ty ty_int);
-      let ret_ty, ret_op, ret_str = oat_alloc_array ty op in
-      (ret_ty, ret_op, s >@ ret_str)
+      if(ty_int<>Ptr I64) then failwith ("cmp_exp -> Newarr, array length not int64, but: " ^ string_of_ty ty_int);
+      let ret_ty, ret_op, ret_str = oat_alloc_array ast_ty op in (*L: not quite sure if ptr op is fine*)
+      (Ptr ret_ty, ret_op, s >@ ret_str)
     | Id id -> (* print_endline("cmp_exp, Id case: " ^ id); *)
                let ty, op = Ctxt.lookup id c in
                (* print_endline("got past the lookup " ^ string_of_ty ty); *)
@@ -395,27 +408,26 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
                begin match ty with
                 | Ptr (Array (i,t)) -> (*L: string case*)
                   let stream = [I (uid, Gep (Ptr (Array (i,t)), op, [Const 0L; Const 0L]))] in
-                  (Ptr I8, Id uid, stream)
-                | Ptr (Struct ts) ->  (*L: array case*)
+                  (Ptr (Ptr I8), Id uid, stream)
+                | Ptr (Ptr (Struct ts)) ->  (*L: array case*)
                   let stream = [I (uid, Load (ty, op))] in (* [I (uid, Gep (Ptr (Struct ts), op, [Const 0L]))] *)
-                  (Ptr ty, Id uid, stream)
+                  (ty, Id uid, stream)
                 | Ptr t -> (* print_endline("cmp_exp, Id case: load emitted "); *)
                            (t, Id uid, [I (uid, Load (ty, op))])
-                | _     -> (ty, op, [])
+                | _     -> failwith ("cmp_exp -> id, wrong type: " ^ string_of_ty ty)
                end
     | Index (en1, en2) -> 
       let ty1, op1, s1 = cmp_exp c en1 in (*F: need to compile id part, example case: arrayargs1.oat*)
       let ty2, op2, s2 = cmp_exp c en2 in
-      print_endline("ty1 gotten: " ^ string_of_ty ty1 ^ " and op: " ^ string_of_operand op1);
-      if(ty2 <> I64) then failwith "cmp_exp: index is not I64"
+      (* print_endline("ty1 gotten: " ^ string_of_ty ty1 ^ " and op: " ^ string_of_operand op1); *)
+      if(ty2 <> Ptr I64) then failwith "cmp_exp: index is not I64"
       else 
         let uid = gensym "index_ptr" in
-        let uid2 = gensym "" in 
-        let stream = (* [I (uid2, Load(ty1, op1))] >@ *) [I (uid, Gep (ty1, op1, [Const 0L; Const 1L; op2]))] in
+        let stream = [I (uid, Gep (ty1, op1, [Const 0L; Const 1L; op2]))] in
         let elem_ty =
-          begin match unpack_or_return ty1 with
-            | Ptr (Array (i, t)) -> t
-            | Ptr (Struct (f::s::tl)) -> (* print_endline("found struct in index"); *)
+          begin match ty1 with
+            | Ptr (Array (i, t)) -> t (*L: string case*)
+            | Ptr (Ptr (Struct (f::s::tl))) -> (* print_endline("found struct in index"); *)
               begin match s with 
               | Array (si,st) -> st
               | _ -> failwith "cmp_exp: Index: invalid struct structure"
@@ -443,7 +455,7 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
       let retval_uid = gensym "retval" in
       let stream = List.rev (List.concat stream_ls) >@ 
       [I (retval_uid, Call (rty, rop, arg_tyops))] in
-      (rty, Id retval_uid, stream)
+      (Ptr rty, Id retval_uid, stream) (*L: not sure about pointer*)
     | Bop (binop,en1,en2) -> 
       let a, b, ret = typ_of_binop binop in
       let raw_ty1, raw_op1, raw_s1 = cmp_exp c en1 in
@@ -451,22 +463,23 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
       let ty1, op1, s1 = load_if_ptr (raw_ty1, raw_op1, raw_s1) in
       let ty2, op2, s2 = load_if_ptr (raw_ty2, raw_op2, raw_s2) in
       if(ty1 <> cmp_ty a || ty2 <> cmp_ty b) 
-        then failwith ("cmp_exp operands not of correct type: " ^ (string_of_ty ty1) ^ " " ^ (string_of_ty ty2));
+        then failwith ("cmp_exp->bop operands not of correct type: " ^ (string_of_ty ty1) ^ " " ^ (string_of_ty ty2));
       let insn = begin match binop with
                   | Eq | Neq | Lt | Lte | Gt | Gte -> 
                     Icmp (map_cnd binop, cmp_ty a, op1, op2)
                   | _ -> 
                     Binop (map_bop binop, cmp_ty a, op1, op2)
                  end in
-      (cmp_ty ret, Id uid , s1 >@ s2 >@ [I (uid, insn)])                        
+      (Ptr (cmp_ty ret), Id uid , s1 >@ s2 >@ [I (uid, insn)]) (*L: not sure about pointer*)                   
     | Uop (unop,en) -> 
       let raw_ty, raw_op, raw_s = cmp_exp c en in
       let ty, op, s = load_if_ptr (raw_ty, raw_op, raw_s) in
       begin match unop with 
-        | Neg    -> (ty, Id uid, s @ [I (uid, Binop (Sub, ty, Const 0L, op))])
-        | Lognot -> (ty, Id uid, s @ [I (uid, Icmp (Eq, ty, Const 0L, op))])
-        | Bitnot -> (ty, Id uid, s @ [I (uid, Binop (Xor, ty, Const (-1L), op))])
+        | Neg    -> (Ptr ty, Id uid, s @ [I (uid, Binop (Sub, ty, Const 0L, op))])
+        | Lognot -> (Ptr ty, Id uid, s @ [I (uid, Icmp (Eq, ty, Const 0L, op))])
+        | Bitnot -> (Ptr ty, Id uid, s @ [I (uid, Binop (Xor, ty, Const (-1L), op))])
       end
+      (*L: not sure about pointer*)
     | _ -> failwith "cmp_exp not implemented for arrays, strings, indices yet"
   end
 
@@ -501,9 +514,9 @@ let rec cmp_stmt (c:Ctxt.t) (rt:Ll.ty) (stmt:Ast.stmt node) : Ctxt.t * stream =
   begin match stmt.elt with
     | Decl (id, en)   -> let uid = gensym id in
                          let ty, op, s = cmp_exp c en in
-                         let c_new = Ctxt.add c id (Ptr ty, Id uid) in
+                         let c_new = Ctxt.add c id (ty, Id uid) in
                         (*  print_endline("cmp_stmt: type of uid: " ^ (string_of_ty ty)); *)
-                         (c_new, s @ [I ("", Store (ty, op, Id uid)); E (uid, Alloca ty)])
+                         (c_new, [E (uid, Alloca (unpack_ptr ty))] >@ s >@ [I ("", Store (unpack_ptr ty, op, Id uid))])
     | Assn (lhs, rhs) -> let ty1, op1, s1 = cmp_exp c lhs in
                          let ty2, op2, s2 = cmp_exp c rhs in
                          begin match lhs.elt with 
@@ -511,9 +524,9 @@ let rec cmp_stmt (c:Ctxt.t) (rt:Ll.ty) (stmt:Ast.stmt node) : Ctxt.t * stream =
                             let dty, dop_unprocessed = Ctxt.lookup id c in
                             let dop = if(dty=ty2) then Gid id else dop_unprocessed in
                             let new_ctxt = Ctxt.add c id (ty2, op2) in
-                            (new_ctxt, [I (id, Store (ty1, op2, dop))] @ s2)
+                            (new_ctxt, s2 >@ [I (id, Store (unpack_ptr ty2, op2, dop))]) (*L: might need another load here*)
                           | Index (_,_) ->
-                            (c, [I ("", Store (ty2, op2, op1))] @ s2 @ s1) (*F: op1 should be uid, ptr to element to write, ty1 will be type (Ptr t), use ty2*)
+                            (c, s1 >@ s2 >@ [I ("", Store (unpack_ptr ty2, op2, op1))]) (*F: op1 should be uid, ptr to element to write, ty1 will be type (Ptr t), use ty2*)
                           | _ -> failwith "cmp_stmt illegal lhs"
                          end 
     | Ret None    -> (c, [T (Ret (rt, None))])
@@ -521,14 +534,13 @@ let rec cmp_stmt (c:Ctxt.t) (rt:Ll.ty) (stmt:Ast.stmt node) : Ctxt.t * stream =
                       let uid = gensym "" in
                       let rop, insn = 
                         begin match ty with 
-                          | Ptr (Struct _) -> op, []
                           | Ptr t -> Ll.Id uid, [I (uid, Load (ty, op))]
-                          | _     -> op, []
+                          | _     -> failwith "cmp_stmt->ret got non pointer"
                         end in
                      (c, stream >@ insn >@ [T (Ret (rt, Some rop))])
     | If (ec, s_then, s_else) ->
       let ty, op, s = cmp_exp c ec in
-      if(ty <> I1) then failwith "cmp_stmt, if cnd not bool"
+      if(ty <> Ptr I1) then failwith "cmp_stmt, if cnd not bool"
       else 
         let then_lbl = gensym "then" in
         let else_lbl = gensym "else" in
@@ -600,20 +612,20 @@ let cmp_global_ctxt (c:Ctxt.t) (p:Ast.prog) : Ctxt.t =
   
   let decl_to_ctxt_elem (d:Ast.decl) : (string * (Ll.ty * Ll.operand)) =
     let exp_to_ctxt_elem (g:Ast.gdecl) : (string * (Ll.ty * Ll.operand)) =
-      let tyop = 
+      let ty, op, _ = 
         begin match g.init.elt with
-          | CNull rty -> (Ptr (cmp_rty rty), Null)
+          | CNull rty -> (Ptr (cmp_rty rty), Null, [])
           | CBool b -> begin match b with
-                        | true  -> (I1, Const 1L)
-                        | false -> (I1, Const 0L)
+                        | true  -> ptr_store I1 1L []
+                        | false -> ptr_store I1 0L []
                       end
-          | CInt i -> (I64, Const i)
-          | CStr s -> (Ptr (Array (String.length s + 1,I8)), Gid g.name)
-          | CArr (ty, ens)  -> ((Ptr (Struct [I64; Array (List.length ens, cmp_ty ty)])), Gid g.name)
-          | _      -> (I1, Null) (*L: placeholder to remove non-globals*)
+          | CInt i -> ptr_store I64 i []
+          | CStr s -> (Ptr (Array (String.length s + 1,I8)), Gid g.name, [])
+          | CArr (ty, ens)  -> (Ptr (Ptr (Struct [I64; Array (List.length ens, cmp_ty ty)])), Gid g.name, [])
+          | _      -> (I1, Null, []) (*L: placeholder to remove non-globals*)
         end in
     (* print_endline("cmp_global_ctxt, current global: " ^ g.name); *)
-    (g.name, tyop) in
+    (g.name, (ty, op)) in
   begin match d with
     | Gvdecl g -> exp_to_ctxt_elem g.elt
     | Gfdecl f -> (f.elt.fname, (I1, Null)) (*L: placeholder to remove functions*)
@@ -700,7 +712,7 @@ let rec cmp_gexp c (e:Ast.exp node) : Ll.gdecl * (Ll.gid * Ll.gdecl) list =
       let gdecl_ls = List.map snd gid_gdecl_ls in
       let ens_length = List.length ens in
       let ginit_array = (Array (ens_length, cmp_ty ty)), GArray gdecl_ls in
-      let gdecl = (Struct [I64; (Array (ens_length, cmp_ty ty))], GStruct [(I64, GInt (Int64.of_int ens_length)); ginit_array]) in
+      let gdecl = ((Struct [I64; (Array (ens_length, cmp_ty ty))]), GStruct [(I64, GInt (Int64.of_int ens_length)); ginit_array]) in
       (gdecl, gid_gdecl_ls)
     | _      -> failwith "cmp_gexp not well formed OAT program, wrong init type"
   end 

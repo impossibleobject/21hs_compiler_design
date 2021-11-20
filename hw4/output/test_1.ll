@@ -1,12 +1,17 @@
 ; generated from: oatprograms/easyrun2.oat
 target triple = "x86_64-unknown-linux"
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc5 = alloca i64
-  store i64 %argc, i64* %_argc5
-  %_argv6 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv6
-  %_7 = add i64 17, 18
-  ret i64 %_7
+  %_argc6 = alloca i64
+  store i64 %argc, i64* %_argc6
+  %_argv7 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv7
+  store i64 17, i64* %_10
+  %_13 = load i64, i64* %_10
+  store i64 18, i64* %_12
+  %_14 = load i64, i64* %_12
+  %_8 = add i64 %_13, %_14
+  %_15 = load i64, i64* %_8
+  ret i64 %_15
 }
 
 
