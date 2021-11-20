@@ -1,46 +1,68 @@
 ; generated from: oatprograms/easyrun5.oat
 target triple = "x86_64-unknown-linux"
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc91 = alloca i64
-  store i64 %argc, i64* %_argc91
-  %_argv92 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv92
-  %_x93 = alloca i64
-  %_y101 = alloca i64
-  store i64 100, i64* %_96
-  %_99 = load i64, i64* %_96
-  store i64 3, i64* %_98
-  %_100 = load i64, i64* %_98
-  %_94 = lshr i64 %_99, %_100
-  store i64 %_94, i64* %_x93
-  store i64 100, i64* %_104
-  %_107 = load i64, i64* %_104
-  store i64 3, i64* %_106
-  %_108 = load i64, i64* %_106
-  %_102 = shl i64 %_107, %_108
-  store i64 %_102, i64* %_y101
-  %_112 = load i64, i64* %_x93
-  %_114 = load i64, i64* %_y101
-  %_110 = sub i64 %_112, %_114
-  %_117 = load i64, i64* %_110
-  store i64 0, i64* %_116
-  %_118 = load i64, i64* %_116
-  %_109 = icmp sle i64 %_117, %_118
-  br i1 %_109, label %_then119, label %_else120
-_then119:
-  %_123 = sub i64 0, %_125
-  %_125 = load i64, i64* %_x93
-  %_128 = load i64, i64* %_123
-  %_127 = load i64, i64* %_y101
-  %_122 = sub i64 %_128, %_127
-  %_129 = load i64, i64* %_122
-  ret i64 %_129
-_else120:
-  %_132 = load i64, i64* %_x93
-  %_134 = load i64, i64* %_y101
-  %_130 = sub i64 %_132, %_134
-  %_135 = load i64, i64* %_130
-  ret i64 %_135
+  %_argc115 = alloca i64
+  store i64 %argc, i64* %_argc115
+  %_argv116 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv116
+  %_x117 = alloca i64
+  %_y128 = alloca i64
+  %_121 = alloca i64
+  store i64 100, i64* %_121
+  %_124 = load i64, i64* %_121
+  %_123 = alloca i64
+  store i64 3, i64* %_123
+  %_125 = load i64, i64* %_123
+  %_bop_tmp126 = lshr i64 %_124, %_125
+  %_bop119 = alloca i64
+  store i64 %_bop_tmp126, i64* %_bop119
+  %_decl127 = load i64, i64* %_bop119
+  store i64 %_decl127, i64* %_x117
+  %_132 = alloca i64
+  store i64 100, i64* %_132
+  %_135 = load i64, i64* %_132
+  %_134 = alloca i64
+  store i64 3, i64* %_134
+  %_136 = load i64, i64* %_134
+  %_bop_tmp137 = shl i64 %_135, %_136
+  %_bop130 = alloca i64
+  store i64 %_bop_tmp137, i64* %_bop130
+  %_decl138 = load i64, i64* %_bop130
+  store i64 %_decl138, i64* %_y128
+  %_id144 = load i64, i64* %_x117
+  %_id146 = load i64, i64* %_y128
+  %_bop_tmp147 = sub i64 %_id144, %_id146
+  %_bop142 = alloca i64
+  store i64 %_bop_tmp147, i64* %_bop142
+  %_150 = load i64, i64* %_bop142
+  %_149 = alloca i64
+  store i64 0, i64* %_149
+  %_151 = load i64, i64* %_149
+  %_bop_tmp152 = icmp sle i64 %_150, %_151
+  %_bop140 = alloca i1
+  store i1 %_bop_tmp152, i1* %_bop140
+  %_ifthenelse153 = load i1, i1* %_bop140
+  br i1 %_ifthenelse153, label %_then154, label %_else155
+_then154:
+  %_id162 = load i64, i64* %_x117
+  %_uop_tmp163 = sub i64 0, %_id162
+  %_uop160 = alloca i64
+  store i64 %_uop_tmp163, i64* %_uop160
+  %_166 = load i64, i64* %_uop160
+  %_id165 = load i64, i64* %_y128
+  %_bop_tmp167 = sub i64 %_166, %_id165
+  %_bop158 = alloca i64
+  store i64 %_bop_tmp167, i64* %_bop158
+  %_ret168 = load i64, i64* %_bop158
+  ret i64 %_ret168
+_else155:
+  %_id172 = load i64, i64* %_x117
+  %_id174 = load i64, i64* %_y128
+  %_bop_tmp175 = sub i64 %_id172, %_id174
+  %_bop170 = alloca i64
+  store i64 %_bop_tmp175, i64* %_bop170
+  %_ret176 = load i64, i64* %_bop170
+  ret i64 %_ret176
 }
 
 

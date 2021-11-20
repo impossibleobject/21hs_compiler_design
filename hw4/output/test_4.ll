@@ -1,34 +1,49 @@
 ; generated from: oatprograms/easyrun7.oat
 target triple = "x86_64-unknown-linux"
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc183 = alloca i64
-  store i64 %argc, i64* %_argc183
-  %_argv184 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv184
-  %_187 = xor i64 -1, %_190
-  store i64 5, i64* %_189
-  %_190 = load i64, i64* %_189
-  %_193 = load i64, i64* %_187
-  store i64 6, i64* %_192
-  %_194 = load i64, i64* %_192
-  %_186 = and i64 %_193, %_194
-  %_202 = load i64, i64* %_186
-  store i64 2, i64* %_197
-  %_200 = load i64, i64* %_197
-  store i64 0, i64* %_199
-  %_201 = load i64, i64* %_199
-  %_195 = or i64 %_200, %_201
-  %_203 = load i64, i64* %_195
-  %_185 = icmp sge i64 %_202, %_203
-  br i1 %_185, label %_then204, label %_else205
-_then204:
-  store i64 23, i64* %_208
-  %_209 = load i64, i64* %_208
-  ret i64 %_209
-_else205:
-  store i64 46, i64* %_211
-  %_212 = load i64, i64* %_211
-  ret i64 %_212
+  %_argc241 = alloca i64
+  store i64 %argc, i64* %_argc241
+  %_argv242 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv242
+  %_250 = alloca i64
+  store i64 5, i64* %_250
+  %_251 = load i64, i64* %_250
+  %_uop_tmp252 = xor i64 -1, %_251
+  %_uop248 = alloca i64
+  store i64 %_uop_tmp252, i64* %_uop248
+  %_255 = load i64, i64* %_uop248
+  %_254 = alloca i64
+  store i64 6, i64* %_254
+  %_256 = load i64, i64* %_254
+  %_bop_tmp257 = and i64 %_255, %_256
+  %_bop246 = alloca i64
+  store i64 %_bop_tmp257, i64* %_bop246
+  %_267 = load i64, i64* %_bop246
+  %_261 = alloca i64
+  store i64 2, i64* %_261
+  %_264 = load i64, i64* %_261
+  %_263 = alloca i64
+  store i64 0, i64* %_263
+  %_265 = load i64, i64* %_263
+  %_bop_tmp266 = or i64 %_264, %_265
+  %_bop259 = alloca i64
+  store i64 %_bop_tmp266, i64* %_bop259
+  %_268 = load i64, i64* %_bop259
+  %_bop_tmp269 = icmp sge i64 %_267, %_268
+  %_bop244 = alloca i1
+  store i1 %_bop_tmp269, i1* %_bop244
+  %_ifthenelse270 = load i1, i1* %_bop244
+  br i1 %_ifthenelse270, label %_then271, label %_else272
+_then271:
+  %_275 = alloca i64
+  store i64 23, i64* %_275
+  %_ret276 = load i64, i64* %_275
+  ret i64 %_ret276
+_else272:
+  %_278 = alloca i64
+  store i64 46, i64* %_278
+  %_ret279 = load i64, i64* %_278
+  ret i64 %_ret279
 }
 
 

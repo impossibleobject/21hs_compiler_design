@@ -1,18 +1,21 @@
 ; generated from: oatprograms/globals6.oat
 target triple = "x86_64-unknown-linux"
-@_str398 = global [7 x i8]* c"hello!\00"
+@_str491 = global [7 x i8] c"hello!\00"
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %args) {
-  %_argc394 = alloca i64
-  store i64 %argc, i64* %_argc394
-  %_args395 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %args, { i64, [0 x i8*] }** %_args395
-  %_s396 = alloca i8*
-  %_399 = getelementptr [7 x i8], [7 x i8]* @_str398, i32 0, i32 0
-  store i8* %_399, i8** %_s396
-  store i64 15, i64* %_401
-  %_402 = load i64, i64* %_401
-  ret i64 %_402
+  %_argc486 = alloca i64
+  store i64 %argc, i64* %_argc486
+  %_args487 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %args, { i64, [0 x i8*] }** %_args487
+  %_s488 = alloca i8*
+  %_str_tmp492 = getelementptr [7 x i8], [7 x i8]* @_str491, i32 0
+  %_cstr490 = bitcast [7 x i8]* %_str_tmp492 to i8**
+  %_decl493 = load i8*, i8** %_cstr490
+  store i8* %_decl493, i8** %_s488
+  %_495 = alloca i64
+  store i64 15, i64* %_495
+  %_ret496 = load i64, i64* %_495
+  ret i64 %_ret496
 }
 
 

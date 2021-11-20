@@ -3,27 +3,30 @@ target triple = "x86_64-unknown-linux"
 @arr = global { i64, [0 x i64] } { i64 0, [0 x i64] [  ] }
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc403 = alloca i64
-  store i64 %argc, i64* %_argc403
-  %_argv404 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv404
-  %_x405 = alloca { i64, [0 x i64] }*
-  store i64 3, i64* %_408
-  %_raw_array409 = call i64* @oat_alloc_array(i64 %_408)
-  %_array410 = bitcast i64* %_raw_array409 to { i64, [0 x i64] }*
-  store { i64, [0 x i64] }* %_array410, { i64, [0 x i64] }** %_x405
-  %_414 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_x405
-  store { i64, [0 x i64] }* %_414, { i64, [0 x i64] }** @arr
-  %_417 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_x405
-  store i64 2, i64* %_419
-  %_index_ptr420 = getelementptr { i64, [0 x i64] }*, { i64, [0 x i64] }** %_417, i32 0, i32 1, i64 %_419
-  store i64 3, i64* %_422
-  store i64 %_422, i64* %_index_ptr420
-  %_425 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_414
-  store i64 2, i64* %_427
-  %_index_ptr428 = getelementptr { i64, [0 x i64] }*, { i64, [0 x i64] }** %_425, i32 0, i32 1, i64 %_427
-  %_429 = load i64, i64* %_index_ptr428
-  ret i64 %_429
+  %_argc497 = alloca i64
+  store i64 %argc, i64* %_argc497
+  %_argv498 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv498
+  %_x499 = alloca { i64, [0 x i64] }*
+  %_503 = alloca i64
+  store i64 3, i64* %_503
+  %_NewArr501 = load i64, i64* %_503
+  %_raw_array504 = call i64* @oat_alloc_array(i64 %_NewArr501)
+  %_array505 = bitcast i64* %_raw_array504 to { i64, [0 x i64] }*
+  store { i64, [0 x i64] }* %_decl506, { i64, [0 x i64] }** %_x499
+  %_assn511 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_x499
+  store { i64, [0 x i64] }* %_assn511, { i64, [0 x i64] }** @arr
+  %_516 = alloca i64
+  store i64 2, i64* %_516
+  %_index_ptr517 = getelementptr { i64, [0 x i64] }*, { i64, [0 x i64] }** %_x499, i32 0, i32 1, i64 %_516
+  %_519 = alloca i64
+  store i64 3, i64* %_519
+  store i64 %_519, i64* %_index_ptr517
+  %_524 = alloca i64
+  store i64 2, i64* %_524
+  %_index_ptr525 = getelementptr { i64, [0 x i64] }*, { i64, [0 x i64] }** %_x499, i32 0, i32 1, i64 %_524
+  %_ret526 = load i64, i64* %_index_ptr525
+  ret i64 %_ret526
 }
 
 

@@ -1,13 +1,14 @@
 ; generated from: oatprograms/run26.oat
 target triple = "x86_64-unknown-linux"
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc644 = alloca i64
-  store i64 %argc, i64* %_argc644
-  %_argv645 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv645
-  store i64 0, i64* %_647
-  %_648 = load i64, i64* %_647
-  ret i64 %_648
+  %_argc758 = alloca i64
+  store i64 %argc, i64* %_argc758
+  %_argv759 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv759
+  %_761 = alloca i64
+  store i64 0, i64* %_761
+  %_ret762 = load i64, i64* %_761
+  ret i64 %_ret762
 }
 
 

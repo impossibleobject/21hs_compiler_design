@@ -1,17 +1,18 @@
 ; generated from: oatprograms/run24.oat
 target triple = "x86_64-unknown-linux"
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc2745 = alloca i64
-  store i64 %argc, i64* %_argc2745
-  %_argv2746 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv2746
-  %_a2747 = alloca { i64, [0 x i64] }*
-  %_raw_array2749 = call i64* @oat_alloc_array(i64 0)
-  %_array2750 = bitcast i64* %_raw_array2749 to { i64, [0 x i64] }*
-  store { i64, [0 x i64] }* %_array2750, { i64, [0 x i64] }** %_a2747
-  store i64 0, i64* %_2752
-  %_2753 = load i64, i64* %_2752
-  ret i64 %_2753
+  %_argc3012 = alloca i64
+  store i64 %argc, i64* %_argc3012
+  %_argv3013 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv3013
+  %_a3014 = alloca { i64, [0 x i64] }*
+  %_raw_array3017 = call i64* @oat_alloc_array(i64 0)
+  %_array3018 = bitcast i64* %_raw_array3017 to { i64, [0 x i64] }*
+  store { i64, [0 x i64] }* %_decl3019, { i64, [0 x i64] }** %_a3014
+  %_3021 = alloca i64
+  store i64 0, i64* %_3021
+  %_ret3022 = load i64, i64* %_3021
+  ret i64 %_ret3022
 }
 
 
