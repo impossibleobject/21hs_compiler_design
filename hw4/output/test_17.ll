@@ -1,19 +1,20 @@
-; generated from: oatprograms/run49.oat
+; generated from: oatprograms/path3.oat
 target triple = "x86_64-unknown-linux"
-@_str1458 = global [4 x i8] c"abc\00"
+@arr = global { i64, [4 x i64] } { i64 4, [4 x i64] [ i64 1, i64 2, i64 3, i64 4 ] }
+@_403 = global i64 1
+@_404 = global i64 2
+@_405 = global i64 3
+@_406 = global i64 4
 
-define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc1453 = alloca i64
-  store i64 %argc, i64* %_argc1453
-  %_argv1454 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv1454
-  %_cstr1457 = bitcast [4 x i8]* %_str_tmp1459 to i8**
-  %_str_tmp1459 = getelementptr [4 x i8], [4 x i8]* @_str1458, i32 0
-  call void @print_string(i8** %_cstr1457)
-  %_1462 = alloca i64
-  store i64 0, i64* %_1462
-  %_ret1463 = load i64, i64* %_1462
-  ret i64 %_ret1463
+define i64 @program(i64 %argc, { i64, [0 x i8*] }* %args) {
+  %_argc394 = alloca i64
+  store i64 %argc, i64* %_argc394
+  %_args395 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %args, { i64, [0 x i8*] }** %_args395
+  %_398 = load { i64, [4 x i64] }, { i64, [4 x i64] }* @arr
+  %_index_ptr400 = getelementptr { i64, [4 x i64] }*, { i64, [4 x i64] }** %_398, i32 0, i32 1, i32 2
+  %_402 = load i64, i64* %_index_ptr400
+  ret i64 %_402
 }
 
 

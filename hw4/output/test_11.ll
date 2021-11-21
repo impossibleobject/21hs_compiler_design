@@ -1,27 +1,17 @@
-; generated from: oatprograms/path2.oat
+; generated from: oatprograms/globals4.oat
 target triple = "x86_64-unknown-linux"
-define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc536 = alloca i64
-  store i64 %argc, i64* %_argc536
-  %_argv537 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv537
-  %_x538 = alloca i64
-  %_y542 = alloca i64
-  %_540 = alloca i64
-  store i64 17, i64* %_540
-  %_decl541 = load i64, i64* %_540
-  store i64 %_decl541, i64* %_x538
-  %_544 = alloca i64
-  store i64 18, i64* %_544
-  %_decl545 = load i64, i64* %_544
-  store i64 %_decl545, i64* %_y542
-  %_id549 = load i64, i64* %_x538
-  %_id551 = load i64, i64* %_y542
-  %_bop_tmp552 = add i64 %_id549, %_id551
-  %_bop547 = alloca i64
-  store i64 %_bop_tmp552, i64* %_bop547
-  %_ret553 = load i64, i64* %_bop547
-  ret i64 %_ret553
+@arr = global { i64, [4 x i64] } { i64 4, [4 x i64] [ i64 1, i64 2, i64 3, i64 4 ] }
+@_334 = global i64 1
+@_335 = global i64 2
+@_336 = global i64 3
+@_337 = global i64 4
+
+define i64 @program(i64 %argc, { i64, [0 x i8*] }* %args) {
+  %_argc330 = alloca i64
+  store i64 %argc, i64* %_argc330
+  %_args331 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %args, { i64, [0 x i8*] }** %_args331
+  ret i64 5
 }
 
 
