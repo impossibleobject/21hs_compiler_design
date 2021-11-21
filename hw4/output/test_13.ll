@@ -1,15 +1,15 @@
 ; generated from: oatprograms/globals6.oat
 target triple = "x86_64-unknown-linux"
-@_cstr_glb223 = global [7 x i8] c"hello!\00"
+@_cstr_glb204 = global [7 x i8] c"hello!\00"
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %args) {
-  %_argc219 = alloca i64
-  store i64 %argc, i64* %_argc219
-  %_args220 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %args, { i64, [0 x i8*] }** %_args220
-  %_s221 = alloca i8*
-  store i8* %_cstr_loc222, i8** %_s221
-  %_cstr_loc222 = getelementptr [7 x i8], [7 x i8]* @_cstr_glb223, i32 0, i32 0
+  %_argc200 = alloca i64
+  store i64 %argc, i64* %_argc200
+  %_args201 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %args, { i64, [0 x i8*] }** %_args201
+  %_s202 = alloca i8*
+  %_cstr_loc203 = getelementptr [7 x i8], [7 x i8]* @_cstr_glb204, i32 0, i32 0
+  store i8* %_cstr_loc203, i8** %_s202
   ret i64 15
 }
 
