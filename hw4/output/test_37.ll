@@ -3,12 +3,12 @@ target triple = "x86_64-unknown-linux"
 @s = global [3 x i8] c"42\00"
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc1350 = alloca i64
-  store i64 %argc, i64* %_argc1350
-  %_argv1351 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv1351
-  %_1354 = getelementptr [3 x i8], [3 x i8]* @s, i32 0, i32 0
-  call void @print_string(i8* %_1354)
+  %_argc1402 = alloca i64
+  store i64 %argc, i64* %_argc1402
+  %_argv1403 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv1403
+  %_id1406 = getelementptr [3 x i8], [3 x i8]* @s, i32 0, i32 0
+  call void @print_string(i8* %_id1406)
   ret i64 0
 }
 

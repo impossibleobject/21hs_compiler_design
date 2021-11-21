@@ -356,7 +356,7 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
       | Gte -> Sge
       | _ -> failwith "cmp_exp: ast binop not cnd"
     end in
-    let uid = gensym "" in
+    let uid = gensym "exp" in
   begin match exp.elt with
     | CNull rty -> (cmp_rty rty, Null, [])
     | CBool b -> begin match b with
@@ -365,19 +365,19 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
                  end
     | CInt i -> (I64, Const i, [])
     | CStr s -> 
+      let uid = gensym "cstr" in
       let ty = Array (String.length s + 1, I8) in 
-      let string_uid = gensym "str" in
-      let uid1 = gensym "" in
+      let string_uid = gensym "str_tmp" in
       let gdecl = (ty, GString s) in
-      let stream =  [G (string_uid, gdecl); I (uid1, Gep (Ptr ty, Gid string_uid, [Const 0L; Const 0L]))] in
-      (Ptr I8, Id uid1, stream)
-    | CArr (ty, ens) -> 
+      let stream =  [G (string_uid, gdecl); I (uid, Gep (Ptr ty, Gid string_uid, [Const 0L; Const 0L]))] in
+      (Ptr I8, Id uid, stream)
+    | CArr (ty, ens) ->
       let size = Const (Int64.of_int(List.length ens)) in
       let ret_ty, ret_op, ret_str = oat_alloc_array ty size in
       let stream =
         let trip_ls = List.map (cmp_exp c) ens in
         let elem_into_arr (i:int) ((ty, op, s):(Ll.ty * Ll.operand * stream)) : stream = 
-          let uid = gensym "" in
+          let uid = gensym "CArr_elem" in
           let idx = Const (Int64.of_int i) in
           s >@ [I (uid, Gep (unpack_ptr ret_ty, ret_op, [Const 0L; Const 1L; idx]))] >@ 
           [I ("", Store (ty, op, Id uid))] in
@@ -389,9 +389,9 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
       let ret_ty, ret_op, ret_str = oat_alloc_array ty op in
       (ret_ty, ret_op, s >@ ret_str)
     | Id id -> (* print_endline("cmp_exp, Id case: " ^ id); *)
+               let uid = gensym "id" in
                let ty, op = Ctxt.lookup id c in
                (* print_endline("got past the lookup " ^ string_of_ty ty); *)
-               let uid = gensym "" in
                begin match ty with
                 | Ptr (Array (i,t)) -> (*L: string case*)
                   let stream = [I (uid, Gep (Ptr (Array (i,t)), op, [Const 0L; Const 0L]))] in
@@ -406,11 +406,10 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
     | Index (en1, en2) -> 
       let ty1, op1, s1 = cmp_exp c en1 in (*F: need to compile id part, example case: arrayargs1.oat*)
       let ty2, op2, s2 = cmp_exp c en2 in
-      print_endline("ty1 gotten: " ^ string_of_ty ty1 ^ " and op: " ^ string_of_operand op1);
+      (* print_endline("ty1 gotten: " ^ string_of_ty ty1 ^ " and op: " ^ string_of_operand op1); *)
       if(ty2 <> I64) then failwith "cmp_exp: index is not I64"
       else 
-        let uid = gensym "index_ptr" in
-        let uid2 = gensym "" in 
+        let uid = gensym "index_ptr" in 
         let stream = (* [I (uid2, Load(ty1, op1))] >@ *) [I (uid, Gep (ty1, op1, [Const 0L; Const 1L; op2]))] in
         let elem_ty =
           begin match unpack_or_return ty1 with
@@ -440,11 +439,12 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
       let arg_tuples = List.map (cmp_exp c) ens in
       let arg_tyops = List.map (fun (a, b, _) -> (a,b)) arg_tuples in
       let stream_ls = List.map (fun (_, _, c) -> c) arg_tuples in
-      let retval_uid = gensym "retval" in
+      let retval_uid = gensym "Call_retval" in
       let stream = List.rev (List.concat stream_ls) >@ 
       [I (retval_uid, Call (rty, rop, arg_tyops))] in
       (rty, Id retval_uid, stream)
     | Bop (binop,en1,en2) -> 
+      let uid = gensym "bop" in
       let a, b, ret = typ_of_binop binop in
       let raw_ty1, raw_op1, raw_s1 = cmp_exp c en1 in
       let raw_ty2, raw_op2, raw_s2 = cmp_exp c en2 in
@@ -460,6 +460,7 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
                  end in
       (cmp_ty ret, Id uid , s1 >@ s2 >@ [I (uid, insn)])                        
     | Uop (unop,en) -> 
+      let uid = gensym "uop" in
       let raw_ty, raw_op, raw_s = cmp_exp c en in
       let ty, op, s = load_if_ptr (raw_ty, raw_op, raw_s) in
       begin match unop with 
@@ -511,7 +512,7 @@ let rec cmp_stmt (c:Ctxt.t) (rt:Ll.ty) (stmt:Ast.stmt node) : Ctxt.t * stream =
                             let dty, dop_unprocessed = Ctxt.lookup id c in
                             let dop = if(dty=ty2) then Gid id else dop_unprocessed in
                             let new_ctxt = Ctxt.add c id (ty2, op2) in
-                            (new_ctxt, [I (id, Store (ty1, op2, dop))] @ s2)
+                            (new_ctxt, [I ("", Store (ty1, op2, dop))] @ s2)
                           | Index (_,_) ->
                             (c, [I ("", Store (ty2, op2, op1))] @ s2 @ s1) (*F: op1 should be uid, ptr to element to write, ty1 will be type (Ptr t), use ty2*)
                           | _ -> failwith "cmp_stmt illegal lhs"

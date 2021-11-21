@@ -1,17 +1,17 @@
 ; generated from: oatprograms/lib8.oat
 target triple = "x86_64-unknown-linux"
-@_str3869 = global [13 x i8] c"Hello world!\00"
+@_str_tmp3864 = global [13 x i8] c"Hello world!\00"
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc3865 = alloca i64
-  store i64 %argc, i64* %_argc3865
-  %_argv3866 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv3866
-  %_str3867 = alloca i8*
-  store i8* %_3870, i8** %_str3867
-  %_3870 = getelementptr [13 x i8], [13 x i8]* @_str3869, i32 0, i32 0
-  %_3873 = load i8*, i8** %_str3867
-  call void @print_string(i8* %_3873)
+  %_argc3859 = alloca i64
+  store i64 %argc, i64* %_argc3859
+  %_argv3860 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv3860
+  %_str3861 = alloca i8*
+  store i8* %_cstr3863, i8** %_str3861
+  %_cstr3863 = getelementptr [13 x i8], [13 x i8]* @_str_tmp3864, i32 0, i32 0
+  %_id3867 = load i8*, i8** %_str3861
+  call void @print_string(i8* %_id3867)
   ret i64 0
 }
 

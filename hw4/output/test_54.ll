@@ -1,107 +1,107 @@
 ; generated from: oatprograms/fibo.oat
 target triple = "x86_64-unknown-linux"
 define i64 @fibR(i64 %n) {
-  %_n6634 = alloca i64
-  store i64 %n, i64* %_n6634
-  %_6637 = load i64, i64* %_n6634
-  %_6635 = icmp eq i64 %_6637, 0
-  br i1 %_6635, label %_then6639, label %_else6640
-_then6639:
+  %_n6705 = alloca i64
+  store i64 %n, i64* %_n6705
+  %_id6709 = load i64, i64* %_n6705
+  %_bop6707 = icmp eq i64 %_id6709, 0
+  br i1 %_bop6707, label %_then6711, label %_else6712
+_then6711:
   ret i64 0
-_else6640:
-  br label %_end6641
-_end6641:
-  %_6646 = load i64, i64* %_n6634
-  %_6644 = icmp eq i64 %_6646, 1
-  br i1 %_6644, label %_then6648, label %_else6649
-_then6648:
+_else6712:
+  br label %_end6713
+_end6713:
+  %_id6719 = load i64, i64* %_n6705
+  %_bop6717 = icmp eq i64 %_id6719, 1
+  br i1 %_bop6717, label %_then6721, label %_else6722
+_then6721:
   ret i64 1
-_else6649:
-  br label %_end6650
-_end6650:
-  %_6655 = sub i64 %_6657, 1
-  %_6657 = load i64, i64* %_n6634
-  %_retval6659 = call i64 @fibR(i64 %_6655)
-  %_6661 = sub i64 %_6663, 2
-  %_6663 = load i64, i64* %_n6634
-  %_retval6665 = call i64 @fibR(i64 %_6661)
-  %_6653 = add i64 %_retval6659, %_retval6665
-  ret i64 %_6653
+_else6722:
+  br label %_end6723
+_end6723:
+  %_bop6730 = sub i64 %_id6732, 1
+  %_id6732 = load i64, i64* %_n6705
+  %_Call_retval6734 = call i64 @fibR(i64 %_bop6730)
+  %_bop6737 = sub i64 %_id6739, 2
+  %_id6739 = load i64, i64* %_n6705
+  %_Call_retval6741 = call i64 @fibR(i64 %_bop6737)
+  %_bop6727 = add i64 %_Call_retval6734, %_Call_retval6741
+  ret i64 %_bop6727
 }
 
 define i64 @fibI(i64 %n) {
-  %_n6574 = alloca i64
-  store i64 %n, i64* %_n6574
-  %_a6575 = alloca i64
-  %_b6577 = alloca i64
-  %_old6608 = alloca i64
-  store i64 0, i64* %_a6575
-  store i64 1, i64* %_b6577
-  %_6581 = load i64, i64* %_n6574
-  %_6579 = icmp eq i64 %_6581, 0
-  br i1 %_6579, label %_then6583, label %_else6584
-_then6583:
-  %_6587 = load i64, i64* %_a6575
-  ret i64 %_6587
-_else6584:
-  br label %_end6585
-_end6585:
-  %_6591 = load i64, i64* %_n6574
-  %_6589 = icmp eq i64 %_6591, 1
-  br i1 %_6589, label %_then6593, label %_else6594
-_then6593:
-  %_6597 = load i64, i64* %_b6577
-  ret i64 %_6597
-_else6594:
-  br label %_end6595
-_end6595:
-  br label %_start6605
-_start6605:
-  %_6602 = load i64, i64* %_n6574
-  %_6600 = sub i64 %_6602, 2
-  %_6599 = icmp sgt i64 %_6600, 0
-  br i1 %_6599, label %_body6606, label %_end6607
-_body6606:
-  store i64 %_6610, i64* %_old6608
-  %_6610 = load i64, i64* %_b6577
-  %_6615 = load i64, i64* %_b6577
-  %_6617 = load i64, i64* %_a6575
-  %_6613 = add i64 %_6615, %_6617
-  store i64 %_6613, i64* %_b6577
-  %_6621 = load i64, i64* %_old6608
-  store i64 %_6621, i64* %_a6575
-  %_6626 = load i64, i64* %_n6574
-  %_6624 = sub i64 %_6626, 1
-  store i64 %_6624, i64* %_n6574
-  br label %_start6605
-_end6607:
-  %_6630 = load i64, i64* %_a6575
-  %_6632 = load i64, i64* %_b6577
-  %_6628 = add i64 %_6630, %_6632
-  ret i64 %_6628
+  %_n6638 = alloca i64
+  store i64 %n, i64* %_n6638
+  %_a6639 = alloca i64
+  %_b6641 = alloca i64
+  %_old6676 = alloca i64
+  store i64 0, i64* %_a6639
+  store i64 1, i64* %_b6641
+  %_id6646 = load i64, i64* %_n6638
+  %_bop6644 = icmp eq i64 %_id6646, 0
+  br i1 %_bop6644, label %_then6648, label %_else6649
+_then6648:
+  %_id6652 = load i64, i64* %_a6639
+  ret i64 %_id6652
+_else6649:
+  br label %_end6650
+_end6650:
+  %_id6657 = load i64, i64* %_n6638
+  %_bop6655 = icmp eq i64 %_id6657, 1
+  br i1 %_bop6655, label %_then6659, label %_else6660
+_then6659:
+  %_id6663 = load i64, i64* %_b6641
+  ret i64 %_id6663
+_else6660:
+  br label %_end6661
+_end6661:
+  br label %_start6673
+_start6673:
+  %_id6670 = load i64, i64* %_n6638
+  %_bop6668 = sub i64 %_id6670, 2
+  %_bop6666 = icmp sgt i64 %_bop6668, 0
+  br i1 %_bop6666, label %_body6674, label %_end6675
+_body6674:
+  store i64 %_id6678, i64* %_old6676
+  %_id6678 = load i64, i64* %_b6641
+  %_id6684 = load i64, i64* %_b6641
+  %_id6686 = load i64, i64* %_a6639
+  %_bop6682 = add i64 %_id6684, %_id6686
+  store i64 %_bop6682, i64* %_b6641
+  %_id6690 = load i64, i64* %_old6676
+  store i64 %_id6690, i64* %_a6639
+  %_id6696 = load i64, i64* %_n6638
+  %_bop6694 = sub i64 %_id6696, 1
+  store i64 %_bop6694, i64* %_n6638
+  br label %_start6673
+_end6675:
+  %_id6701 = load i64, i64* %_a6639
+  %_id6703 = load i64, i64* %_b6641
+  %_bop6699 = add i64 %_id6701, %_id6703
+  ret i64 %_bop6699
 }
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc6550 = alloca i64
-  store i64 %argc, i64* %_argc6550
-  %_argv6551 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv6551
-  %_val6552 = alloca i64
-  store i64 1, i64* %_val6552
-  %_retval6558 = call i64 @fibR(i64 12)
-  %_6555 = icmp eq i64 %_retval6558, 144
-  %_retval6563 = call i64 @fibI(i64 12)
-  %_6560 = icmp eq i64 %_retval6563, 144
-  %_6554 = and i1 %_6555, %_6560
-  br i1 %_6554, label %_then6565, label %_else6566
-_then6565:
-  store i64 0, i64* %_val6552
-  br label %_end6567
-_else6566:
-  br label %_end6567
-_end6567:
-  %_6572 = load i64, i64* %_val6552
-  ret i64 %_6572
+  %_argc6611 = alloca i64
+  store i64 %argc, i64* %_argc6611
+  %_argv6612 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv6612
+  %_val6613 = alloca i64
+  store i64 1, i64* %_val6613
+  %_Call_retval6621 = call i64 @fibR(i64 12)
+  %_bop6618 = icmp eq i64 %_Call_retval6621, 144
+  %_Call_retval6627 = call i64 @fibI(i64 12)
+  %_bop6624 = icmp eq i64 %_Call_retval6627, 144
+  %_bop6616 = and i1 %_bop6618, %_bop6624
+  br i1 %_bop6616, label %_then6629, label %_else6630
+_then6629:
+  store i64 0, i64* %_val6613
+  br label %_end6631
+_else6630:
+  br label %_end6631
+_end6631:
+  %_id6636 = load i64, i64* %_val6613
+  ret i64 %_id6636
 }
 
 

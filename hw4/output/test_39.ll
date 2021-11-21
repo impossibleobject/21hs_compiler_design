@@ -3,48 +3,48 @@ target triple = "x86_64-unknown-linux"
 @i = global i64 0
 
 define i64 @f(i64 %x, i64 %y) {
-  %_x1517 = alloca i64
-  store i64 %x, i64* %_x1517
-  %_y1518 = alloca i64
-  store i64 %y, i64* %_y1518
-  %_r1519 = alloca i64
-  store i64 0, i64* %_r1519
-  %_1523 = load i64, i64* %_x1517
-  %_1521 = icmp sge i64 %_1523, 1
-  br i1 %_1521, label %_then1525, label %_else1526
-_then1525:
-  %_1533 = sub i64 %_1535, 1
-  %_1535 = load i64, i64* %_x1517
-  %_1538 = load i64, i64* %_y1518
-  %_retval1539 = call i64 @f(i64 %_1533, i64 %_1538)
-  %_1530 = add i64 1, %_retval1539
-  store i64 %_1530, i64* %_r1519
-  br label %_end1527
-_else1526:
-  %_1544 = load i64, i64* %_x1517
-  %_1546 = load i64, i64* %_y1518
-  %_1542 = add i64 %_1544, %_1546
-  store i64 %_1542, i64* %_r1519
-  br label %_end1527
-_end1527:
-  %_1548 = load i64, i64* %_r1519
-  ret i64 %_1548
+  %_x1576 = alloca i64
+  store i64 %x, i64* %_x1576
+  %_y1577 = alloca i64
+  store i64 %y, i64* %_y1577
+  %_r1578 = alloca i64
+  store i64 0, i64* %_r1578
+  %_id1583 = load i64, i64* %_x1576
+  %_bop1581 = icmp sge i64 %_id1583, 1
+  br i1 %_bop1581, label %_then1585, label %_else1586
+_then1585:
+  %_bop1595 = sub i64 %_id1597, 1
+  %_id1597 = load i64, i64* %_x1576
+  %_id1600 = load i64, i64* %_y1577
+  %_Call_retval1601 = call i64 @f(i64 %_bop1595, i64 %_id1600)
+  %_bop1591 = add i64 1, %_Call_retval1601
+  store i64 %_bop1591, i64* %_r1578
+  br label %_end1587
+_else1586:
+  %_id1607 = load i64, i64* %_x1576
+  %_id1609 = load i64, i64* %_y1577
+  %_bop1605 = add i64 %_id1607, %_id1609
+  store i64 %_bop1605, i64* %_r1578
+  br label %_end1587
+_end1587:
+  %_id1611 = load i64, i64* %_r1578
+  ret i64 %_id1611
 }
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc1501 = alloca i64
-  store i64 %argc, i64* %_argc1501
-  %_argv1502 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv1502
-  %_x1503 = alloca i64
-  %_y1505 = alloca i64
-  store i64 3, i64* %_x1503
-  store i64 3, i64* %_y1505
-  %_1510 = load i64, i64* %_x1503
-  %_1512 = load i64, i64* %_y1505
-  %_retval1513 = call i64 @f(i64 %_1510, i64 %_1512)
-  %_1507 = add i64 %_retval1513, 0
-  ret i64 %_1507
+  %_argc1559 = alloca i64
+  store i64 %argc, i64* %_argc1559
+  %_argv1560 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv1560
+  %_x1561 = alloca i64
+  %_y1563 = alloca i64
+  store i64 3, i64* %_x1561
+  store i64 3, i64* %_y1563
+  %_id1569 = load i64, i64* %_x1561
+  %_id1571 = load i64, i64* %_y1563
+  %_Call_retval1572 = call i64 @f(i64 %_id1569, i64 %_id1571)
+  %_bop1566 = add i64 %_Call_retval1572, 0
+  ret i64 %_bop1566
 }
 
 

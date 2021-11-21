@@ -3,40 +3,40 @@ target triple = "x86_64-unknown-linux"
 @str = global [6 x i8] c"hello\00"
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc3655 = alloca i64
-  store i64 %argc, i64* %_argc3655
-  %_argv3656 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv3656
-  %_arr3657 = alloca { i64, [0 x i64] }*
-  %_s3662 = alloca i64
-  %_i3664 = alloca i64
-  store { i64, [0 x i64] }* %_retval3661, { i64, [0 x i64] }** %_arr3657
-  %_3660 = getelementptr [6 x i8], [6 x i8]* @str, i32 0, i32 0
-  %_retval3661 = call { i64, [0 x i64] }* @array_of_string(i8* %_3660)
-  store i64 0, i64* %_s3662
-  store i64 0, i64* %_i3664
-  br label %_start3670
-_start3670:
-  %_3668 = load i64, i64* %_i3664
-  %_3666 = icmp slt i64 %_3668, 5
-  br i1 %_3666, label %_body3671, label %_end3672
-_body3671:
-  %_3677 = load i64, i64* %_s3662
-  %_3680 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_arr3657
-  %_3682 = load i64, i64* %_i3664
-  %_index_ptr3683 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_3680, i32 0, i32 1, i64 %_3682
-  %_3685 = load i64, i64* %_index_ptr3683
-  %_3675 = add i64 %_3677, %_3685
-  store i64 %_3675, i64* %_s3662
-  %_3690 = load i64, i64* %_i3664
-  %_3688 = add i64 %_3690, 1
-  store i64 %_3688, i64* %_i3664
-  br label %_start3670
-_end3672:
-  %_3694 = load i64, i64* %_s3662
-  call void @print_int(i64 %_3694)
-  %_3697 = load i64, i64* %_s3662
-  ret i64 %_3697
+  %_argc3641 = alloca i64
+  store i64 %argc, i64* %_argc3641
+  %_argv3642 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv3642
+  %_arr3643 = alloca { i64, [0 x i64] }*
+  %_s3648 = alloca i64
+  %_i3650 = alloca i64
+  store { i64, [0 x i64] }* %_Call_retval3647, { i64, [0 x i64] }** %_arr3643
+  %_id3646 = getelementptr [6 x i8], [6 x i8]* @str, i32 0, i32 0
+  %_Call_retval3647 = call { i64, [0 x i64] }* @array_of_string(i8* %_id3646)
+  store i64 0, i64* %_s3648
+  store i64 0, i64* %_i3650
+  br label %_start3657
+_start3657:
+  %_id3655 = load i64, i64* %_i3650
+  %_bop3653 = icmp slt i64 %_id3655, 5
+  br i1 %_bop3653, label %_body3658, label %_end3659
+_body3658:
+  %_id3665 = load i64, i64* %_s3648
+  %_id3668 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_arr3643
+  %_id3670 = load i64, i64* %_i3650
+  %_index_ptr3671 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id3668, i32 0, i32 1, i64 %_id3670
+  %_3672 = load i64, i64* %_index_ptr3671
+  %_bop3663 = add i64 %_id3665, %_3672
+  store i64 %_bop3663, i64* %_s3648
+  %_id3678 = load i64, i64* %_i3650
+  %_bop3676 = add i64 %_id3678, 1
+  store i64 %_bop3676, i64* %_i3650
+  br label %_start3657
+_end3659:
+  %_id3682 = load i64, i64* %_s3648
+  call void @print_int(i64 %_id3682)
+  %_id3685 = load i64, i64* %_s3648
+  ret i64 %_id3685
 }
 
 

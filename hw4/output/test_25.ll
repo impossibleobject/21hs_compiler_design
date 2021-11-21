@@ -1,28 +1,28 @@
 ; generated from: oatprograms/run28.oat
 target triple = "x86_64-unknown-linux"
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc691 = alloca i64
-  store i64 %argc, i64* %_argc691
-  %_argv692 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv692
-  %_i693 = alloca i64
-  %_j695 = alloca i64
-  store i64 9, i64* %_i693
-  store i64 %_696, i64* %_j695
-  %_698 = load i64, i64* %_i693
-  %_700 = load i64, i64* %_i693
-  %_696 = add i64 %_698, %_700
-  %_707 = load i64, i64* %_i693
-  %_710 = load i64, i64* %_i693
-  %_712 = load i64, i64* %_i693
-  %_708 = mul i64 %_710, %_712
-  %_705 = add i64 %_707, %_708
-  %_714 = load i64, i64* %_j695
-  %_704 = sub i64 %_705, %_714
-  %_703 = lshr i64 %_704, 2
-  %_702 = shl i64 %_703, 2
-  %_701 = ashr i64 %_702, 2
-  ret i64 %_701
+  %_argc727 = alloca i64
+  store i64 %argc, i64* %_argc727
+  %_argv728 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv728
+  %_i729 = alloca i64
+  %_j731 = alloca i64
+  store i64 9, i64* %_i729
+  store i64 %_bop733, i64* %_j731
+  %_id735 = load i64, i64* %_i729
+  %_id737 = load i64, i64* %_i729
+  %_bop733 = add i64 %_id735, %_id737
+  %_id749 = load i64, i64* %_i729
+  %_id753 = load i64, i64* %_i729
+  %_id755 = load i64, i64* %_i729
+  %_bop751 = mul i64 %_id753, %_id755
+  %_bop747 = add i64 %_id749, %_bop751
+  %_id757 = load i64, i64* %_j731
+  %_bop745 = sub i64 %_bop747, %_id757
+  %_bop743 = lshr i64 %_bop745, 2
+  %_bop741 = shl i64 %_bop743, 2
+  %_bop739 = ashr i64 %_bop741, 2
+  ret i64 %_bop739
 }
 
 
