@@ -1,30 +1,30 @@
 ; generated from: oatprograms/lib9.oat
 target triple = "x86_64-unknown-linux"
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc3871 = alloca i64
-  store i64 %argc, i64* %_argc3871
-  %_argv3872 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv3872
-  %_i3873 = alloca i64
-  store i64 1, i64* %_i3873
-  br label %_start3881
-_start3881:
-  %_id3878 = load i64, i64* %_i3873
-  %_id3880 = load i64, i64* %_argc3871
-  %_bop3876 = icmp slt i64 %_id3878, %_id3880
-  br i1 %_bop3876, label %_body3882, label %_end3883
-_body3882:
-  %_index_ptr3890 = getelementptr { i64, [0 x i8*] }, { i64, [0 x i8*] }* %_id3887, i32 0, i32 1, i64 %_id3889
-  %_id3889 = load i64, i64* %_i3873
-  %_id3887 = load { i64, [0 x i8*] }*, { i64, [0 x i8*] }** %_argv3872
-  call void @print_string(i8** %_index_ptr3890)
-  %_id3897 = load i64, i64* %_i3873
-  %_bop3895 = add i64 %_id3897, 1
-  store i64 %_bop3895, i64* %_i3873
-  br label %_start3881
-_end3883:
-  %_id3900 = load i64, i64* %_argc3871
-  ret i64 %_id3900
+  %_argc2224 = alloca i64
+  store i64 %argc, i64* %_argc2224
+  %_argv2225 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv2225
+  %_i2226 = alloca i64
+  store i64 1, i64* %_i2226
+  br label %_start2230
+_start2230:
+  %_id2228 = load i64, i64* %_i2226
+  %_id2229 = load i64, i64* %_argc2224
+  %_bop2227 = icmp slt i64 %_id2228, %_id2229
+  br i1 %_bop2227, label %_body2231, label %_end2232
+_body2231:
+  %_index_ptr2235 = getelementptr { i64, [0 x i8*] }, { i64, [0 x i8*] }* %_id2233, i32 0, i32 1, i64 %_id2234
+  %_id2234 = load i64, i64* %_i2226
+  %_id2233 = load { i64, [0 x i8*] }*, { i64, [0 x i8*] }** %_argv2225
+  call void @print_string(i8** %_index_ptr2235)
+  %_id2239 = load i64, i64* %_i2226
+  %_bop2238 = add i64 %_id2239, 1
+  store i64 %_bop2238, i64* %_i2226
+  br label %_start2230
+_end2232:
+  %_id2240 = load i64, i64* %_argc2224
+  ret i64 %_id2240
 }
 
 

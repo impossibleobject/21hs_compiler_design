@@ -1,30 +1,30 @@
 ; generated from: oatprograms/easyrun4.oat
 target triple = "x86_64-unknown-linux"
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc48 = alloca i64
-  store i64 %argc, i64* %_argc48
-  %_argv49 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv49
-  %_x50 = alloca i64
-  %_i52 = alloca i64
-  store i64 0, i64* %_x50
-  store i64 0, i64* %_i52
-  br label %_start59
-_start59:
-  %_id57 = load i64, i64* %_i52
-  %_bop55 = icmp slt i64 %_id57, 3
-  br i1 %_bop55, label %_body60, label %_end61
-_body60:
-  %_id67 = load i64, i64* %_x50
-  %_bop65 = add i64 %_id67, 2
-  store i64 %_bop65, i64* %_x50
-  %_id74 = load i64, i64* %_i52
-  %_bop72 = add i64 %_id74, 1
-  store i64 %_bop72, i64* %_i52
-  br label %_start59
-_end61:
-  %_id77 = load i64, i64* %_x50
-  ret i64 %_id77
+  %_argc28 = alloca i64
+  store i64 %argc, i64* %_argc28
+  %_argv29 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv29
+  %_x30 = alloca i64
+  %_i31 = alloca i64
+  store i64 0, i64* %_x30
+  store i64 0, i64* %_i31
+  br label %_start34
+_start34:
+  %_id33 = load i64, i64* %_i31
+  %_bop32 = icmp slt i64 %_id33, 3
+  br i1 %_bop32, label %_body35, label %_end36
+_body35:
+  %_id39 = load i64, i64* %_x30
+  %_bop38 = add i64 %_id39, 2
+  store i64 %_bop38, i64* %_x30
+  %_id42 = load i64, i64* %_i31
+  %_bop41 = add i64 %_id42, 1
+  store i64 %_bop41, i64* %_i31
+  br label %_start34
+_end36:
+  %_id43 = load i64, i64* %_x30
+  ret i64 %_id43
 }
 
 

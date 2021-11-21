@@ -1,33 +1,33 @@
 ; generated from: oatprograms/easyrun3.oat
 target triple = "x86_64-unknown-linux"
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc12 = alloca i64
-  store i64 %argc, i64* %_argc12
-  %_argv13 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv13
-  %_x14 = alloca i64
-  %_i16 = alloca i64
-  store i64 0, i64* %_x14
-  store i64 0, i64* %_i16
-  br label %_start23
-_start23:
-  %_id21 = load i64, i64* %_i16
-  %_bop19 = icmp slt i64 %_id21, 10
-  br i1 %_bop19, label %_body24, label %_end25
-_body24:
-  %_id33 = load i64, i64* %_x14
-  %_id35 = load i64, i64* %_i16
-  %_bop31 = add i64 %_id33, %_id35
-  %_id37 = load i64, i64* %_i16
-  %_bop29 = mul i64 %_bop31, %_id37
-  store i64 %_bop29, i64* %_x14
-  %_id43 = load i64, i64* %_i16
-  %_bop41 = add i64 %_id43, 1
-  store i64 %_bop41, i64* %_i16
-  br label %_start23
-_end25:
-  %_id46 = load i64, i64* %_x14
-  ret i64 %_id46
+  %_argc8 = alloca i64
+  store i64 %argc, i64* %_argc8
+  %_argv9 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv9
+  %_x10 = alloca i64
+  %_i11 = alloca i64
+  store i64 0, i64* %_x10
+  store i64 0, i64* %_i11
+  br label %_start14
+_start14:
+  %_id13 = load i64, i64* %_i11
+  %_bop12 = icmp slt i64 %_id13, 10
+  br i1 %_bop12, label %_body15, label %_end16
+_body15:
+  %_id20 = load i64, i64* %_x10
+  %_id21 = load i64, i64* %_i11
+  %_bop19 = add i64 %_id20, %_id21
+  %_id22 = load i64, i64* %_i11
+  %_bop18 = mul i64 %_bop19, %_id22
+  store i64 %_bop18, i64* %_x10
+  %_id25 = load i64, i64* %_i11
+  %_bop24 = add i64 %_id25, 1
+  store i64 %_bop24, i64* %_i11
+  br label %_start14
+_end16:
+  %_id26 = load i64, i64* %_x10
+  ret i64 %_id26
 }
 
 

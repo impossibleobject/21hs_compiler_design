@@ -1,101 +1,101 @@
 ; generated from: oatprograms/xor_shift.oat
 target triple = "x86_64-unknown-linux"
-@_str_tmp6115 = global [2 x i8] c"
+@_cstr_glb3443 = global [2 x i8] c"
 \00"
 
 define i64 @xor(i64 %x, i64 %y) {
-  %_x6199 = alloca i64
-  store i64 %x, i64* %_x6199
-  %_y6200 = alloca i64
-  store i64 %y, i64* %_y6200
-  %_uop6204 = xor i64 -1, %_bop6206
-  %_id6208 = load i64, i64* %_x6199
-  %_id6210 = load i64, i64* %_y6200
-  %_bop6206 = and i64 %_id6208, %_id6210
-  %_id6214 = load i64, i64* %_x6199
-  %_id6216 = load i64, i64* %_y6200
-  %_bop6212 = or i64 %_id6214, %_id6216
-  %_bop6202 = and i64 %_uop6204, %_bop6212
-  ret i64 %_bop6202
+  %_x3486 = alloca i64
+  store i64 %x, i64* %_x3486
+  %_y3487 = alloca i64
+  store i64 %y, i64* %_y3487
+  %_uop3489 = xor i64 -1, %_bop3490
+  %_id3491 = load i64, i64* %_x3486
+  %_id3492 = load i64, i64* %_y3487
+  %_bop3490 = and i64 %_id3491, %_id3492
+  %_id3494 = load i64, i64* %_x3486
+  %_id3495 = load i64, i64* %_y3487
+  %_bop3493 = or i64 %_id3494, %_id3495
+  %_bop3488 = and i64 %_uop3489, %_bop3493
+  ret i64 %_bop3488
 }
 
 define i64 @xor_shift_plus({ i64, [0 x i64] }* %s) {
-  %_s6125 = alloca { i64, [0 x i64] }*
-  store { i64, [0 x i64] }* %s, { i64, [0 x i64] }** %_s6125
-  %_x6126 = alloca i64*
-  %_y6132 = alloca i64*
-  store i64* %_index_ptr6131, i64** %_x6126
-  %_id6129 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_s6125
-  %_index_ptr6131 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id6129, i32 0, i32 1, i32 0
-  store i64* %_index_ptr6137, i64** %_y6132
-  %_id6135 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_s6125
-  %_index_ptr6137 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id6135, i32 0, i32 1, i32 1
-  %_id6140 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_s6125
-  %_index_ptr6142 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id6140, i32 0, i32 1, i32 0
-  %_id6144 = load i64*, i64** %_y6132
-  store i64* %_id6144, i64** %_index_ptr6142
-  %_id6149 = load i64*, i64** %_x6126
-  %_bop6151 = shl i64 %_6155, 23
-  %_6155 = load i64, i64* %_id6153
-  %_id6153 = load i64*, i64** %_x6126
-  %_Call_retval6156 = call i64 @xor(i64* %_id6149, i64 %_bop6151)
-  store i64* %_Call_retval6156, i64** %_x6126
-  %_bop6163 = lshr i64 %_Call_retval6156, 17
-  %_Call_retval6167 = call i64 @xor(i64 %_Call_retval6156, i64 %_bop6163)
-  store i64 %_Call_retval6167, i64* @x
-  %_Call_retval6182 = call i64 @xor(i64* %_id6175, i64 %_bop6177)
-  %_id6179 = load i64*, i64** %_y6132
-  %_6181 = load i64, i64* %_id6179
-  %_bop6177 = lshr i64 %_6181, 26
-  %_id6175 = load i64*, i64** %_y6132
-  %_Call_retval6183 = call i64 @xor(i64 %_Call_retval6167, i64 %_Call_retval6182)
-  store i64 %_Call_retval6183, i64* @x
-  %_id6186 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_s6125
-  %_index_ptr6188 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id6186, i32 0, i32 1, i32 1
-  store i64 %_Call_retval6183, i64* %_index_ptr6188
-  %_id6196 = load i64*, i64** %_y6132
-  %_6197 = load i64, i64* %_id6196
-  %_bop6192 = add i64 %_Call_retval6183, %_6197
-  ret i64 %_bop6192
+  %_s3449 = alloca { i64, [0 x i64] }*
+  store { i64, [0 x i64] }* %s, { i64, [0 x i64] }** %_s3449
+  %_x3450 = alloca i64*
+  %_y3453 = alloca i64*
+  store i64* %_index_ptr3452, i64** %_x3450
+  %_id3451 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_s3449
+  %_index_ptr3452 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id3451, i32 0, i32 1, i32 0
+  store i64* %_index_ptr3455, i64** %_y3453
+  %_id3454 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_s3449
+  %_index_ptr3455 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id3454, i32 0, i32 1, i32 1
+  %_id3456 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_s3449
+  %_index_ptr3457 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id3456, i32 0, i32 1, i32 0
+  %_id3458 = load i64*, i64** %_y3453
+  store i64* %_id3458, i64** %_index_ptr3457
+  %_id3460 = load i64*, i64** %_x3450
+  %_bop3461 = shl i64 %_3463, 23
+  %_3463 = load i64, i64* %_id3462
+  %_id3462 = load i64*, i64** %_x3450
+  %_Call_retval3464 = call i64 @xor(i64* %_id3460, i64 %_bop3461)
+  store i64* %_Call_retval3464, i64** %_x3450
+  %_bop3467 = lshr i64 %_Call_retval3464, 17
+  %_Call_retval3469 = call i64 @xor(i64 %_Call_retval3464, i64 %_bop3467)
+  store i64 %_Call_retval3469, i64* @x
+  %_Call_retval3476 = call i64 @xor(i64* %_id3472, i64 %_bop3473)
+  %_id3474 = load i64*, i64** %_y3453
+  %_3475 = load i64, i64* %_id3474
+  %_bop3473 = lshr i64 %_3475, 26
+  %_id3472 = load i64*, i64** %_y3453
+  %_Call_retval3477 = call i64 @xor(i64 %_Call_retval3469, i64 %_Call_retval3476)
+  store i64 %_Call_retval3477, i64* @x
+  %_id3478 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_s3449
+  %_index_ptr3479 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id3478, i32 0, i32 1, i32 1
+  store i64 %_Call_retval3477, i64* %_index_ptr3479
+  %_id3483 = load i64*, i64** %_y3453
+  %_3484 = load i64, i64* %_id3483
+  %_bop3481 = add i64 %_Call_retval3477, %_3484
+  ret i64 %_bop3481
 }
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc6068 = alloca i64
-  store i64 %argc, i64* %_argc6068
-  %_argv6069 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv6069
-  %_seed6070 = alloca { i64, [0 x i64] }*
-  %_i6075 = alloca i64
-  store { i64, [0 x i64] }* %_array6074, { i64, [0 x i64] }** %_seed6070
-  %_raw_array6073 = call i64* @oat_alloc_array(i64 2)
-  %_array6074 = bitcast i64* %_raw_array6073 to { i64, [0 x i64] }*
-  store i64 0, i64* %_i6075
-  br label %_start6082
-_start6082:
-  %_id6080 = load i64, i64* %_i6075
-  %_bop6078 = icmp slt i64 %_id6080, 2
-  br i1 %_bop6078, label %_body6083, label %_end6084
-_body6083:
-  %_id6087 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_seed6070
-  %_id6089 = load i64, i64* %_i6075
-  %_index_ptr6090 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id6087, i32 0, i32 1, i64 %_id6089
-  %_id6097 = load i64, i64* %_i6075
-  %_bop6095 = add i64 %_id6097, 1
-  %_bop6092 = mul i64 100, %_bop6095
-  store i64 %_bop6092, i64* %_index_ptr6090
-  %_id6104 = load i64, i64* %_i6075
-  %_bop6102 = add i64 %_id6104, 1
-  store i64 %_bop6102, i64* %_i6075
-  br label %_start6082
-_end6084:
-  %_Call_retval6110 = call i64 @xor_shift_plus({ i64, [0 x i64] }* %_id6109)
-  %_id6109 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_seed6070
-  call void @print_int(i64 %_Call_retval6110)
-  %_cstr6114 = getelementptr [2 x i8], [2 x i8]* @_str_tmp6115, i32 0, i32 0
-  call void @print_string(i8* %_cstr6114)
-  %_Call_retval6121 = call i64 @xor_shift_plus({ i64, [0 x i64] }* %_id6120)
-  %_id6120 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_seed6070
-  call void @print_int(i64 %_Call_retval6121)
+  %_argc3419 = alloca i64
+  store i64 %argc, i64* %_argc3419
+  %_argv3420 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv3420
+  %_seed3421 = alloca { i64, [0 x i64] }*
+  %_i3424 = alloca i64
+  store { i64, [0 x i64] }* %_array3423, { i64, [0 x i64] }** %_seed3421
+  %_raw_array3422 = call i64* @oat_alloc_array(i64 2)
+  %_array3423 = bitcast i64* %_raw_array3422 to { i64, [0 x i64] }*
+  store i64 0, i64* %_i3424
+  br label %_start3427
+_start3427:
+  %_id3426 = load i64, i64* %_i3424
+  %_bop3425 = icmp slt i64 %_id3426, 2
+  br i1 %_bop3425, label %_body3428, label %_end3429
+_body3428:
+  %_id3430 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_seed3421
+  %_id3431 = load i64, i64* %_i3424
+  %_index_ptr3432 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id3430, i32 0, i32 1, i64 %_id3431
+  %_id3435 = load i64, i64* %_i3424
+  %_bop3434 = add i64 %_id3435, 1
+  %_bop3433 = mul i64 100, %_bop3434
+  store i64 %_bop3433, i64* %_index_ptr3432
+  %_id3438 = load i64, i64* %_i3424
+  %_bop3437 = add i64 %_id3438, 1
+  store i64 %_bop3437, i64* %_i3424
+  br label %_start3427
+_end3429:
+  %_Call_retval3440 = call i64 @xor_shift_plus({ i64, [0 x i64] }* %_id3439)
+  %_id3439 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_seed3421
+  call void @print_int(i64 %_Call_retval3440)
+  %_cstr_loc3442 = getelementptr [2 x i8], [2 x i8]* @_cstr_glb3443, i32 0, i32 0
+  call void @print_string(i8* %_cstr_loc3442)
+  %_Call_retval3446 = call i64 @xor_shift_plus({ i64, [0 x i64] }* %_id3445)
+  %_id3445 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_seed3421
+  call void @print_int(i64 %_Call_retval3446)
   ret i64 0
 }
 

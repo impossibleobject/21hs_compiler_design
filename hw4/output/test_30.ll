@@ -1,43 +1,43 @@
 ; generated from: oatprograms/run38.oat
 target triple = "x86_64-unknown-linux"
 define i64 @f1() {
-  %_Call_retval1103 = call i64 @f2()
-  ret i64 %_Call_retval1103
+  %_Call_retval649 = call i64 @f2()
+  ret i64 %_Call_retval649
 }
 
 define i64 @f2() {
-  %_Call_retval1100 = call i64 @f3()
-  ret i64 %_Call_retval1100
+  %_Call_retval647 = call i64 @f3()
+  ret i64 %_Call_retval647
 }
 
 define i64 @f3() {
-  %_Call_retval1097 = call i64 @f4()
-  ret i64 %_Call_retval1097
+  %_Call_retval645 = call i64 @f4()
+  ret i64 %_Call_retval645
 }
 
 define i64 @f4() {
-  %_Call_retval1094 = call i64 @f5()
-  ret i64 %_Call_retval1094
+  %_Call_retval643 = call i64 @f5()
+  ret i64 %_Call_retval643
 }
 
 define i64 @f5() {
-  %_Call_retval1091 = call i64 @f6()
-  ret i64 %_Call_retval1091
+  %_Call_retval641 = call i64 @f6()
+  ret i64 %_Call_retval641
 }
 
 define i64 @f6() {
-  %_Call_retval1088 = call i64 @f7()
-  ret i64 %_Call_retval1088
+  %_Call_retval639 = call i64 @f7()
+  ret i64 %_Call_retval639
 }
 
 define i64 @f7() {
-  %_Call_retval1085 = call i64 @f8()
-  ret i64 %_Call_retval1085
+  %_Call_retval637 = call i64 @f8()
+  ret i64 %_Call_retval637
 }
 
 define i64 @f8() {
-  %_Call_retval1082 = call i64 @f9()
-  ret i64 %_Call_retval1082
+  %_Call_retval635 = call i64 @f9()
+  ret i64 %_Call_retval635
 }
 
 define i64 @f9() {
@@ -45,12 +45,12 @@ define i64 @f9() {
 }
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc1074 = alloca i64
-  store i64 %argc, i64* %_argc1074
-  %_argv1075 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv1075
-  %_Call_retval1077 = call i64 @f1()
-  ret i64 %_Call_retval1077
+  %_argc630 = alloca i64
+  store i64 %argc, i64* %_argc630
+  %_argv631 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv631
+  %_Call_retval632 = call i64 @f1()
+  ret i64 %_Call_retval632
 }
 
 

@@ -1,58 +1,58 @@
 ; generated from: oatprograms/lib11.oat
 target triple = "x86_64-unknown-linux"
-@_str_tmp3908 = global [11 x i8] c"1234967890\00"
+@_cstr_glb2246 = global [11 x i8] c"1234967890\00"
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc3902 = alloca i64
-  store i64 %argc, i64* %_argc3902
-  %_argv3903 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv3903
-  %_arr3904 = alloca { i64, [0 x i64] }*
-  %_sum3910 = alloca i64
-  %_i3912 = alloca i64
-  %_i3937 = alloca i64
-  store { i64, [0 x i64] }* %_Call_retval3909, { i64, [0 x i64] }** %_arr3904
-  %_cstr3907 = getelementptr [11 x i8], [11 x i8]* @_str_tmp3908, i32 0, i32 0
-  %_Call_retval3909 = call { i64, [0 x i64] }* @array_of_string(i8* %_cstr3907)
-  store i64 0, i64* %_sum3910
-  store i64 0, i64* %_i3912
-  br label %_start3919
-_start3919:
-  %_id3917 = load i64, i64* %_i3912
-  %_bop3915 = icmp slt i64 %_id3917, 10
-  br i1 %_bop3915, label %_body3920, label %_end3921
-_body3920:
-  %_id3924 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_arr3904
-  %_id3926 = load i64, i64* %_i3912
-  %_index_ptr3927 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id3924, i32 0, i32 1, i64 %_id3926
-  %_id3929 = load i64, i64* %_i3912
-  store i64 %_id3929, i64* %_index_ptr3927
-  %_id3935 = load i64, i64* %_i3912
-  %_bop3933 = add i64 %_id3935, 1
-  store i64 %_bop3933, i64* %_i3912
-  br label %_start3919
-_end3921:
-  store i64 0, i64* %_i3937
-  br label %_start3944
-_start3944:
-  %_id3942 = load i64, i64* %_i3937
-  %_bop3940 = icmp slt i64 %_id3942, 10
-  br i1 %_bop3940, label %_body3945, label %_end3946
-_body3945:
-  %_id3952 = load i64, i64* %_sum3910
-  %_id3955 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_arr3904
-  %_id3957 = load i64, i64* %_i3937
-  %_index_ptr3958 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id3955, i32 0, i32 1, i64 %_id3957
-  %_3959 = load i64, i64* %_index_ptr3958
-  %_bop3950 = add i64 %_id3952, %_3959
-  store i64 %_bop3950, i64* %_sum3910
-  %_id3965 = load i64, i64* %_i3937
-  %_bop3963 = add i64 %_id3965, 1
-  store i64 %_bop3963, i64* %_i3937
-  br label %_start3944
-_end3946:
-  %_id3968 = load i64, i64* %_sum3910
-  ret i64 %_id3968
+  %_argc2242 = alloca i64
+  store i64 %argc, i64* %_argc2242
+  %_argv2243 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv2243
+  %_arr2244 = alloca { i64, [0 x i64] }*
+  %_sum2248 = alloca i64
+  %_i2249 = alloca i64
+  %_i2262 = alloca i64
+  store { i64, [0 x i64] }* %_Call_retval2247, { i64, [0 x i64] }** %_arr2244
+  %_cstr_loc2245 = getelementptr [11 x i8], [11 x i8]* @_cstr_glb2246, i32 0, i32 0
+  %_Call_retval2247 = call { i64, [0 x i64] }* @array_of_string(i8* %_cstr_loc2245)
+  store i64 0, i64* %_sum2248
+  store i64 0, i64* %_i2249
+  br label %_start2252
+_start2252:
+  %_id2251 = load i64, i64* %_i2249
+  %_bop2250 = icmp slt i64 %_id2251, 10
+  br i1 %_bop2250, label %_body2253, label %_end2254
+_body2253:
+  %_id2255 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_arr2244
+  %_id2256 = load i64, i64* %_i2249
+  %_index_ptr2257 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id2255, i32 0, i32 1, i64 %_id2256
+  %_id2258 = load i64, i64* %_i2249
+  store i64 %_id2258, i64* %_index_ptr2257
+  %_id2261 = load i64, i64* %_i2249
+  %_bop2260 = add i64 %_id2261, 1
+  store i64 %_bop2260, i64* %_i2249
+  br label %_start2252
+_end2254:
+  store i64 0, i64* %_i2262
+  br label %_start2265
+_start2265:
+  %_id2264 = load i64, i64* %_i2262
+  %_bop2263 = icmp slt i64 %_id2264, 10
+  br i1 %_bop2263, label %_body2266, label %_end2267
+_body2266:
+  %_id2270 = load i64, i64* %_sum2248
+  %_id2271 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_arr2244
+  %_id2272 = load i64, i64* %_i2262
+  %_index_ptr2273 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id2271, i32 0, i32 1, i64 %_id2272
+  %_2274 = load i64, i64* %_index_ptr2273
+  %_bop2269 = add i64 %_id2270, %_2274
+  store i64 %_bop2269, i64* %_sum2248
+  %_id2277 = load i64, i64* %_i2262
+  %_bop2276 = add i64 %_id2277, 1
+  store i64 %_bop2276, i64* %_i2262
+  br label %_start2265
+_end2267:
+  %_id2278 = load i64, i64* %_sum2248
+  ret i64 %_id2278
 }
 
 

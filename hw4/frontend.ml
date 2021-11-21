@@ -356,7 +356,6 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
       | Gte -> Sge
       | _ -> failwith "cmp_exp: ast binop not cnd"
     end in
-    let uid = gensym "exp" in
   begin match exp.elt with
     | CNull rty -> (cmp_rty rty, Null, [])
     | CBool b -> begin match b with
@@ -365,9 +364,9 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
                  end
     | CInt i -> (I64, Const i, [])
     | CStr s -> 
-      let uid = gensym "cstr" in
+      let uid = gensym "cstr_loc" in
       let ty = Array (String.length s + 1, I8) in 
-      let string_uid = gensym "str_tmp" in
+      let string_uid = gensym "cstr_glb" in
       let gdecl = (ty, GString s) in
       let stream =  [G (string_uid, gdecl); I (uid, Gep (Ptr ty, Gid string_uid, [Const 0L; Const 0L]))] in
       (Ptr I8, Id uid, stream)
@@ -377,7 +376,7 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
       let stream =
         let trip_ls = List.map (cmp_exp c) ens in
         let elem_into_arr (i:int) ((ty, op, s):(Ll.ty * Ll.operand * stream)) : stream = 
-          let uid = gensym "CArr_elem" in
+          let uid = gensym ("CArr_elem_" ^ string_of_int i) in
           let idx = Const (Int64.of_int i) in
           s >@ [I (uid, Gep (unpack_ptr ret_ty, ret_op, [Const 0L; Const 1L; idx]))] >@ 
           [I ("", Store (ty, op, Id uid))] in

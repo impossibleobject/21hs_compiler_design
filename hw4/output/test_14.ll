@@ -3,23 +3,23 @@ target triple = "x86_64-unknown-linux"
 @arr = global { i64, [0 x i64] } { i64 0, [0 x i64] [  ] }
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc394 = alloca i64
-  store i64 %argc, i64* %_argc394
-  %_argv395 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv395
-  %_x396 = alloca { i64, [0 x i64] }*
-  store { i64, [0 x i64] }* %_array400, { i64, [0 x i64] }** %_x396
-  %_raw_array399 = call i64* @oat_alloc_array(i64 3)
-  %_array400 = bitcast i64* %_raw_array399 to { i64, [0 x i64] }*
-  %_id404 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_x396
-  store { i64, [0 x i64] }** %_id404, { i64, [0 x i64] }*** @arr
-  %_id407 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_x396
-  %_index_ptr409 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id407, i32 0, i32 1, i32 2
-  store i64 3, i64* %_index_ptr409
-  %_id413 = load { i64, [0 x i64] }, { i64, [0 x i64] }* %_id404
-  %_index_ptr415 = getelementptr { i64, [0 x i64] }*, { i64, [0 x i64] }** %_id413, i32 0, i32 1, i32 2
-  %_416 = load i64, i64* %_index_ptr415
-  ret i64 %_416
+  %_argc225 = alloca i64
+  store i64 %argc, i64* %_argc225
+  %_argv226 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv226
+  %_x227 = alloca { i64, [0 x i64] }*
+  store { i64, [0 x i64] }* %_array229, { i64, [0 x i64] }** %_x227
+  %_raw_array228 = call i64* @oat_alloc_array(i64 3)
+  %_array229 = bitcast i64* %_raw_array228 to { i64, [0 x i64] }*
+  %_id231 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_x227
+  store { i64, [0 x i64] }** %_id231, { i64, [0 x i64] }*** @arr
+  %_id232 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_x227
+  %_index_ptr233 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id232, i32 0, i32 1, i32 2
+  store i64 3, i64* %_index_ptr233
+  %_id234 = load { i64, [0 x i64] }, { i64, [0 x i64] }* %_id231
+  %_index_ptr235 = getelementptr { i64, [0 x i64] }*, { i64, [0 x i64] }** %_id234, i32 0, i32 1, i32 2
+  %_236 = load i64, i64* %_index_ptr235
+  ret i64 %_236
 }
 
 
