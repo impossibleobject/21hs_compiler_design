@@ -1,43 +1,43 @@
 ; generated from: oatprograms/lib5.oat
 target triple = "x86_64-unknown-linux"
-@_cstr_glb2094 = global [6 x i8] c"hello\00"
+@_cstr_glb2081 = global [6 x i8] c"hello\00"
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc2090 = alloca i64
-  store i64 %argc, i64* %_argc2090
-  %_argv2091 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv2091
-  %_str2092 = alloca i8*
-  %_arr2095 = alloca { i64, [0 x i64] }*
-  %_s2098 = alloca i64
-  %_i2099 = alloca i64
-  %_cstr_loc2093 = getelementptr [6 x i8], [6 x i8]* @_cstr_glb2094, i32 0, i32 0
-  store i8* %_cstr_loc2093, i8** %_str2092
-  %_id2096 = load i8*, i8** %_str2092
-  %_Call_retval2097 = call { i64, [0 x i64] }* @array_of_string(i8* %_id2096)
-  store { i64, [0 x i64] }* %_Call_retval2097, { i64, [0 x i64] }** %_arr2095
-  store i64 0, i64* %_s2098
-  store i64 0, i64* %_i2099
-  br label %_start2102
-_start2102:
-  %_id2101 = load i64, i64* %_i2099
-  %_bop2100 = icmp slt i64 %_id2101, 5
-  br i1 %_bop2100, label %_body2103, label %_end2104
-_body2103:
-  %_id2106 = load i64, i64* %_s2098
-  %_id2107 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_arr2095
-  %_id2108 = load i64, i64* %_i2099
-  %_index_ptr2109 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id2107, i32 0, i32 1, i64 %_id2108
-  %_idx_tmp2110 = load i64, i64* %_index_ptr2109
-  %_bop2105 = add i64 %_id2106, %_idx_tmp2110
-  store i64 %_bop2105, i64* %_s2098
-  %_id2112 = load i64, i64* %_i2099
-  %_bop2111 = add i64 %_id2112, 1
-  store i64 %_bop2111, i64* %_i2099
-  br label %_start2102
-_end2104:
-  %_id2113 = load i64, i64* %_s2098
-  ret i64 %_id2113
+  %_argc2077 = alloca i64
+  store i64 %argc, i64* %_argc2077
+  %_argv2078 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv2078
+  %_str2079 = alloca i8*
+  %_arr2082 = alloca { i64, [0 x i64] }*
+  %_s2085 = alloca i64
+  %_i2086 = alloca i64
+  %_cstr_loc2080 = getelementptr [6 x i8], [6 x i8]* @_cstr_glb2081, i32 0, i32 0
+  store i8* %_cstr_loc2080, i8** %_str2079
+  %_id2083 = load i8*, i8** %_str2079
+  %_Call_retval2084 = call { i64, [0 x i64] }* @array_of_string(i8* %_id2083)
+  store { i64, [0 x i64] }* %_Call_retval2084, { i64, [0 x i64] }** %_arr2082
+  store i64 0, i64* %_s2085
+  store i64 0, i64* %_i2086
+  br label %_start2089
+_start2089:
+  %_id2088 = load i64, i64* %_i2086
+  %_bop2087 = icmp slt i64 %_id2088, 5
+  br i1 %_bop2087, label %_body2090, label %_end2091
+_body2090:
+  %_id2093 = load i64, i64* %_s2085
+  %_id2094 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_arr2082
+  %_id2095 = load i64, i64* %_i2086
+  %_index_ptr2096 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id2094, i32 0, i32 1, i64 %_id2095
+  %_idx_tmp2097 = load i64, i64* %_index_ptr2096
+  %_bop2092 = add i64 %_id2093, %_idx_tmp2097
+  store i64 %_bop2092, i64* %_s2085
+  %_id2099 = load i64, i64* %_i2086
+  %_bop2098 = add i64 %_id2099, 1
+  store i64 %_bop2098, i64* %_i2086
+  br label %_start2089
+_end2091:
+  %_id2100 = load i64, i64* %_s2085
+  ret i64 %_id2100
 }
 
 

@@ -425,7 +425,7 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
                (* print_endline("got past the lookup " ^ string_of_ty ty); *)
                begin match ty, op with
                 | Ptr (Struct ts), Gid id -> (ty, Id uid, [I (uid, Load (Ptr ty, op))])
-                | Ptr t, Gid id -> (t,  Id uid, [I (uid, Load (Ptr ty, op))])
+                | Ptr t, Gid id -> (t,  Id uid, [I (uid, Load (ty, op))])
                 | _             -> (ty, Id uid, [I (uid, Load (Ptr ty, op))])
                end
     | Index (en1, en2) -> 
@@ -658,39 +658,25 @@ let cmp_function_ctxt (c:Ctxt.t) (p:Ast.prog) : Ctxt.t =
    in well-formed programs. (The constructors starting with C). 
 *)
 let cmp_global_ctxt (c:Ctxt.t) (p:Ast.prog) : Ctxt.t =
-  
-  let decl_to_ctxt_elem (d:Ast.decl) : (string * (Ll.ty * Ll.operand)) =
-    let exp_to_ctxt_elem (g:Ast.gdecl) : (string * (Ll.ty * Ll.operand)) =
-      let tyop = 
-        begin match g.init.elt with
-          | CNull rty -> (Ptr (cmp_rty rty), Null)
-          | CBool b -> begin match b with
-                        | true  -> (I1, Const 1L)
-                        | false -> (I1, Const 0L)
-                      end
-          | CInt i -> (I64, Const i)
-          | CStr s -> ( (Array (String.length s + 1,I8)), Gid g.name)
-          | CArr (ty, ens)  -> ((Ptr (Struct [I64; Array (List.length ens, cmp_ty ty)])), Gid g.name)
-          | _      -> (I1, Null) (*L: placeholder to remove non-globals*)
-        end in
-    (* print_endline("cmp_global_ctxt, current global: " ^ g.name); *)
-    (g.name, tyop) in
-  begin match d with
-    | Gvdecl g -> exp_to_ctxt_elem g.elt
-    | Gfdecl f -> (f.elt.fname, (I1, Null)) (*L: placeholder to remove functions*)
-  end in
+  (* helper exp_ty
+  ctxt.add c.name => fold_left over gdecls, add name Ptr to type of gdecl => ran through helper, gid name*)
+  let ty_from_expr (e: Ast.exp) : Ll.ty =
+    begin match e with
+      | CNull rty -> cmp_rty rty
+      | CBool b -> cmp_ty TBool
+      | CInt i  -> cmp_ty TInt
+      | CStr s -> cmp_ty (TRef RString)
+      | CArr (ty, ens) -> cmp_ty (TRef (RArray ty))
+      | _ -> failwith "cmp_global_ctxt -> not ginit"
+    end in
 
-  let ctxt_elems : (string * (Ll.ty * Ll.operand)) list = 
-    let is_global_or_f ((id, tyop):(string * (Ll.ty * Ll.operand))) : bool =
-      begin match tyop with
-        | (I1, Null) -> false
-        | _          -> true
+    let elem_into_ctxt (c:Ctxt.t) (d:Ast.decl) : Ctxt.t =
+      begin match d with
+        | Ast.Gvdecl {elt = {name; init}} ->
+          Ctxt.add c name (Ptr (ty_from_expr init.elt), Gid name)
+        | _ -> c
       end in
-  List.filter is_global_or_f (List.map decl_to_ctxt_elem p) in
-
-  let elems_into_ctxt (c:Ctxt.t) ((id, tyop):(string * (Ll.ty * Ll.operand))) : Ctxt.t =  
-    Ctxt.add c id tyop in
-  List.fold_left elems_into_ctxt c ctxt_elems
+    List.fold_left elem_into_ctxt c p
 
 
 (* Compile a function declaration in global context c. Return the LLVMlite cfg
@@ -745,6 +731,7 @@ let cmp_fdecl (c:Ctxt.t) (f:Ast.fdecl node) : Ll.fdecl * (Ll.gid * Ll.gdecl) lis
 *)
 
 let rec cmp_gexp c (e:Ast.exp node) : Ll.gdecl * (Ll.gid * Ll.gdecl) list =
+  
   begin match e.elt with
     | CNull rty -> (Ptr (cmp_rty rty), GNull), []
     | CBool b -> begin match b with
@@ -752,17 +739,28 @@ let rec cmp_gexp c (e:Ast.exp node) : Ll.gdecl * (Ll.gid * Ll.gdecl) list =
                   | false -> (I1, GInt 0L), []
                   end
     | CInt i -> (I64, GInt i), []
-    | CStr s -> (Array (String.length s + 1, I8), GString s), [] (**)
+    | CStr s -> (Array (String.length s + 1, I8), GString s), []
     | CArr (ty, ens) -> 
-      let gid_gdecl_ls = 
+      let subelems = List.map fst (List.map (cmp_gexp c) ens) in
+      let elem_cnt = List.length ens in
+      let array_ty = Array (elem_cnt, cmp_ty ty) in
+      let struct_ty = Struct [I64; array_ty] in
+      let gdecl = (struct_ty, GStruct [(I64, GInt (Int64.of_int elem_cnt)); (array_ty, GArray subelems)]) in
+      let gid_garr = gensym "garr" in
+      let final_ty = Struct [I64; Array (0, cmp_ty ty)] in
+      let bitcast = (Ptr final_ty, GBitcast (Ptr struct_ty, GGid gid_garr, Ptr final_ty)) in
+      (bitcast, [gid_garr, gdecl])
+
+
+      (* let gid_gdecl_ls = 
         let map_subelem (e:Ast.exp node) : (Ll.gid * Ll.gdecl) =
           (gensym "", fst (cmp_gexp c e)) in
         List.map map_subelem ens in
       let gdecl_ls = List.map snd gid_gdecl_ls in
-      let ens_length = List.length ens in
+      
       let ginit_array = (Array (ens_length, cmp_ty ty)), GArray gdecl_ls in
       let gdecl = (Struct [I64; (Array (ens_length, cmp_ty ty))], GStruct [(I64, GInt (Int64.of_int ens_length)); ginit_array]) in
-      (gdecl, gid_gdecl_ls)
+      (gdecl, gid_gdecl_ls) *)
     | _      -> failwith "cmp_gexp not well formed OAT program, wrong init type"
   end 
   (*L :recursion aspect most likely for Arrays *)

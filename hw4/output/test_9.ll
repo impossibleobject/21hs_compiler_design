@@ -7,7 +7,7 @@ define i64 @program(i64 %argc, { i64, [0 x i8*] }* %args) {
   store i64 %argc, i64* %_argc174
   %_args175 = alloca { i64, [0 x i8*] }*
   store { i64, [0 x i8*] }* %args, { i64, [0 x i8*] }** %_args175
-  %_id176 = load i1, i1* 1
+  %_id176 = load i1, i1* @y
   br i1 %_id176, label %_then177, label %_else178
 _then177:
   ret i64 17

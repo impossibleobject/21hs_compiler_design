@@ -1,10 +1,7 @@
 ; generated from: oatprograms/globals4.oat
 target triple = "x86_64-unknown-linux"
-@arr = global { i64, [4 x i64] } { i64 4, [4 x i64] [ i64 1, i64 2, i64 3, i64 4 ] }
-@_184 = global i64 1
-@_185 = global i64 2
-@_186 = global i64 3
-@_187 = global i64 4
+@arr = global { i64, [0 x i64] }* bitcast ({ i64, [4 x i64] }* @_garr184 to { i64, [0 x i64] }*)
+@_garr184 = global { i64, [4 x i64] } { i64 4, [4 x i64] [ i64 1, i64 2, i64 3, i64 4 ] }
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %args) {
   %_argc182 = alloca i64

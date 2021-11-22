@@ -1,50 +1,50 @@
 ; generated from: oatprograms/run41.oat
 target triple = "x86_64-unknown-linux"
 define i64 @f(i64 %x1, i64 %x2, i64 %x3, i64 %x4, i64 %x5, i64 %x6, i64 %x7, i64 %x8) {
-  %_x1627 = alloca i64
-  store i64 %x1, i64* %_x1627
-  %_x2628 = alloca i64
-  store i64 %x2, i64* %_x2628
-  %_x3629 = alloca i64
-  store i64 %x3, i64* %_x3629
-  %_x4630 = alloca i64
-  store i64 %x4, i64* %_x4630
-  %_x5631 = alloca i64
-  store i64 %x5, i64* %_x5631
-  %_x6632 = alloca i64
-  store i64 %x6, i64* %_x6632
-  %_x7633 = alloca i64
-  store i64 %x7, i64* %_x7633
-  %_x8634 = alloca i64
-  store i64 %x8, i64* %_x8634
-  %_id642 = load i64*, i64** %_x1627
-  %_id643 = load i64*, i64** %_x2628
-  %_bop641 = add i64 %_id642, %_id643
-  %_id644 = load i64*, i64** %_x3629
-  %_bop640 = add i64 %_bop641, %_id644
-  %_id645 = load i64*, i64** %_x4630
-  %_bop639 = add i64 %_bop640, %_id645
-  %_id646 = load i64*, i64** %_x5631
-  %_bop638 = add i64 %_bop639, %_id646
-  %_id647 = load i64*, i64** %_x6632
-  %_bop637 = add i64 %_bop638, %_id647
-  %_id648 = load i64*, i64** %_x7633
-  %_bop636 = add i64 %_bop637, %_id648
-  %_id649 = load i64*, i64** %_x8634
-  %_bop635 = add i64 %_bop636, %_id649
-  ret i64 %_bop635
+  %_x1614 = alloca i64
+  store i64 %x1, i64* %_x1614
+  %_x2615 = alloca i64
+  store i64 %x2, i64* %_x2615
+  %_x3616 = alloca i64
+  store i64 %x3, i64* %_x3616
+  %_x4617 = alloca i64
+  store i64 %x4, i64* %_x4617
+  %_x5618 = alloca i64
+  store i64 %x5, i64* %_x5618
+  %_x6619 = alloca i64
+  store i64 %x6, i64* %_x6619
+  %_x7620 = alloca i64
+  store i64 %x7, i64* %_x7620
+  %_x8621 = alloca i64
+  store i64 %x8, i64* %_x8621
+  %_id629 = load i64*, i64** %_x1614
+  %_id630 = load i64*, i64** %_x2615
+  %_bop628 = add i64 %_id629, %_id630
+  %_id631 = load i64*, i64** %_x3616
+  %_bop627 = add i64 %_bop628, %_id631
+  %_id632 = load i64*, i64** %_x4617
+  %_bop626 = add i64 %_bop627, %_id632
+  %_id633 = load i64*, i64** %_x5618
+  %_bop625 = add i64 %_bop626, %_id633
+  %_id634 = load i64*, i64** %_x6619
+  %_bop624 = add i64 %_bop625, %_id634
+  %_id635 = load i64*, i64** %_x7620
+  %_bop623 = add i64 %_bop624, %_id635
+  %_id636 = load i64*, i64** %_x8621
+  %_bop622 = add i64 %_bop623, %_id636
+  ret i64 %_bop622
 }
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc621 = alloca i64
-  store i64 %argc, i64* %_argc621
-  %_argv622 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv622
-  %_uop623 = sub i64 0, 5
-  %_uop624 = sub i64 0, 4
-  %_uop625 = sub i64 0, 3
-  %_Call_retval626 = call i64 @f(i64 1, i64 2, i64 3, i64 4, i64 5, i64 %_uop623, i64 %_uop624, i64 %_uop625)
-  ret i64 %_Call_retval626
+  %_argc608 = alloca i64
+  store i64 %argc, i64* %_argc608
+  %_argv609 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv609
+  %_uop610 = sub i64 0, 5
+  %_uop611 = sub i64 0, 4
+  %_uop612 = sub i64 0, 3
+  %_Call_retval613 = call i64 @f(i64 1, i64 2, i64 3, i64 4, i64 5, i64 %_uop610, i64 %_uop611, i64 %_uop612)
+  ret i64 %_Call_retval613
 }
 
 

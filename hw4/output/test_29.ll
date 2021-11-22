@@ -3,30 +3,30 @@ target triple = "x86_64-unknown-linux"
 @i = global i64 11
 
 define i64 @f() {
-  %_i421 = alloca i64
-  store i64 12, i64* %_i421
-  %_id422 = load i64, i64* %_i421
-  ret i64 %_id422
+  %_i408 = alloca i64
+  store i64 12, i64* %_i408
+  %_id409 = load i64, i64* %_i408
+  ret i64 %_id409
 }
 
 define i64 @g() {
-  %_i419 = alloca i64
-  store i64 10, i64* %_i419
-  %_id420 = load i64, i64* %_i419
-  ret i64 %_id420
+  %_i406 = alloca i64
+  store i64 10, i64* %_i406
+  %_id407 = load i64, i64* %_i406
+  ret i64 %_id407
 }
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc412 = alloca i64
-  store i64 %argc, i64* %_argc412
-  %_argv413 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv413
-  %_Call_retval416 = call i64 @f()
-  %_Call_retval417 = call i64 @g()
-  %_bop415 = add i64 %_Call_retval416, %_Call_retval417
-  %_id418 = load i64, i64* 11
-  %_bop414 = add i64 %_bop415, %_id418
-  ret i64 %_bop414
+  %_argc399 = alloca i64
+  store i64 %argc, i64* %_argc399
+  %_argv400 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv400
+  %_Call_retval403 = call i64 @f()
+  %_Call_retval404 = call i64 @g()
+  %_bop402 = add i64 %_Call_retval403, %_Call_retval404
+  %_id405 = load i64, i64* @i
+  %_bop401 = add i64 %_bop402, %_id405
+  ret i64 %_bop401
 }
 
 
