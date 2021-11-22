@@ -384,7 +384,7 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
           let uid = gensym ("CArr_elem_" ^ string_of_int i) in
           (* print_endline("cmp_exp carray, storing: " ^ string_of_operand op ^ " in array pos " ^ string_of_int i); *)
           let idx = Const (Int64.of_int i) in
-          s >@ [I (uid, Gep (unpack_ptr ret_ty, ret_op, [Const 0L; Const 1L; idx]))] >@ 
+          s >@ [I (uid, Gep (ret_ty, ret_op, [Const 0L; Const 1L; idx]))] >@ 
           [I ("", Store (ty, op, Id uid))] in
         ret_str >@ List.concat (List.mapi elem_into_arr trip_ls) in
       (ret_ty, ret_op, stream)
@@ -505,13 +505,13 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
 
 let rec cmp_stmt (c:Ctxt.t) (rt:Ll.ty) (stmt:Ast.stmt node) : Ctxt.t * stream =
   begin match stmt.elt with
-    | Decl (id, en)   -> let uid = gensym id in (*add op_is_idx, done*)
+    | Decl (id, en)   -> (* let uid = gensym id in  *)(*add op_is_idx, done*)
                          let ty, raw_op, s_op = cmp_exp c en in
                          let op, s_idx = op_is_idx en ty raw_op in
                          let s = s_op >@ s_idx in
-                         let c_new = Ctxt.add c id (ty, Id uid) in
+                         let c_new = Ctxt.add c id (ty, Id id) in
                         (*print_endline("cmp_stmt: type of uid: " ^ (string_of_ty ty)); *)
-                         (c_new, s >@ [E (uid, Alloca ty)] >@ [I ("", Store (ty, op, Id uid))])
+                         (c_new, s >@ [E (id, Alloca ty)] >@ [I ("", Store (ty, op, Id id))])
     | Assn (lhs, rhs) -> 
                          let ty2, op2_raw, s2_op = cmp_exp c rhs in (*add op_is_idx, add case dist similar to photo, done*)
                          let op2, s2_idx = op_is_idx rhs ty2 op2_raw in
@@ -739,7 +739,14 @@ let rec cmp_gexp c (e:Ast.exp node) : Ll.gdecl * (Ll.gid * Ll.gdecl) list =
                   | false -> (I1, GInt 0L), []
                   end
     | CInt i -> (I64, GInt i), []
-    | CStr s -> (Array (String.length s + 1, I8), GString s), []
+    | CStr s -> 
+      let ty_old = (Array (String.length s + 1, I8)) in
+      let gdecl = (ty_old, GString s) in
+      let gid_str = gensym "gstr" in
+      let gdecl_new = (Ptr I8 ,GBitcast (Ptr ty_old, GGid gid_str, Ptr I8)) in
+      (gdecl_new, [(gid_str, gdecl)])
+
+
     | CArr (ty, ens) -> 
       let subelems = List.map fst (List.map (cmp_gexp c) ens) in
       let elem_cnt = List.length ens in

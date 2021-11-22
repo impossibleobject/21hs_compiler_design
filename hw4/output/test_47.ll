@@ -1,31 +1,38 @@
-; generated from: oatprograms/lib9.oat
+; generated from: oatprograms/fact.oat
 target triple = "x86_64-unknown-linux"
+define i64 @fact(i64 %x) {
+  %acc = alloca i64
+  %_x686 = alloca i64
+  store i64 %x, i64* %_x686
+  store i64 1, i64* %acc
+  br label %_start689
+_start689:
+  %_id688 = load i64, i64* %_x686
+  %_bop687 = icmp sgt i64 %_id688, 0
+  br i1 %_bop687, label %_body690, label %_end691
+_body690:
+  %_id693 = load i64, i64* %acc
+  %_id694 = load i64, i64* %_x686
+  %_bop692 = mul i64 %_id693, %_id694
+  store i64 %_bop692, i64* %acc
+  %_id696 = load i64, i64* %_x686
+  %_bop695 = sub i64 %_id696, 1
+  store i64 %_bop695, i64* %_x686
+  br label %_start689
+_end691:
+  %_id697 = load i64, i64* %acc
+  ret i64 %_id697
+}
+
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_i2176 = alloca i64
-  %_argc2174 = alloca i64
-  store i64 %argc, i64* %_argc2174
-  %_argv2175 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv2175
-  store i64 1, i64* %_i2176
-  br label %_start2180
-_start2180:
-  %_id2178 = load i64, i64* %_i2176
-  %_id2179 = load i64, i64* %_argc2174
-  %_bop2177 = icmp slt i64 %_id2178, %_id2179
-  br i1 %_bop2177, label %_body2181, label %_end2182
-_body2181:
-  %_idx_tmp2186 = load i8*, i8** %_index_ptr2185
-  %_index_ptr2185 = getelementptr { i64, [0 x i8*] }, { i64, [0 x i8*] }* %_id2183, i32 0, i32 1, i64 %_id2184
-  %_id2184 = load i64, i64* %_i2176
-  %_id2183 = load { i64, [0 x i8*] }*, { i64, [0 x i8*] }** %_argv2175
-  call void @print_string(i8* %_idx_tmp2186)
-  %_id2189 = load i64, i64* %_i2176
-  %_bop2188 = add i64 %_id2189, 1
-  store i64 %_bop2188, i64* %_i2176
-  br label %_start2180
-_end2182:
-  %_id2190 = load i64, i64* %_argc2174
-  ret i64 %_id2190
+  %_argc681 = alloca i64
+  store i64 %argc, i64* %_argc681
+  %_argv682 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv682
+  %_Call_retval684 = call i8* @string_of_int(i64 %_Call_retval683)
+  %_Call_retval683 = call i64 @fact(i64 5)
+  call void @print_string(i8* %_Call_retval684)
+  ret i64 0
 }
 
 

@@ -1,15 +1,22 @@
-; generated from: oatprograms/run60.oat
+; generated from: oatprograms/run36.oat
 target triple = "x86_64-unknown-linux"
-@i = global i64 3
-
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc721 = alloca i64
-  store i64 %argc, i64* %_argc721
-  %_argv722 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv722
-  store i64 42, i64* @i
-  %_id723 = load i64, i64* @i
-  ret i64 %_id723
+  %a = alloca { i64, [0 x i64] }*
+  %_argc490 = alloca i64
+  store i64 %argc, i64* %_argc490
+  %_argv491 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv491
+  %_raw_array492 = call i64* @oat_alloc_array(i64 2)
+  %_array493 = bitcast i64* %_raw_array492 to { i64, [0 x i64] }*
+  %_CArr_elem_1495 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_array493, i32 0, i32 1, i32 1
+  store i64 0, i64* %_CArr_elem_1495
+  %_CArr_elem_0494 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_array493, i32 0, i32 1, i32 0
+  store i64 0, i64* %_CArr_elem_0494
+  store { i64, [0 x i64] }* %_array493, { i64, [0 x i64] }** %a
+  %_id496 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %a
+  %_index_ptr497 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id496, i32 0, i32 1, i32 1
+  %_idx_tmp498 = load i64, i64* %_index_ptr497
+  ret i64 %_idx_tmp498
 }
 
 

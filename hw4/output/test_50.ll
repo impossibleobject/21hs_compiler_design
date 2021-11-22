@@ -1,36 +1,23 @@
-; generated from: oatprograms/fac.oat
+; generated from: oatprograms/run3.oat
 target triple = "x86_64-unknown-linux"
-define i64 @f(i64 %i) {
-  %_r2284 = alloca i64
-  %_i2283 = alloca i64
-  store i64 %i, i64* %_i2283
-  store i64 0, i64* %_r2284
-  %_id2286 = load i64, i64* %_i2283
-  %_bop2285 = icmp eq i64 %_id2286, 0
-  br i1 %_bop2285, label %_then2287, label %_else2288
-_then2287:
-  store i64 1, i64* %_r2284
-  br label %_end2289
-_else2288:
-  %_id2291 = load i64, i64* %_i2283
-  %_bop2292 = sub i64 %_id2293, 1
-  %_id2293 = load i64, i64* %_i2283
-  %_Call_retval2294 = call i64 @f(i64 %_bop2292)
-  %_bop2290 = mul i64 %_id2291, %_Call_retval2294
-  store i64 %_bop2290, i64* %_r2284
-  br label %_end2289
-_end2289:
-  %_id2295 = load i64, i64* %_r2284
-  ret i64 %_id2295
-}
+@arr = global { i64, [0 x i64] }* null
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc2280 = alloca i64
-  store i64 %argc, i64* %_argc2280
-  %_argv2281 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv2281
-  %_Call_retval2282 = call i64 @f(i64 5)
-  ret i64 %_Call_retval2282
+  %_argc776 = alloca i64
+  store i64 %argc, i64* %_argc776
+  %_argv777 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv777
+  %_raw_array778 = call i64* @oat_alloc_array(i64 2)
+  %_array779 = bitcast i64* %_raw_array778 to { i64, [0 x i64] }*
+  %_CArr_elem_1781 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_array779, i32 0, i32 1, i32 1
+  store i64 2, i64* %_CArr_elem_1781
+  %_CArr_elem_0780 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_array779, i32 0, i32 1, i32 0
+  store i64 1, i64* %_CArr_elem_0780
+  store { i64, [0 x i64] }* %_array779, { i64, [0 x i64] }** @arr
+  %_id782 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** @arr
+  %_index_ptr783 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id782, i32 0, i32 1, i32 1
+  %_idx_tmp784 = load i64, i64* %_index_ptr783
+  ret i64 %_idx_tmp784
 }
 
 

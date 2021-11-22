@@ -1,125 +1,73 @@
-; generated from: oatprograms/sieve.oat
+; generated from: oatprograms/run7.oat
 target triple = "x86_64-unknown-linux"
-define i64 @sieve(i64 %n) {
-  %_arr3383 = alloca { i64, [0 x i1] }*
-  %_i3387 = alloca i64
-  %_i3403 = alloca i64
-  %_j3417 = alloca i64
-  %_count3434 = alloca i64
-  %_i3435 = alloca i64
-  %_n3382 = alloca i64
-  store i64 %n, i64* %_n3382
-  %_id3384 = load i64, i64* %_n3382
-  %_raw_array3385 = call i64* @oat_alloc_array(i64 %_id3384)
-  %_array3386 = bitcast i64* %_raw_array3385 to { i64, [0 x i1] }*
-  store { i64, [0 x i1] }* %_array3386, { i64, [0 x i1] }** %_arr3383
-  store i64 0, i64* %_i3387
-  br label %_start3391
-_start3391:
-  %_id3389 = load i64, i64* %_i3387
-  %_id3390 = load i64, i64* %_n3382
-  %_bop3388 = icmp slt i64 %_id3389, %_id3390
-  br i1 %_bop3388, label %_body3392, label %_end3393
-_body3392:
-  %_id3394 = load { i64, [0 x i1] }*, { i64, [0 x i1] }** %_arr3383
-  %_id3395 = load i64, i64* %_i3387
-  %_index_ptr3396 = getelementptr { i64, [0 x i1] }, { i64, [0 x i1] }* %_id3394, i32 0, i32 1, i64 %_id3395
-  store i1 1, i1* %_index_ptr3396
-  %_id3398 = load i64, i64* %_i3387
-  %_bop3397 = add i64 %_id3398, 1
-  store i64 %_bop3397, i64* %_i3387
-  br label %_start3391
-_end3393:
-  %_id3399 = load { i64, [0 x i1] }*, { i64, [0 x i1] }** %_arr3383
-  %_index_ptr3400 = getelementptr { i64, [0 x i1] }, { i64, [0 x i1] }* %_id3399, i32 0, i32 1, i32 0
-  store i1 0, i1* %_index_ptr3400
-  %_id3401 = load { i64, [0 x i1] }*, { i64, [0 x i1] }** %_arr3383
-  %_index_ptr3402 = getelementptr { i64, [0 x i1] }, { i64, [0 x i1] }* %_id3401, i32 0, i32 1, i32 1
-  store i1 0, i1* %_index_ptr3402
-  store i64 0, i64* %_i3403
-  br label %_start3407
-_start3407:
-  %_id3405 = load i64, i64* %_i3403
-  %_id3406 = load i64, i64* %_n3382
-  %_bop3404 = icmp slt i64 %_id3405, %_id3406
-  br i1 %_bop3404, label %_body3408, label %_end3409
-_body3408:
-  %_id3410 = load { i64, [0 x i1] }*, { i64, [0 x i1] }** %_arr3383
-  %_id3411 = load i64, i64* %_i3403
-  %_index_ptr3412 = getelementptr { i64, [0 x i1] }, { i64, [0 x i1] }* %_id3410, i32 0, i32 1, i64 %_id3411
-  %_idx_tmp3413 = load i1, i1* %_index_ptr3412
-  br i1 %_idx_tmp3413, label %_then3414, label %_else3415
-_then3414:
-  %_id3419 = load i64, i64* %_i3403
-  %_bop3418 = mul i64 %_id3419, 2
-  store i64 %_bop3418, i64* %_j3417
-  br label %_start3423
-_start3423:
-  %_id3421 = load i64, i64* %_j3417
-  %_id3422 = load i64, i64* %_n3382
-  %_bop3420 = icmp slt i64 %_id3421, %_id3422
-  br i1 %_bop3420, label %_body3424, label %_end3425
-_body3424:
-  %_id3426 = load { i64, [0 x i1] }*, { i64, [0 x i1] }** %_arr3383
-  %_id3427 = load i64, i64* %_j3417
-  %_index_ptr3428 = getelementptr { i64, [0 x i1] }, { i64, [0 x i1] }* %_id3426, i32 0, i32 1, i64 %_id3427
-  store i1 0, i1* %_index_ptr3428
-  %_id3430 = load i64, i64* %_j3417
-  %_id3431 = load i64, i64* %_i3403
-  %_bop3429 = add i64 %_id3430, %_id3431
-  store i64 %_bop3429, i64* %_j3417
-  br label %_start3423
-_end3425:
-  br label %_end3416
-_else3415:
-  br label %_end3416
-_end3416:
-  %_id3433 = load i64, i64* %_i3403
-  %_bop3432 = add i64 %_id3433, 1
-  store i64 %_bop3432, i64* %_i3403
-  br label %_start3407
-_end3409:
-  store i64 0, i64* %_count3434
-  store i64 0, i64* %_i3435
-  br label %_start3439
-_start3439:
-  %_id3437 = load i64, i64* %_i3435
-  %_id3438 = load i64, i64* %_n3382
-  %_bop3436 = icmp slt i64 %_id3437, %_id3438
-  br i1 %_bop3436, label %_body3440, label %_end3441
-_body3440:
-  %_id3442 = load { i64, [0 x i1] }*, { i64, [0 x i1] }** %_arr3383
-  %_id3443 = load i64, i64* %_i3435
-  %_index_ptr3444 = getelementptr { i64, [0 x i1] }, { i64, [0 x i1] }* %_id3442, i32 0, i32 1, i64 %_id3443
-  %_idx_tmp3445 = load i1, i1* %_index_ptr3444
-  br i1 %_idx_tmp3445, label %_then3446, label %_else3447
-_then3446:
-  %_id3450 = load i64, i64* %_count3434
-  %_bop3449 = add i64 %_id3450, 1
-  store i64 %_bop3449, i64* %_count3434
-  br label %_end3448
-_else3447:
-  br label %_end3448
-_end3448:
-  %_id3452 = load i64, i64* %_i3435
-  %_bop3451 = add i64 %_id3452, 1
-  store i64 %_bop3451, i64* %_i3435
-  br label %_start3439
-_end3441:
-  %_id3453 = load i64, i64* %_count3434
-  ret i64 %_id3453
-}
+@arr = global { i64, [0 x { i64, [0 x { i64, [0 x i64] }*] }*] }* null
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_n3379 = alloca i64
-  %_argc3377 = alloca i64
-  store i64 %argc, i64* %_argc3377
-  %_argv3378 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv3378
-  store i64 100, i64* %_n3379
-  %_id3380 = load i64, i64* %_n3379
-  %_Call_retval3381 = call i64 @sieve(i64 %_id3380)
-  ret i64 %_Call_retval3381
+  %_argc832 = alloca i64
+  store i64 %argc, i64* %_argc832
+  %_argv833 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv833
+  %_raw_array834 = call i64* @oat_alloc_array(i64 3)
+  %_array835 = bitcast i64* %_raw_array834 to { i64, [0 x { i64, [0 x { i64, [0 x i64] }*] }*] }*
+  %_raw_array854 = call i64* @oat_alloc_array(i64 2)
+  %_array855 = bitcast i64* %_raw_array854 to { i64, [0 x { i64, [0 x i64] }*] }*
+  %_raw_array860 = call i64* @oat_alloc_array(i64 2)
+  %_array861 = bitcast i64* %_raw_array860 to { i64, [0 x i64] }*
+  %_CArr_elem_1863 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_array861, i32 0, i32 1, i32 1
+  store i64 40, i64* %_CArr_elem_1863
+  %_CArr_elem_0862 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_array861, i32 0, i32 1, i32 0
+  store i64 30, i64* %_CArr_elem_0862
+  %_CArr_elem_1865 = getelementptr { i64, [0 x { i64, [0 x i64] }*] }, { i64, [0 x { i64, [0 x i64] }*] }* %_array855, i32 0, i32 1, i32 1
+  store { i64, [0 x i64] }* %_array861, { i64, [0 x i64] }** %_CArr_elem_1865
+  %_raw_array856 = call i64* @oat_alloc_array(i64 2)
+  %_array857 = bitcast i64* %_raw_array856 to { i64, [0 x i64] }*
+  %_CArr_elem_1859 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_array857, i32 0, i32 1, i32 1
+  store i64 20, i64* %_CArr_elem_1859
+  %_CArr_elem_0858 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_array857, i32 0, i32 1, i32 0
+  store i64 10, i64* %_CArr_elem_0858
+  %_CArr_elem_0864 = getelementptr { i64, [0 x { i64, [0 x i64] }*] }, { i64, [0 x { i64, [0 x i64] }*] }* %_array855, i32 0, i32 1, i32 0
+  store { i64, [0 x i64] }* %_array857, { i64, [0 x i64] }** %_CArr_elem_0864
+  %_CArr_elem_2868 = getelementptr { i64, [0 x { i64, [0 x { i64, [0 x i64] }*] }*] }, { i64, [0 x { i64, [0 x { i64, [0 x i64] }*] }*] }* %_array835, i32 0, i32 1, i32 2
+  store { i64, [0 x { i64, [0 x i64] }*] }* %_array855, { i64, [0 x { i64, [0 x i64] }*] }** %_CArr_elem_2868
+  %_raw_array848 = call i64* @oat_alloc_array(i64 1)
+  %_array849 = bitcast i64* %_raw_array848 to { i64, [0 x { i64, [0 x i64] }*] }*
+  %_raw_array850 = call i64* @oat_alloc_array(i64 1)
+  %_array851 = bitcast i64* %_raw_array850 to { i64, [0 x i64] }*
+  %_CArr_elem_0852 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_array851, i32 0, i32 1, i32 0
+  store i64 5, i64* %_CArr_elem_0852
+  %_CArr_elem_0853 = getelementptr { i64, [0 x { i64, [0 x i64] }*] }, { i64, [0 x { i64, [0 x i64] }*] }* %_array849, i32 0, i32 1, i32 0
+  store { i64, [0 x i64] }* %_array851, { i64, [0 x i64] }** %_CArr_elem_0853
+  %_CArr_elem_1867 = getelementptr { i64, [0 x { i64, [0 x { i64, [0 x i64] }*] }*] }, { i64, [0 x { i64, [0 x { i64, [0 x i64] }*] }*] }* %_array835, i32 0, i32 1, i32 1
+  store { i64, [0 x { i64, [0 x i64] }*] }* %_array849, { i64, [0 x { i64, [0 x i64] }*] }** %_CArr_elem_1867
+  %_raw_array836 = call i64* @oat_alloc_array(i64 2)
+  %_array837 = bitcast i64* %_raw_array836 to { i64, [0 x { i64, [0 x i64] }*] }*
+  %_raw_array842 = call i64* @oat_alloc_array(i64 2)
+  %_array843 = bitcast i64* %_raw_array842 to { i64, [0 x i64] }*
+  %_CArr_elem_1845 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_array843, i32 0, i32 1, i32 1
+  store i64 4, i64* %_CArr_elem_1845
+  %_CArr_elem_0844 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_array843, i32 0, i32 1, i32 0
+  store i64 3, i64* %_CArr_elem_0844
+  %_CArr_elem_1847 = getelementptr { i64, [0 x { i64, [0 x i64] }*] }, { i64, [0 x { i64, [0 x i64] }*] }* %_array837, i32 0, i32 1, i32 1
+  store { i64, [0 x i64] }* %_array843, { i64, [0 x i64] }** %_CArr_elem_1847
+  %_raw_array838 = call i64* @oat_alloc_array(i64 2)
+  %_array839 = bitcast i64* %_raw_array838 to { i64, [0 x i64] }*
+  %_CArr_elem_1841 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_array839, i32 0, i32 1, i32 1
+  store i64 2, i64* %_CArr_elem_1841
+  %_CArr_elem_0840 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_array839, i32 0, i32 1, i32 0
+  store i64 1, i64* %_CArr_elem_0840
+  %_CArr_elem_0846 = getelementptr { i64, [0 x { i64, [0 x i64] }*] }, { i64, [0 x { i64, [0 x i64] }*] }* %_array837, i32 0, i32 1, i32 0
+  store { i64, [0 x i64] }* %_array839, { i64, [0 x i64] }** %_CArr_elem_0846
+  %_CArr_elem_0866 = getelementptr { i64, [0 x { i64, [0 x { i64, [0 x i64] }*] }*] }, { i64, [0 x { i64, [0 x { i64, [0 x i64] }*] }*] }* %_array835, i32 0, i32 1, i32 0
+  store { i64, [0 x { i64, [0 x i64] }*] }* %_array837, { i64, [0 x { i64, [0 x i64] }*] }** %_CArr_elem_0866
+  store { i64, [0 x { i64, [0 x { i64, [0 x i64] }*] }*] }* %_array835, { i64, [0 x { i64, [0 x { i64, [0 x i64] }*] }*] }** @arr
+  %_id869 = load { i64, [0 x { i64, [0 x { i64, [0 x i64] }*] }*] }*, { i64, [0 x { i64, [0 x { i64, [0 x i64] }*] }*] }** @arr
+  %_index_ptr870 = getelementptr { i64, [0 x { i64, [0 x { i64, [0 x i64] }*] }*] }, { i64, [0 x { i64, [0 x { i64, [0 x i64] }*] }*] }* %_id869, i32 0, i32 1, i32 2
+  %_idx_tmp871 = load { i64, [0 x { i64, [0 x i64] }*] }*, { i64, [0 x { i64, [0 x i64] }*] }** %_index_ptr870
+  %_index_ptr872 = getelementptr { i64, [0 x { i64, [0 x i64] }*] }, { i64, [0 x { i64, [0 x i64] }*] }* %_idx_tmp871, i32 0, i32 1, i32 0
+  %_idx_tmp873 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_index_ptr872
+  %_index_ptr874 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_idx_tmp873, i32 0, i32 1, i32 1
+  %_idx_tmp875 = load i64, i64* %_index_ptr874
+  ret i64 %_idx_tmp875
 }
 
 

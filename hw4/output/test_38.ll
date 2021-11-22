@@ -1,38 +1,56 @@
-; generated from: oatprograms/fact.oat
+; generated from: oatprograms/run38.oat
 target triple = "x86_64-unknown-linux"
-define i64 @fact(i64 %x) {
-  %_acc734 = alloca i64
-  %_x733 = alloca i64
-  store i64 %x, i64* %_x733
-  store i64 1, i64* %_acc734
-  br label %_start737
-_start737:
-  %_id736 = load i64, i64* %_x733
-  %_bop735 = icmp sgt i64 %_id736, 0
-  br i1 %_bop735, label %_body738, label %_end739
-_body738:
-  %_id741 = load i64, i64* %_acc734
-  %_id742 = load i64, i64* %_x733
-  %_bop740 = mul i64 %_id741, %_id742
-  store i64 %_bop740, i64* %_acc734
-  %_id744 = load i64, i64* %_x733
-  %_bop743 = sub i64 %_id744, 1
-  store i64 %_bop743, i64* %_x733
-  br label %_start737
-_end739:
-  %_id745 = load i64, i64* %_acc734
-  ret i64 %_id745
+define i64 @f1() {
+  %_Call_retval528 = call i64 @f2()
+  ret i64 %_Call_retval528
+}
+
+define i64 @f2() {
+  %_Call_retval527 = call i64 @f3()
+  ret i64 %_Call_retval527
+}
+
+define i64 @f3() {
+  %_Call_retval526 = call i64 @f4()
+  ret i64 %_Call_retval526
+}
+
+define i64 @f4() {
+  %_Call_retval525 = call i64 @f5()
+  ret i64 %_Call_retval525
+}
+
+define i64 @f5() {
+  %_Call_retval524 = call i64 @f6()
+  ret i64 %_Call_retval524
+}
+
+define i64 @f6() {
+  %_Call_retval523 = call i64 @f7()
+  ret i64 %_Call_retval523
+}
+
+define i64 @f7() {
+  %_Call_retval522 = call i64 @f8()
+  ret i64 %_Call_retval522
+}
+
+define i64 @f8() {
+  %_Call_retval521 = call i64 @f9()
+  ret i64 %_Call_retval521
+}
+
+define i64 @f9() {
+  ret i64 31
 }
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc728 = alloca i64
-  store i64 %argc, i64* %_argc728
-  %_argv729 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv729
-  %_Call_retval731 = call i8* @string_of_int(i64 %_Call_retval730)
-  %_Call_retval730 = call i64 @fact(i64 5)
-  call void @print_string(i8* %_Call_retval731)
-  ret i64 0
+  %_argc518 = alloca i64
+  store i64 %argc, i64* %_argc518
+  %_argv519 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv519
+  %_Call_retval520 = call i64 @f1()
+  ret i64 %_Call_retval520
 }
 
 
