@@ -1,20 +1,20 @@
 ; generated from: oatprograms/fac.oat
 target triple = "x86_64-unknown-linux"
 define i64 @f(i64 %i) {
+  %_r2284 = alloca i64
   %_i2283 = alloca i64
   store i64 %i, i64* %_i2283
-  %_r2284 = alloca i64
   store i64 0, i64* %_r2284
-  %_id2286 = load i64*, i64** %_i2283
+  %_id2286 = load i64, i64* %_i2283
   %_bop2285 = icmp eq i64 %_id2286, 0
   br i1 %_bop2285, label %_then2287, label %_else2288
 _then2287:
   store i64 1, i64* %_r2284
   br label %_end2289
 _else2288:
-  %_id2291 = load i64*, i64** %_i2283
+  %_id2291 = load i64, i64* %_i2283
   %_bop2292 = sub i64 %_id2293, 1
-  %_id2293 = load i64*, i64** %_i2283
+  %_id2293 = load i64, i64* %_i2283
   %_Call_retval2294 = call i64 @f(i64 %_bop2292)
   %_bop2290 = mul i64 %_id2291, %_Call_retval2294
   store i64 %_bop2290, i64* %_r2284

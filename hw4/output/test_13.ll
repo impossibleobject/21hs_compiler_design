@@ -3,11 +3,11 @@ target triple = "x86_64-unknown-linux"
 @_cstr_glb191 = global [7 x i8] c"hello!\00"
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %args) {
+  %_s189 = alloca i8*
   %_argc187 = alloca i64
   store i64 %argc, i64* %_argc187
   %_args188 = alloca { i64, [0 x i8*] }*
   store { i64, [0 x i8*] }* %args, { i64, [0 x i8*] }** %_args188
-  %_s189 = alloca i8*
   %_cstr_loc190 = getelementptr [7 x i8], [7 x i8]* @_cstr_glb191, i32 0, i32 0
   store i8* %_cstr_loc190, i8** %_s189
   ret i64 15

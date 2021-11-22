@@ -12,7 +12,7 @@ _then82:
   %_bop91 = lshr i64 5, %_uop92
   %_bop90 = shl i64 %_bop91, 9
   %_bop89 = ashr i64 %_bop90, 10
-  %_uop88 = xor i64 -1, %_bop89
+  %_uop88 = xor i64 %_bop89, -1
   %_bop87 = mul i64 %_uop88, 2
   %_bop86 = sub i64 %_bop87, 100
   %_bop85 = add i64 %_bop86, 6

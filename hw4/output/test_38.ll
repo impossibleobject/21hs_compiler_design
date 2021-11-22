@@ -1,21 +1,21 @@
 ; generated from: oatprograms/fact.oat
 target triple = "x86_64-unknown-linux"
 define i64 @fact(i64 %x) {
+  %_acc734 = alloca i64
   %_x733 = alloca i64
   store i64 %x, i64* %_x733
-  %_acc734 = alloca i64
   store i64 1, i64* %_acc734
   br label %_start737
 _start737:
-  %_id736 = load i64*, i64** %_x733
+  %_id736 = load i64, i64* %_x733
   %_bop735 = icmp sgt i64 %_id736, 0
   br i1 %_bop735, label %_body738, label %_end739
 _body738:
   %_id741 = load i64, i64* %_acc734
-  %_id742 = load i64*, i64** %_x733
+  %_id742 = load i64, i64* %_x733
   %_bop740 = mul i64 %_id741, %_id742
   store i64 %_bop740, i64* %_acc734
-  %_id744 = load i64*, i64** %_x733
+  %_id744 = load i64, i64* %_x733
   %_bop743 = sub i64 %_id744, 1
   store i64 %_bop743, i64* %_x733
   br label %_start737

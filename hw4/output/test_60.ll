@@ -7,14 +7,6 @@ target triple = "x86_64-unknown-linux"
 @_cstr_glb4426 = global [8 x i8] c"ORATING\00"
 
 define i8* @lcs(i64 %i, i64 %j, i8* %a, i8* %b) {
-  %_i4431 = alloca i64
-  store i64 %i, i64* %_i4431
-  %_j4432 = alloca i64
-  store i64 %j, i64* %_j4432
-  %_a4433 = alloca i8*
-  store i8* %a, i8** %_a4433
-  %_b4434 = alloca i8*
-  store i8* %b, i8** %_b4434
   %_a_chars4445 = alloca { i64, [0 x i64] }*
   %_b_chars4448 = alloca { i64, [0 x i64] }*
   %_last_char_a4451 = alloca i64
@@ -25,9 +17,17 @@ define i8* @lcs(i64 %i, i64 %j, i8* %a, i8* %b) {
   %_right_lcs4494 = alloca i8*
   %_left_len4501 = alloca i64
   %_right_len4504 = alloca i64
-  %_id4437 = load i64*, i64** %_i4431
+  %_i4431 = alloca i64
+  store i64 %i, i64* %_i4431
+  %_j4432 = alloca i64
+  store i64 %j, i64* %_j4432
+  %_a4433 = alloca i8*
+  store i8* %a, i8** %_a4433
+  %_b4434 = alloca i8*
+  store i8* %b, i8** %_b4434
+  %_id4437 = load i64, i64* %_i4431
   %_bop4436 = icmp slt i64 %_id4437, 0
-  %_id4439 = load i64*, i64** %_j4432
+  %_id4439 = load i64, i64* %_j4432
   %_bop4438 = icmp slt i64 %_id4439, 0
   %_bop4435 = or i1 %_bop4436, %_bop4438
   br i1 %_bop4435, label %_then4440, label %_else4441
@@ -37,19 +37,19 @@ _then4440:
 _else4441:
   br label %_end4442
 _end4442:
-  %_id4446 = load i8**, i8*** %_a4433
-  %_Call_retval4447 = call { i64, [0 x i64] }* @array_of_string(i8** %_id4446)
+  %_id4446 = load i8*, i8** %_a4433
+  %_Call_retval4447 = call { i64, [0 x i64] }* @array_of_string(i8* %_id4446)
   store { i64, [0 x i64] }* %_Call_retval4447, { i64, [0 x i64] }** %_a_chars4445
-  %_id4449 = load i8**, i8*** %_b4434
-  %_Call_retval4450 = call { i64, [0 x i64] }* @array_of_string(i8** %_id4449)
+  %_id4449 = load i8*, i8** %_b4434
+  %_Call_retval4450 = call { i64, [0 x i64] }* @array_of_string(i8* %_id4449)
   store { i64, [0 x i64] }* %_Call_retval4450, { i64, [0 x i64] }** %_b_chars4448
   %_id4452 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_a_chars4445
-  %_id4453 = load i64*, i64** %_i4431
+  %_id4453 = load i64, i64* %_i4431
   %_index_ptr4454 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id4452, i32 0, i32 1, i64 %_id4453
   %_idx_tmp4455 = load i64, i64* %_index_ptr4454
   store i64 %_idx_tmp4455, i64* %_last_char_a4451
   %_id4457 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_b_chars4448
-  %_id4458 = load i64*, i64** %_j4432
+  %_id4458 = load i64, i64* %_j4432
   %_index_ptr4459 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id4457, i32 0, i32 1, i64 %_id4458
   %_idx_tmp4460 = load i64, i64* %_index_ptr4459
   store i64 %_idx_tmp4460, i64* %_last_char_b4456
@@ -59,15 +59,15 @@ _end4442:
   br i1 %_bop4461, label %_then4464, label %_else4465
 _then4464:
   %_bop4468 = sub i64 %_id4469, 1
-  %_id4469 = load i64*, i64** %_i4431
+  %_id4469 = load i64, i64* %_i4431
   %_bop4470 = sub i64 %_id4471, 1
-  %_id4471 = load i64*, i64** %_j4432
-  %_id4472 = load i8**, i8*** %_a4433
-  %_id4473 = load i8**, i8*** %_b4434
-  %_Call_retval4474 = call i8* @lcs(i64 %_bop4468, i64 %_bop4470, i8** %_id4472, i8** %_id4473)
+  %_id4471 = load i64, i64* %_j4432
+  %_id4472 = load i8*, i8** %_a4433
+  %_id4473 = load i8*, i8** %_b4434
+  %_Call_retval4474 = call i8* @lcs(i64 %_bop4468, i64 %_bop4470, i8* %_id4472, i8* %_id4473)
   store i8* %_Call_retval4474, i8** %_prev_lcs4467
   %_id4475 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_a_chars4445
-  %_id4476 = load i64*, i64** %_i4431
+  %_id4476 = load i64, i64* %_i4431
   %_index_ptr4477 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id4475, i32 0, i32 1, i64 %_id4476
   %_idx_tmp4478 = load i64, i64* %_index_ptr4477
   %_id4479 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** @buf
@@ -83,19 +83,19 @@ _then4464:
 _else4465:
   br label %_end4466
 _end4466:
-  %_id4488 = load i64*, i64** %_i4431
+  %_id4488 = load i64, i64* %_i4431
   %_bop4489 = sub i64 %_id4490, 1
-  %_id4490 = load i64*, i64** %_j4432
-  %_id4491 = load i8**, i8*** %_a4433
-  %_id4492 = load i8**, i8*** %_b4434
-  %_Call_retval4493 = call i8* @lcs(i64* %_id4488, i64 %_bop4489, i8** %_id4491, i8** %_id4492)
+  %_id4490 = load i64, i64* %_j4432
+  %_id4491 = load i8*, i8** %_a4433
+  %_id4492 = load i8*, i8** %_b4434
+  %_Call_retval4493 = call i8* @lcs(i64 %_id4488, i64 %_bop4489, i8* %_id4491, i8* %_id4492)
   store i8* %_Call_retval4493, i8** %_left_lcs4487
   %_bop4495 = sub i64 %_id4496, 1
-  %_id4496 = load i64*, i64** %_i4431
-  %_id4497 = load i64*, i64** %_j4432
-  %_id4498 = load i8**, i8*** %_a4433
-  %_id4499 = load i8**, i8*** %_b4434
-  %_Call_retval4500 = call i8* @lcs(i64 %_bop4495, i64* %_id4497, i8** %_id4498, i8** %_id4499)
+  %_id4496 = load i64, i64* %_i4431
+  %_id4497 = load i64, i64* %_j4432
+  %_id4498 = load i8*, i8** %_a4433
+  %_id4499 = load i8*, i8** %_b4434
+  %_Call_retval4500 = call i8* @lcs(i64 %_bop4495, i64 %_id4497, i8* %_id4498, i8* %_id4499)
   store i8* %_Call_retval4500, i8** %_right_lcs4494
   %_id4502 = load i8*, i8** %_left_lcs4487
   %_Call_retval4503 = call i64 @length_of_string(i8* %_id4502)
@@ -116,12 +116,12 @@ _else4511:
 }
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
+  %_tomato4421 = alloca i8*
+  %_orating4424 = alloca i8*
   %_argc4419 = alloca i64
   store i64 %argc, i64* %_argc4419
   %_argv4420 = alloca { i64, [0 x i8*] }*
   store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv4420
-  %_tomato4421 = alloca i8*
-  %_orating4424 = alloca i8*
   %_cstr_loc4422 = getelementptr [7 x i8], [7 x i8]* @_cstr_glb4423, i32 0, i32 0
   store i8* %_cstr_loc4422, i8** %_tomato4421
   %_cstr_loc4425 = getelementptr [8 x i8], [8 x i8]* @_cstr_glb4426, i32 0, i32 0

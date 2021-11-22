@@ -5,7 +5,7 @@ define i64 @f(i64 %x, i64 %y) {
   store i64 %x, i64* %_x347
   %_y348 = alloca i64
   store i64 %y, i64* %_y348
-  %_id349 = load i64*, i64** %_x347
+  %_id349 = load i64, i64* %_x347
   ret i64 %_id349
 }
 

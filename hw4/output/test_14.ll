@@ -4,11 +4,11 @@ target triple = "x86_64-unknown-linux"
 @_garr203 = global { i64, [0 x i64] } { i64 0, [0 x i64] [  ] }
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
+  %_x194 = alloca { i64, [0 x i64] }*
   %_argc192 = alloca i64
   store i64 %argc, i64* %_argc192
   %_argv193 = alloca { i64, [0 x i8*] }*
   store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv193
-  %_x194 = alloca { i64, [0 x i64] }*
   %_raw_array195 = call i64* @oat_alloc_array(i64 3)
   %_array196 = bitcast i64* %_raw_array195 to { i64, [0 x i64] }*
   store { i64, [0 x i64] }* %_array196, { i64, [0 x i64] }** %_x194

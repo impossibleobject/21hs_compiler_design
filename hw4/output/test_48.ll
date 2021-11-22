@@ -3,14 +3,14 @@ target triple = "x86_64-unknown-linux"
 @_cstr_glb2195 = global [11 x i8] c"1234967890\00"
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc2191 = alloca i64
-  store i64 %argc, i64* %_argc2191
-  %_argv2192 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv2192
   %_arr2193 = alloca { i64, [0 x i64] }*
   %_sum2197 = alloca i64
   %_i2198 = alloca i64
   %_i2210 = alloca i64
+  %_argc2191 = alloca i64
+  store i64 %argc, i64* %_argc2191
+  %_argv2192 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv2192
   %_cstr_loc2194 = getelementptr [11 x i8], [11 x i8]* @_cstr_glb2195, i32 0, i32 0
   %_Call_retval2196 = call { i64, [0 x i64] }* @array_of_string(i8* %_cstr_loc2194)
   store { i64, [0 x i64] }* %_Call_retval2196, { i64, [0 x i64] }** %_arr2193

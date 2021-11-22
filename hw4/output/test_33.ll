@@ -17,20 +17,20 @@ define i64 @f(i64 %x1, i64 %x2, i64 %x3, i64 %x4, i64 %x5, i64 %x6, i64 %x7, i64
   store i64 %x7, i64* %_x7620
   %_x8621 = alloca i64
   store i64 %x8, i64* %_x8621
-  %_id629 = load i64*, i64** %_x1614
-  %_id630 = load i64*, i64** %_x2615
+  %_id629 = load i64, i64* %_x1614
+  %_id630 = load i64, i64* %_x2615
   %_bop628 = add i64 %_id629, %_id630
-  %_id631 = load i64*, i64** %_x3616
+  %_id631 = load i64, i64* %_x3616
   %_bop627 = add i64 %_bop628, %_id631
-  %_id632 = load i64*, i64** %_x4617
+  %_id632 = load i64, i64* %_x4617
   %_bop626 = add i64 %_bop627, %_id632
-  %_id633 = load i64*, i64** %_x5618
+  %_id633 = load i64, i64* %_x5618
   %_bop625 = add i64 %_bop626, %_id633
-  %_id634 = load i64*, i64** %_x6619
+  %_id634 = load i64, i64* %_x6619
   %_bop624 = add i64 %_bop625, %_id634
-  %_id635 = load i64*, i64** %_x7620
+  %_id635 = load i64, i64* %_x7620
   %_bop623 = add i64 %_bop624, %_id635
-  %_id636 = load i64*, i64** %_x8621
+  %_id636 = load i64, i64* %_x8621
   %_bop622 = add i64 %_bop623, %_id636
   ret i64 %_bop622
 }

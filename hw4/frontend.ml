@@ -140,20 +140,6 @@ let unpack_ptr (ptr_ty:Ll.ty) : Ll.ty =
     | _     -> failwith "tried to unpack non-pointer"
   end
 
-let unpack_if_ptr (ty:Ll.ty) : Ll.ty =
-  begin match ty with
-    | Ptr t -> unpack_ptr ty
-    | _     -> ty
-  end
-
-let lookup_ctxt (id:Ast.id) (c:Ctxt.t): (Ll.ty * Ll.operand) =
-  let ty, op = Ctxt.lookup id c in
-  begin match ty with
-    | Ptr (Ptr Struct ts) -> Ptr (Struct ts), op
-    | Ptr (Array (i, s))  -> Array (i, s), op
-    | _                   -> ty, op
-  end
-
 let unpack_id (id_ll : Ll.operand) : Ll.uid =
   begin match id_ll with
     | Id id -> id
@@ -319,16 +305,6 @@ let oat_alloc_array (t:Ast.ty) (size:Ll.operand) : Ll.ty * operand * stream =
     [ arr_id, Call(arr_ty, Gid "oat_alloc_array", [I64, size])
     ; ans_id, Bitcast(arr_ty, Id arr_id, ans_ty) ]
 
-(*F: added helper function to add load instr if operand is ptr*)
-let load_if_ptr ((ty, op, str) : (Ll.ty * Ll.operand * stream)) : Ll.ty * Ll.operand * stream =
-  begin match ty with
-  | Ptr t -> 
-    let uid = gensym "" in
-    let insn = [I (uid, Load(ty, op))] in
-    (t, Id uid, str >@ insn)
-  | _ -> (ty, op, str)
-  end
-
 (*L: helper to determine if current operand is idx and has to be dereferenced*)
 let op_is_idx (en:Ast.exp node) (ty: Ll.ty) (op: Ll.operand) : Ll.operand * stream =
   begin match en.elt with
@@ -388,7 +364,7 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
     | CInt i -> (I64, Const i, [])
     | CStr s -> 
       let uid = gensym "cstr_loc" in
-      let ty = Array (String.length s + 1, I8) (*cmp_ty TRef TString*) in 
+      let ty = Array (String.length s + 1, I8) (* cmp_ty (TRef RString) *) in 
       let string_uid = gensym "cstr_glb" in
       let gdecl = (ty, GString s) in
       let stream = [G (string_uid, gdecl)] >@ [I (uid, Gep (Ptr ty, Gid string_uid, [Const 0L; Const 0L]))] in
@@ -496,7 +472,7 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
       begin match unop with 
         | Neg    -> (ty, Id uid, s >@ [I (uid, Binop (Sub, ty, Const 0L, op))])
         | Lognot -> (ty, Id uid, s >@ [I (uid, Icmp (Eq, ty, Const 0L, op))])
-        | Bitnot -> (ty, Id uid, s >@ [I (uid, Binop (Xor, ty, Const (-1L), op))])
+        | Bitnot -> (ty, Id uid, s >@ [I (uid, Binop (Xor, ty, op, Const (-1L)))])
       end
     end
 
@@ -598,9 +574,12 @@ let rec cmp_stmt (c:Ctxt.t) (rt:Ll.ty) (stmt:Ast.stmt node) : Ctxt.t * stream =
       let else_blk = 
         let _, else_blk_t = cmp_block c rt s_else in
         else_blk_t >@ [T (Br (done_lbl))] in
-      (c, s >@ [T (Cbr (op, then_lbl, else_lbl))] >@          (*L: might need weird case dist for empty else*)
-      (mk_elt_l then_lbl) >@ then_blk >@ mk_elt_l else_lbl >@
-      else_blk >@ mk_elt_l done_lbl)
+      (c, s >@ [T (Cbr (op, then_lbl, else_lbl))] 
+      >@ (mk_elt_l then_lbl)          (*L: might need weird case dist for empty else*)
+      >@ then_blk 
+      >@ mk_elt_l else_lbl
+      >@ else_blk 
+      >@ mk_elt_l done_lbl)
     | While (ec, s_body) -> 
       let ty, op_raw, s_op = cmp_exp c ec in (*add op_is_idx, done*)
       let op, s_idx = op_is_idx ec ty op_raw in
@@ -693,6 +672,28 @@ let cmp_global_ctxt (c:Ctxt.t) (p:Ast.prog) : Ctxt.t =
 
 let cmp_fdecl (c:Ctxt.t) (f:Ast.fdecl node) : Ll.fdecl * (Ll.gid * Ll.gdecl) list =
   let ast_fdecl = f.elt in
+  
+  let args = 
+    let map_args ((ty, id):(Ast.ty * Ast.id)) : (Ll.uid * Ll.ty * Ast.id) =
+      (gensym id , cmp_ty ty, id) in
+    List.map map_args ast_fdecl.args in
+  let new_ctxt =
+    let fold (c:Ctxt.t) ((lluid, llty, astid):(Ll.uid * Ll.ty * Ast.id)) : Ctxt.t = 
+      Ctxt.add c astid (llty, Ll.Id lluid) in
+    List.fold_left fold c args in
+  let stream = 
+    let fold (s:stream) ((lluid, llty, astid):(Ll.uid * Ll.ty * Ast.id)) : stream = 
+      s >@ lift ([(lluid, Alloca llty); ("", Store (llty,(Id astid),(Id lluid)))]) in
+    List.fold_left fold [] args in
+  let rty = cmp_ret_ty ast_fdecl.frtyp in
+  let ty_ls = List.map (fun x -> cmp_ty (fst x)) ast_fdecl.args in
+  let id_ls = List.map snd ast_fdecl.args in 
+  let new_ctxt, blk_str = cmp_block new_ctxt rty ast_fdecl.body in
+  let cfg, gdecls = cfg_of_stream (stream >@ blk_str) in
+  let fdecl = {f_ty = (ty_ls, rty); f_param = id_ls; f_cfg = cfg } in
+  (fdecl, gdecls)
+
+  (* let ast_fdecl = f.elt in
   let f_param = List.map snd ast_fdecl.args in
   let f_ty = 
     let ast_arg_tys = List.map fst ast_fdecl.args in
@@ -714,8 +715,7 @@ let cmp_fdecl (c:Ctxt.t) (f:Ast.fdecl node) : Ll.fdecl * (Ll.gid * Ll.gdecl) lis
   let cfg = 
     let init_blk = {insns = (fst cfg_init).insns >@ alloca_ls; term = (fst cfg_init).term} in
     (init_blk, snd cfg_init) in
-  let fdecl = {f_ty = f_ty; f_param = f_param; f_cfg = cfg} in
-  (fdecl, glob_ids_and_decls)
+  let fdecl = {f_ty = f_ty; f_param = f_param; f_cfg = cfg} in *)
 
 
 (* Compile a global initializer, returning the resulting LLVMlite global

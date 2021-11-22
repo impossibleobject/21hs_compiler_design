@@ -8,33 +8,33 @@ define i64 @xor(i64 %x, i64 %y) {
   store i64 %x, i64* %_x3367
   %_y3368 = alloca i64
   store i64 %y, i64* %_y3368
-  %_id3372 = load i64*, i64** %_x3367
-  %_id3373 = load i64*, i64** %_y3368
+  %_id3372 = load i64, i64* %_x3367
+  %_id3373 = load i64, i64* %_y3368
   %_bop3371 = and i64 %_id3372, %_id3373
-  %_uop3370 = xor i64 -1, %_bop3371
-  %_id3375 = load i64*, i64** %_x3367
-  %_id3376 = load i64*, i64** %_y3368
+  %_uop3370 = xor i64 %_bop3371, -1
+  %_id3375 = load i64, i64* %_x3367
+  %_id3376 = load i64, i64* %_y3368
   %_bop3374 = or i64 %_id3375, %_id3376
   %_bop3369 = and i64 %_uop3370, %_bop3374
   ret i64 %_bop3369
 }
 
 define i64 @xor_shift_plus({ i64, [0 x i64] }* %s) {
-  %_s3335 = alloca { i64, [0 x i64] }*
-  store { i64, [0 x i64] }* %s, { i64, [0 x i64] }** %_s3335
   %_x3336 = alloca i64
   %_y3340 = alloca i64
-  %_id3337 = load { i64, [0 x i64] }**, { i64, [0 x i64] }*** %_s3335
-  %_index_ptr3338 = getelementptr { i64, [0 x i64] }*, { i64, [0 x i64] }** %_id3337, i32 0, i32 0, i32 1, i32 0
+  %_s3335 = alloca { i64, [0 x i64] }*
+  store { i64, [0 x i64] }* %s, { i64, [0 x i64] }** %_s3335
+  %_id3337 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_s3335
+  %_index_ptr3338 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id3337, i32 0, i32 1, i32 0
   %_idx_tmp3339 = load i64, i64* %_index_ptr3338
   store i64 %_idx_tmp3339, i64* %_x3336
-  %_id3341 = load { i64, [0 x i64] }**, { i64, [0 x i64] }*** %_s3335
-  %_index_ptr3342 = getelementptr { i64, [0 x i64] }*, { i64, [0 x i64] }** %_id3341, i32 0, i32 0, i32 1, i32 1
+  %_id3341 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_s3335
+  %_index_ptr3342 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id3341, i32 0, i32 1, i32 1
   %_idx_tmp3343 = load i64, i64* %_index_ptr3342
   store i64 %_idx_tmp3343, i64* %_y3340
   %_id3344 = load i64, i64* %_y3340
-  %_id3345 = load { i64, [0 x i64] }**, { i64, [0 x i64] }*** %_s3335
-  %_index_ptr3346 = getelementptr { i64, [0 x i64] }*, { i64, [0 x i64] }** %_id3345, i32 0, i32 0, i32 1, i32 0
+  %_id3345 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_s3335
+  %_index_ptr3346 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id3345, i32 0, i32 1, i32 0
   store i64 %_id3344, i64* %_index_ptr3346
   %_id3347 = load i64, i64* %_x3336
   %_bop3348 = shl i64 %_id3349, 23
@@ -54,8 +54,8 @@ define i64 @xor_shift_plus({ i64, [0 x i64] }* %s) {
   %_Call_retval3360 = call i64 @xor(i64 %_id3355, i64 %_Call_retval3359)
   store i64 %_Call_retval3360, i64* %_x3336
   %_id3361 = load i64, i64* %_x3336
-  %_id3362 = load { i64, [0 x i64] }**, { i64, [0 x i64] }*** %_s3335
-  %_index_ptr3363 = getelementptr { i64, [0 x i64] }*, { i64, [0 x i64] }** %_id3362, i32 0, i32 0, i32 1, i32 1
+  %_id3362 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_s3335
+  %_index_ptr3363 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id3362, i32 0, i32 1, i32 1
   store i64 %_id3361, i64* %_index_ptr3363
   %_id3365 = load i64, i64* %_x3336
   %_id3366 = load i64, i64* %_y3340
@@ -64,12 +64,12 @@ define i64 @xor_shift_plus({ i64, [0 x i64] }* %s) {
 }
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
+  %_seed3309 = alloca { i64, [0 x i64] }*
+  %_i3312 = alloca i64
   %_argc3307 = alloca i64
   store i64 %argc, i64* %_argc3307
   %_argv3308 = alloca { i64, [0 x i8*] }*
   store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv3308
-  %_seed3309 = alloca { i64, [0 x i64] }*
-  %_i3312 = alloca i64
   %_raw_array3310 = call i64* @oat_alloc_array(i64 2)
   %_array3311 = bitcast i64* %_raw_array3310 to { i64, [0 x i64] }*
   store { i64, [0 x i64] }* %_array3311, { i64, [0 x i64] }** %_seed3309

@@ -13,13 +13,13 @@ define i1 @xor(i1 %x, i1 %y) {
   store i1 %x, i1* %_x4013
   %_y4014 = alloca i1
   store i1 %y, i1* %_y4014
-  %_id4017 = load i1*, i1** %_x4013
-  %_id4019 = load i1*, i1** %_y4014
-  %_uop4018 = icmp eq i1* 0, %_id4019
+  %_id4017 = load i1, i1* %_x4013
+  %_id4019 = load i1, i1* %_y4014
+  %_uop4018 = icmp eq i1 0, %_id4019
   %_bop4016 = and i1 %_id4017, %_uop4018
-  %_id4022 = load i1*, i1** %_x4013
-  %_uop4021 = icmp eq i1* 0, %_id4022
-  %_id4023 = load i1*, i1** %_y4014
+  %_id4022 = load i1, i1* %_x4013
+  %_uop4021 = icmp eq i1 0, %_id4022
+  %_id4023 = load i1, i1* %_y4014
   %_bop4020 = and i1 %_uop4021, %_id4023
   %_bop4015 = or i1 %_bop4016, %_bop4020
   ret i1 %_bop4015
@@ -28,7 +28,7 @@ define i1 @xor(i1 %x, i1 %y) {
 define i8* @string_of_bool(i1 %b) {
   %_b4004 = alloca i1
   store i1 %b, i1* %_b4004
-  %_id4005 = load i1*, i1** %_b4004
+  %_id4005 = load i1, i1* %_b4004
   br i1 %_id4005, label %_then4006, label %_else4007
 _then4006:
   %_cstr_loc4009 = getelementptr [2 x i8], [2 x i8]* @_cstr_glb4010, i32 0, i32 0
@@ -39,23 +39,23 @@ _else4007:
 }
 
 define void @print_lfsr({ i64, [0 x i1] }* %lfsr_register, i64 %len) {
+  %_i3989 = alloca i64
   %_lfsr_register3987 = alloca { i64, [0 x i1] }*
   store { i64, [0 x i1] }* %lfsr_register, { i64, [0 x i1] }** %_lfsr_register3987
   %_len3988 = alloca i64
   store i64 %len, i64* %_len3988
-  %_i3989 = alloca i64
   store i64 0, i64* %_i3989
   br label %_start3993
 _start3993:
   %_id3991 = load i64, i64* %_i3989
-  %_id3992 = load i64*, i64** %_len3988
+  %_id3992 = load i64, i64* %_len3988
   %_bop3990 = icmp slt i64 %_id3991, %_id3992
   br i1 %_bop3990, label %_body3994, label %_end3995
 _body3994:
   %_Call_retval4000 = call i8* @string_of_bool(i1 %_idx_tmp3999)
-  %_id3996 = load { i64, [0 x i1] }**, { i64, [0 x i1] }*** %_lfsr_register3987
+  %_id3996 = load { i64, [0 x i1] }*, { i64, [0 x i1] }** %_lfsr_register3987
   %_id3997 = load i64, i64* %_i3989
-  %_index_ptr3998 = getelementptr { i64, [0 x i1] }*, { i64, [0 x i1] }** %_id3996, i32 0, i32 0, i32 1, i64 %_id3997
+  %_index_ptr3998 = getelementptr { i64, [0 x i1] }, { i64, [0 x i1] }* %_id3996, i32 0, i32 1, i64 %_id3997
   %_idx_tmp3999 = load i1, i1* %_index_ptr3998
   call void @print_string(i8* %_Call_retval4000)
   %_id4003 = load i64, i64* %_i3989
@@ -67,15 +67,15 @@ _end3995:
 }
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc3914 = alloca i64
-  store i64 %argc, i64* %_argc3914
-  %_argv3915 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv3915
   %_lfsr_register3916 = alloca { i64, [0 x i1] }*
   %_i3920 = alloca i64
   %_i3936 = alloca i64
   %_new_first3943 = alloca i1
   %_j3955 = alloca i64
+  %_argc3914 = alloca i64
+  store i64 %argc, i64* %_argc3914
+  %_argv3915 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv3915
   %_id3917 = load i64, i64* @lfsr_length
   %_raw_array3918 = call i64* @oat_alloc_array(i64 %_id3917)
   %_array3919 = bitcast i64* %_raw_array3918 to { i64, [0 x i1] }*

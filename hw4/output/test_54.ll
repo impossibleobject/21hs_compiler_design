@@ -1,15 +1,15 @@
 ; generated from: oatprograms/sieve.oat
 target triple = "x86_64-unknown-linux"
 define i64 @sieve(i64 %n) {
-  %_n3382 = alloca i64
-  store i64 %n, i64* %_n3382
   %_arr3383 = alloca { i64, [0 x i1] }*
   %_i3387 = alloca i64
   %_i3403 = alloca i64
   %_j3417 = alloca i64
   %_count3434 = alloca i64
   %_i3435 = alloca i64
-  %_id3384 = load i64*, i64** %_n3382
+  %_n3382 = alloca i64
+  store i64 %n, i64* %_n3382
+  %_id3384 = load i64, i64* %_n3382
   %_raw_array3385 = call i64* @oat_alloc_array(i64 %_id3384)
   %_array3386 = bitcast i64* %_raw_array3385 to { i64, [0 x i1] }*
   store { i64, [0 x i1] }* %_array3386, { i64, [0 x i1] }** %_arr3383
@@ -17,7 +17,7 @@ define i64 @sieve(i64 %n) {
   br label %_start3391
 _start3391:
   %_id3389 = load i64, i64* %_i3387
-  %_id3390 = load i64*, i64** %_n3382
+  %_id3390 = load i64, i64* %_n3382
   %_bop3388 = icmp slt i64 %_id3389, %_id3390
   br i1 %_bop3388, label %_body3392, label %_end3393
 _body3392:
@@ -40,7 +40,7 @@ _end3393:
   br label %_start3407
 _start3407:
   %_id3405 = load i64, i64* %_i3403
-  %_id3406 = load i64*, i64** %_n3382
+  %_id3406 = load i64, i64* %_n3382
   %_bop3404 = icmp slt i64 %_id3405, %_id3406
   br i1 %_bop3404, label %_body3408, label %_end3409
 _body3408:
@@ -56,7 +56,7 @@ _then3414:
   br label %_start3423
 _start3423:
   %_id3421 = load i64, i64* %_j3417
-  %_id3422 = load i64*, i64** %_n3382
+  %_id3422 = load i64, i64* %_n3382
   %_bop3420 = icmp slt i64 %_id3421, %_id3422
   br i1 %_bop3420, label %_body3424, label %_end3425
 _body3424:
@@ -84,7 +84,7 @@ _end3409:
   br label %_start3439
 _start3439:
   %_id3437 = load i64, i64* %_i3435
-  %_id3438 = load i64*, i64** %_n3382
+  %_id3438 = load i64, i64* %_n3382
   %_bop3436 = icmp slt i64 %_id3437, %_id3438
   br i1 %_bop3436, label %_body3440, label %_end3441
 _body3440:
@@ -111,11 +111,11 @@ _end3441:
 }
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
+  %_n3379 = alloca i64
   %_argc3377 = alloca i64
   store i64 %argc, i64* %_argc3377
   %_argv3378 = alloca { i64, [0 x i8*] }*
   store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv3378
-  %_n3379 = alloca i64
   store i64 100, i64* %_n3379
   %_id3380 = load i64, i64* %_n3379
   %_Call_retval3381 = call i64 @sieve(i64 %_id3380)

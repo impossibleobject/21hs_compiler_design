@@ -11,11 +11,11 @@ define i64 @f() {
 }
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
+  %_b1999 = alloca { i64, [0 x i64] }*
   %_argc1997 = alloca i64
   store i64 %argc, i64* %_argc1997
   %_argv1998 = alloca { i64, [0 x i8*] }*
   store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv1998
-  %_b1999 = alloca { i64, [0 x i64] }*
   %_Call_retval2000 = call i64 @f()
   %_raw_array2001 = call i64* @oat_alloc_array(i64 %_Call_retval2000)
   %_array2002 = bitcast i64* %_raw_array2001 to { i64, [0 x i64] }*

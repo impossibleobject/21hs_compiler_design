@@ -11,11 +11,11 @@ define i64 @f() {
 }
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
+  %_b2021 = alloca { i64, [0 x i64] }*
   %_argc2019 = alloca i64
   store i64 %argc, i64* %_argc2019
   %_argv2020 = alloca { i64, [0 x i8*] }*
   store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv2020
-  %_b2021 = alloca { i64, [0 x i64] }*
   %_Call_retval2022 = call i64 @f()
   %_raw_array2023 = call i64* @oat_alloc_array(i64 %_Call_retval2022)
   %_array2024 = bitcast i64* %_raw_array2023 to { i64, [0 x i64] }*

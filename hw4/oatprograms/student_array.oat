@@ -1,0 +1,14 @@
+int[] f(int[] x, int[] y, bool b) {
+  if ( b ) {
+    return x;
+  } else {
+    return y;
+  }
+}
+
+int program (int argc, string[] argv) {
+  
+  
+  
+  return 1;
+}

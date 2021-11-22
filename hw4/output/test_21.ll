@@ -12,22 +12,22 @@ define { i64, [0 x i64] }* @f({ i64, [0 x i64] }* %x, { i64, [0 x i64] }* %y, i1
   store { i64, [0 x i64] }* %y, { i64, [0 x i64] }** %_y336
   %_b337 = alloca i1
   store i1 %b, i1* %_b337
-  %_id338 = load i1*, i1** %_b337
+  %_id338 = load i1, i1* %_b337
   br i1 %_id338, label %_then339, label %_else340
 _then339:
-  %_id342 = load { i64, [0 x i64] }**, { i64, [0 x i64] }*** %_x335
+  %_id342 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_x335
   ret { i64, [0 x i64] }* %_id342
 _else340:
-  %_id343 = load { i64, [0 x i64] }**, { i64, [0 x i64] }*** %_y336
+  %_id343 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_y336
   ret { i64, [0 x i64] }* %_id343
 }
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
+  %_z320 = alloca i64
   %_argc314 = alloca i64
   store i64 %argc, i64* %_argc314
   %_argv315 = alloca { i64, [0 x i8*] }*
   store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv315
-  %_z320 = alloca i64
   %_id316 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** @x
   %_id317 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** @y
   %_Call_retval318 = call { i64, [0 x i64] }* @f({ i64, [0 x i64] }* %_id316, { i64, [0 x i64] }* %_id317, i1 1)

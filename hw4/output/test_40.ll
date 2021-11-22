@@ -3,17 +3,17 @@ target triple = "x86_64-unknown-linux"
 define i64 @f({ i64, [0 x i64] }* %a) {
   %_a1151 = alloca { i64, [0 x i64] }*
   store { i64, [0 x i64] }* %a, { i64, [0 x i64] }** %_a1151
-  %_id1152 = load { i64, [0 x i64] }**, { i64, [0 x i64] }*** %_a1151
-  %_index_ptr1153 = getelementptr { i64, [0 x i64] }*, { i64, [0 x i64] }** %_id1152, i32 0, i32 0, i32 1, i32 1
+  %_id1152 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_a1151
+  %_index_ptr1153 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id1152, i32 0, i32 1, i32 1
   %_idx_tmp1154 = load i64, i64* %_index_ptr1153
   ret i64 %_idx_tmp1154
 }
 
 define i64 @g(i64 %x) {
-  %_x1132 = alloca i64
-  store i64 %x, i64* %_x1132
   %_arr1133 = alloca { i64, [0 x i64] }*
   %_i1136 = alloca i64
+  %_x1132 = alloca i64
+  store i64 %x, i64* %_x1132
   %_raw_array1134 = call i64* @oat_alloc_array(i64 3)
   %_array1135 = bitcast i64* %_raw_array1134 to { i64, [0 x i64] }*
   store { i64, [0 x i64] }* %_array1135, { i64, [0 x i64] }** %_arr1133
@@ -24,11 +24,11 @@ _start1139:
   %_bop1137 = icmp slt i64 %_id1138, 3
   br i1 %_bop1137, label %_body1140, label %_end1141
 _body1140:
-  %_id1142 = load i64*, i64** %_x1132
+  %_id1142 = load i64, i64* %_x1132
   %_id1143 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_arr1133
   %_id1144 = load i64, i64* %_i1136
   %_index_ptr1145 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id1143, i32 0, i32 1, i64 %_id1144
-  store i64* %_id1142, i64** %_index_ptr1145
+  store i64 %_id1142, i64* %_index_ptr1145
   %_id1147 = load i64, i64* %_i1136
   %_bop1146 = add i64 %_id1147, 1
   store i64 %_bop1146, i64* %_i1136
@@ -41,16 +41,16 @@ _end1141:
 }
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc1070 = alloca i64
-  store i64 %argc, i64* %_argc1070
-  %_argv1071 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv1071
   %_a1072 = alloca { i64, [0 x i64] }*
   %_i1075 = alloca i64
   %_arr1087 = alloca { i64, [0 x i64] }*
   %_i1090 = alloca i64
   %_arr01104 = alloca { i64, [0 x i64] }*
   %_i1107 = alloca i64
+  %_argc1070 = alloca i64
+  store i64 %argc, i64* %_argc1070
+  %_argv1071 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv1071
   %_raw_array1073 = call i64* @oat_alloc_array(i64 3)
   %_array1074 = bitcast i64* %_raw_array1073 to { i64, [0 x i64] }*
   store { i64, [0 x i64] }* %_array1074, { i64, [0 x i64] }** %_a1072

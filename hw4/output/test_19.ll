@@ -12,13 +12,13 @@ define { i64, [0 x i64] }* @f({ i64, [0 x i64] }* %x, { i64, [0 x i64] }* %y, i1
   store { i64, [0 x i64] }* %y, { i64, [0 x i64] }** %_y282
   %_b283 = alloca i1
   store i1 %b, i1* %_b283
-  %_id284 = load i1*, i1** %_b283
+  %_id284 = load i1, i1* %_b283
   br i1 %_id284, label %_then285, label %_else286
 _then285:
-  %_id288 = load { i64, [0 x i64] }**, { i64, [0 x i64] }*** %_x281
+  %_id288 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_x281
   ret { i64, [0 x i64] }* %_id288
 _else286:
-  %_id289 = load { i64, [0 x i64] }**, { i64, [0 x i64] }*** %_y282
+  %_id289 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_y282
   ret { i64, [0 x i64] }* %_id289
 }
 

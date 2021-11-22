@@ -248,7 +248,9 @@ let old_student_tests = [
   ; ("oatprograms/maxsubsequence.oat", "", "107")
 ]
 
-let student_tests = [] 
+let student_tests = [
+  ("oatprograms/student_array.oat", "", "")
+] 
 
 let tests : suite =
   [ GradedTest("parse tests", 15, parse_tests);
@@ -258,7 +260,7 @@ let tests : suite =
     GradedTest("easy tests", 10, executed_oat_file easy_tests);
     GradedTest("medium tests", 10, executed_oat_file medium_tests);
     GradedTest("hard tests", 10, executed_oat_file (hard_tests @ old_student_tests));
-    GradedTest("hidden tests", 20, executed_oat_file student_tests);
-  ]
+    (* GradedTest("hidden tests", 20, executed_oat_file student_tests);*)
+  ] 
 
 let graded_tests : suite = tests
