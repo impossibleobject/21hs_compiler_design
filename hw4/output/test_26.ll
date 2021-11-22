@@ -1,31 +1,24 @@
-; generated from: oatprograms/run32.oat
+; generated from: oatprograms/run29.oat
 target triple = "x86_64-unknown-linux"
-@i = global i64 11
-
-define i64 @f() {
-  %_i433 = alloca i64
-  store i64 12, i64* %_i433
-  %_id434 = load i64, i64* %_i433
-  ret i64 %_id434
-}
-
-define i64 @g() {
-  %_i430 = alloca i64
-  store i64 10, i64* %_i430
-  %_id431 = load i64, i64* %_i430
-  ret i64 %_id431
-}
+@b = global i1 1
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc422 = alloca i64
-  store i64 %argc, i64* %_argc422
-  %_argv423 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv423
-  %_Call_retval426 = call i64 @f()
-  %_Call_retval427 = call i64 @g()
-  %_bop425 = add i64 %_Call_retval426, %_Call_retval427
-  %_bop424 = add i64 %_bop425, 11
-  ret i64 %_bop424
+  %_argc396 = alloca i64
+  store i64 %argc, i64* %_argc396
+  %_argv397 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv397
+  %_i398 = alloca i64
+  store i64 0, i64* %_i398
+  %_id399 = load i1, i1* 1
+  br i1 %_id399, label %_then400, label %_else401
+_then400:
+  store i64 1, i64* %_i398
+  br label %_end402
+_else401:
+  br label %_end402
+_end402:
+  %_id403 = load i64, i64* %_i398
+  ret i64 %_id403
 }
 
 

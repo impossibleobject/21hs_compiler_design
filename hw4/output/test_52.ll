@@ -1,118 +1,205 @@
-; generated from: oatprograms/binary_gcd.oat
+; generated from: oatprograms/binary_search.oat
 target triple = "x86_64-unknown-linux"
-define i64 @binary_gcd(i64 %x, i64 %y) {
-  %_x3459 = alloca i64
-  store i64 %x, i64* %_x3459
-  %_y3460 = alloca i64
-  store i64 %y, i64* %_y3460
-  %_id3462 = load i64, i64* %_x3459
-  %_id3463 = load i64, i64* %_y3460
-  %_bop3461 = icmp eq i64 %_id3462, %_id3463
-  br i1 %_bop3461, label %_then3464, label %_else3465
-_then3464:
-  %_id3467 = load i64, i64* %_x3459
-  ret i64 %_id3467
-_else3465:
-  br label %_end3466
-_end3466:
-  %_id3470 = load i64, i64* %_x3459
-  %_bop3469 = icmp eq i64 %_id3470, 0
-  br i1 %_bop3469, label %_then3471, label %_else3472
-_then3471:
-  %_id3474 = load i64, i64* %_y3460
-  ret i64 %_id3474
-_else3472:
-  br label %_end3473
-_end3473:
-  %_id3477 = load i64, i64* %_y3460
-  %_bop3476 = icmp eq i64 %_id3477, 0
-  br i1 %_bop3476, label %_then3478, label %_else3479
-_then3478:
-  %_id3481 = load i64, i64* %_x3459
-  ret i64 %_id3481
-_else3479:
-  br label %_end3480
-_end3480:
-  %_uop3485 = xor i64 -1, %_id3486
-  %_id3486 = load i64, i64* %_x3459
-  %_bop3484 = and i64 %_uop3485, 1
-  %_bop3483 = icmp eq i64 %_bop3484, 1
-  br i1 %_bop3483, label %_then3487, label %_else3488
-_then3487:
-  %_id3492 = load i64, i64* %_y3460
-  %_bop3491 = and i64 %_id3492, 1
-  %_bop3490 = icmp eq i64 %_bop3491, 1
-  br i1 %_bop3490, label %_then3493, label %_else3494
-_then3493:
-  %_bop3496 = lshr i64 %_id3497, 1
-  %_id3497 = load i64, i64* %_x3459
-  %_id3498 = load i64, i64* %_y3460
-  %_Call_retval3499 = call i64 @binary_gcd(i64 %_bop3496, i64 %_id3498)
-  ret i64 %_Call_retval3499
-_else3494:
-  %_bop3502 = lshr i64 %_id3503, 1
-  %_id3503 = load i64, i64* %_x3459
-  %_bop3504 = lshr i64 %_id3505, 1
-  %_id3505 = load i64, i64* %_y3460
-  %_Call_retval3506 = call i64 @binary_gcd(i64 %_bop3502, i64 %_bop3504)
-  %_bop3501 = shl i64 %_Call_retval3506, 1
-  ret i64 %_bop3501
-_end3495:
-  br label %_end3489
-_else3488:
-  br label %_end3489
-_end3489:
-  %_uop3510 = xor i64 -1, %_id3511
-  %_id3511 = load i64, i64* %_y3460
-  %_bop3509 = and i64 %_uop3510, 1
-  %_bop3508 = icmp eq i64 %_bop3509, 1
-  br i1 %_bop3508, label %_then3512, label %_else3513
-_then3512:
-  %_id3515 = load i64, i64* %_x3459
-  %_bop3516 = lshr i64 %_id3517, 1
-  %_id3517 = load i64, i64* %_y3460
-  %_Call_retval3518 = call i64 @binary_gcd(i64 %_id3515, i64 %_bop3516)
-  ret i64 %_Call_retval3518
-_else3513:
-  br label %_end3514
-_end3514:
-  %_id3521 = load i64, i64* %_x3459
-  %_id3522 = load i64, i64* %_y3460
-  %_bop3520 = icmp sgt i64 %_id3521, %_id3522
-  br i1 %_bop3520, label %_then3523, label %_else3524
-_then3523:
-  %_bop3526 = lshr i64 %_bop3527, 1
-  %_bop3527 = sub i64 %_id3528, %_id3529
-  %_id3529 = load i64, i64* %_y3460
-  %_id3528 = load i64, i64* %_x3459
-  %_id3530 = load i64, i64* %_y3460
-  %_Call_retval3531 = call i64 @binary_gcd(i64 %_bop3526, i64 %_id3530)
-  ret i64 %_Call_retval3531
-_else3524:
-  br label %_end3525
-_end3525:
-  %_bop3533 = lshr i64 %_bop3534, 1
-  %_bop3534 = sub i64 %_id3535, %_id3536
-  %_id3536 = load i64, i64* %_x3459
-  %_id3535 = load i64, i64* %_y3460
-  %_id3537 = load i64, i64* %_x3459
-  %_Call_retval3538 = call i64 @binary_gcd(i64 %_bop3533, i64 %_id3537)
-  ret i64 %_Call_retval3538
+@_cstr_glb3218 = global [9 x i8] c"Correct!\00"
+
+define i64 @euclid_division(i64 %numerator, i64 %denominator) {
+  %_numerator3265 = alloca i64
+  store i64 %numerator, i64* %_numerator3265
+  %_denominator3266 = alloca i64
+  store i64 %denominator, i64* %_denominator3266
+  %_quotient3277 = alloca i64
+  %_remainder3278 = alloca i64*
+  %_id3268 = load i64*, i64** %_denominator3266
+  %_bop3267 = icmp slt i64 %_id3268, 0
+  br i1 %_bop3267, label %_then3269, label %_else3270
+_then3269:
+  %_id3273 = load i64*, i64** %_numerator3265
+  %_uop3274 = sub i64* 0, %_id3275
+  %_id3275 = load i64*, i64** %_denominator3266
+  %_Call_retval3276 = call i64 @euclid_division(i64* %_id3273, i64* %_uop3274)
+  %_uop3272 = sub i64 0, %_Call_retval3276
+  ret i64 %_uop3272
+_else3270:
+  br label %_end3271
+_end3271:
+  store i64 0, i64* %_quotient3277
+  %_id3279 = load i64*, i64** %_numerator3265
+  store i64* %_id3279, i64** %_remainder3278
+  %_id3281 = load i64*, i64** %_numerator3265
+  %_bop3280 = icmp slt i64 %_id3281, 0
+  br i1 %_bop3280, label %_then3282, label %_else3283
+_then3282:
+  %_id3286 = load i64*, i64** %_numerator3265
+  %_uop3285 = sub i64* 0, %_id3286
+  store i64* %_uop3285, i64** %_remainder3278
+  br label %_start3290
+_start3290:
+  %_id3288 = load i64*, i64** %_remainder3278
+  %_id3289 = load i64*, i64** %_denominator3266
+  %_bop3287 = icmp sge i64 %_id3288, %_id3289
+  br i1 %_bop3287, label %_body3291, label %_end3292
+_body3291:
+  %_id3294 = load i64, i64* %_quotient3277
+  %_bop3293 = add i64 %_id3294, 1
+  store i64 %_bop3293, i64* %_quotient3277
+  %_id3296 = load i64*, i64** %_remainder3278
+  %_id3297 = load i64*, i64** %_denominator3266
+  %_bop3295 = sub i64 %_id3296, %_id3297
+  store i64 %_bop3295, i64* %_remainder3278
+  br label %_start3290
+_end3292:
+  %_id3299 = load i64*, i64** %_remainder3278
+  %_bop3298 = icmp eq i64 %_id3299, 0
+  br i1 %_bop3298, label %_then3300, label %_else3301
+_then3300:
+  %_id3304 = load i64, i64* %_quotient3277
+  %_uop3303 = sub i64 0, %_id3304
+  ret i64 %_uop3303
+_else3301:
+  %_id3307 = load i64, i64* %_quotient3277
+  %_uop3306 = sub i64 0, %_id3307
+  %_bop3305 = sub i64 %_uop3306, 1
+  ret i64 %_bop3305
+_end3302:
+  br label %_end3284
+_else3283:
+  br label %_end3284
+_end3284:
+  br label %_start3311
+_start3311:
+  %_id3309 = load i64*, i64** %_remainder3278
+  %_id3310 = load i64*, i64** %_denominator3266
+  %_bop3308 = icmp sge i64 %_id3309, %_id3310
+  br i1 %_bop3308, label %_body3312, label %_end3313
+_body3312:
+  %_id3315 = load i64, i64* %_quotient3277
+  %_bop3314 = add i64 %_id3315, 1
+  store i64 %_bop3314, i64* %_quotient3277
+  %_id3317 = load i64*, i64** %_remainder3278
+  %_id3318 = load i64*, i64** %_denominator3266
+  %_bop3316 = sub i64 %_id3317, %_id3318
+  store i64 %_bop3316, i64* %_remainder3278
+  br label %_start3311
+_end3313:
+  %_id3319 = load i64, i64* %_quotient3277
+  ret i64 %_id3319
+}
+
+define i1 @binary_search({ i64, [0 x i64] }* %input, i64 %key, i64 %min, i64 %max) {
+  %_input3220 = alloca { i64, [0 x i64] }*
+  store { i64, [0 x i64] }* %input, { i64, [0 x i64] }** %_input3220
+  %_key3221 = alloca i64
+  store i64 %key, i64* %_key3221
+  %_min3222 = alloca i64
+  store i64 %min, i64* %_min3222
+  %_max3223 = alloca i64
+  store i64 %max, i64* %_max3223
+  %_midpt3230 = alloca i64
+  %_id3225 = load i64*, i64** %_max3223
+  %_id3226 = load i64*, i64** %_min3222
+  %_bop3224 = icmp slt i64 %_id3225, %_id3226
+  br i1 %_bop3224, label %_then3227, label %_else3228
+_then3227:
+  ret i1 0
+_else3228:
+  br label %_end3229
+_end3229:
+  %_bop3231 = add i64 %_id3232, %_id3233
+  %_id3233 = load i64*, i64** %_min3222
+  %_id3232 = load i64*, i64** %_max3223
+  %_Call_retval3234 = call i64 @euclid_division(i64 %_bop3231, i64 2)
+  store i64 %_Call_retval3234, i64* %_midpt3230
+  %_id3236 = load { i64, [0 x i64] }**, { i64, [0 x i64] }*** %_input3220
+  %_id3237 = load i64, i64* %_midpt3230
+  %_index_ptr3238 = getelementptr { i64, [0 x i64] }*, { i64, [0 x i64] }** %_id3236, i32 0, i32 0, i32 1, i64 %_id3237
+  %_idx_tmp3240 = load i64, i64* %_index_ptr3238
+  %_id3239 = load i64*, i64** %_key3221
+  %_bop3235 = icmp sgt i64 %_idx_tmp3240, %_id3239
+  br i1 %_bop3235, label %_then3241, label %_else3242
+_then3241:
+  %_id3244 = load { i64, [0 x i64] }**, { i64, [0 x i64] }*** %_input3220
+  %_id3245 = load i64*, i64** %_key3221
+  %_id3246 = load i64*, i64** %_min3222
+  %_bop3247 = sub i64 %_id3248, 1
+  %_id3248 = load i64, i64* %_midpt3230
+  %_Call_retval3249 = call i1 @binary_search({ i64, [0 x i64] }** %_id3244, i64* %_id3245, i64* %_id3246, i64 %_bop3247)
+  ret i1 %_Call_retval3249
+_else3242:
+  br label %_end3243
+_end3243:
+  %_id3251 = load { i64, [0 x i64] }**, { i64, [0 x i64] }*** %_input3220
+  %_id3252 = load i64, i64* %_midpt3230
+  %_index_ptr3253 = getelementptr { i64, [0 x i64] }*, { i64, [0 x i64] }** %_id3251, i32 0, i32 0, i32 1, i64 %_id3252
+  %_idx_tmp3255 = load i64, i64* %_index_ptr3253
+  %_id3254 = load i64*, i64** %_key3221
+  %_bop3250 = icmp slt i64 %_idx_tmp3255, %_id3254
+  br i1 %_bop3250, label %_then3256, label %_else3257
+_then3256:
+  %_id3259 = load { i64, [0 x i64] }**, { i64, [0 x i64] }*** %_input3220
+  %_id3260 = load i64*, i64** %_key3221
+  %_bop3261 = add i64 %_id3262, 1
+  %_id3262 = load i64, i64* %_midpt3230
+  %_id3263 = load i64*, i64** %_max3223
+  %_Call_retval3264 = call i1 @binary_search({ i64, [0 x i64] }** %_id3259, i64* %_id3260, i64 %_bop3261, i64* %_id3263)
+  ret i1 %_Call_retval3264
+_else3257:
+  ret i1 1
 }
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc3451 = alloca i64
-  store i64 %argc, i64* %_argc3451
-  %_argv3452 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv3452
-  %_x3453 = alloca i64
-  %_y3454 = alloca i64
-  store i64 21, i64* %_x3453
-  store i64 15, i64* %_y3454
-  %_id3455 = load i64, i64* %_x3453
-  %_id3456 = load i64, i64* %_y3454
-  %_Call_retval3457 = call i64 @binary_gcd(i64 %_id3455, i64 %_id3456)
-  ret i64 %_Call_retval3457
+  %_argc3181 = alloca i64
+  store i64 %argc, i64* %_argc3181
+  %_argv3182 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv3182
+  %_test_array3183 = alloca { i64, [0 x i64] }*
+  %_i3186 = alloca i64
+  %_even3200 = alloca i1
+  %_odd3203 = alloca i1
+  %_raw_array3184 = call i64* @oat_alloc_array(i64 100)
+  %_array3185 = bitcast i64* %_raw_array3184 to { i64, [0 x i64] }*
+  store { i64, [0 x i64] }* %_array3185, { i64, [0 x i64] }** %_test_array3183
+  store i64 0, i64* %_i3186
+  br label %_start3189
+_start3189:
+  %_id3188 = load i64, i64* %_i3186
+  %_bop3187 = icmp slt i64 %_id3188, 100
+  br i1 %_bop3187, label %_body3190, label %_end3191
+_body3190:
+  %_id3194 = load i64, i64* %_i3186
+  %_bop3193 = mul i64 2, %_id3194
+  %_bop3192 = add i64 %_bop3193, 1
+  %_id3195 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_test_array3183
+  %_id3196 = load i64, i64* %_i3186
+  %_index_ptr3197 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id3195, i32 0, i32 1, i64 %_id3196
+  store i64 %_bop3192, i64* %_index_ptr3197
+  %_id3199 = load i64, i64* %_i3186
+  %_bop3198 = add i64 %_id3199, 1
+  store i64 %_bop3198, i64* %_i3186
+  br label %_start3189
+_end3191:
+  %_id3201 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_test_array3183
+  %_Call_retval3202 = call i1 @binary_search({ i64, [0 x i64] }* %_id3201, i64 80, i64 0, i64 99)
+  store i1 %_Call_retval3202, i1* %_even3200
+  %_id3204 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_test_array3183
+  %_Call_retval3205 = call i1 @binary_search({ i64, [0 x i64] }* %_id3204, i64 81, i64 0, i64 99)
+  store i1 %_Call_retval3205, i1* %_odd3203
+  %_id3209 = load i1, i1* %_even3200
+  %_id3210 = load i1, i1* %_odd3203
+  %_bop3208 = and i1 %_id3209, %_id3210
+  %_uop3207 = icmp eq i1 0, %_bop3208
+  %_id3212 = load i1, i1* %_even3200
+  %_id3213 = load i1, i1* %_odd3203
+  %_bop3211 = or i1 %_id3212, %_id3213
+  %_bop3206 = and i1 %_uop3207, %_bop3211
+  br i1 %_bop3206, label %_then3214, label %_else3215
+_then3214:
+  %_cstr_loc3217 = getelementptr [9 x i8], [9 x i8]* @_cstr_glb3218, i32 0, i32 0
+  call void @print_string(i8* %_cstr_loc3217)
+  br label %_end3216
+_else3215:
+  br label %_end3216
+_end3216:
+  ret i64 0
 }
 
 

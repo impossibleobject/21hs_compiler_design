@@ -1,37 +1,14 @@
-; generated from: oatprograms/fact.oat
+; generated from: oatprograms/run50.oat
 target triple = "x86_64-unknown-linux"
-define i64 @fact(i64 %x) {
-  %_x759 = alloca i64
-  store i64 %x, i64* %_x759
-  %_acc760 = alloca i64
-  store i64 1, i64* %_acc760
-  br label %_start763
-_start763:
-  %_id762 = load i64, i64* %_x759
-  %_bop761 = icmp sgt i64 %_id762, 0
-  br i1 %_bop761, label %_body764, label %_end765
-_body764:
-  %_id768 = load i64, i64* %_acc760
-  %_id769 = load i64, i64* %_x759
-  %_bop767 = mul i64 %_id768, %_id769
-  store i64 %_bop767, i64* %_acc760
-  %_id772 = load i64, i64* %_x759
-  %_bop771 = sub i64 %_id772, 1
-  store i64 %_bop771, i64* %_x759
-  br label %_start763
-_end765:
-  %_id773 = load i64, i64* %_acc760
-  ret i64 %_id773
-}
+@_cstr_glb732 = global [6 x i8] c"abcde\00"
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc753 = alloca i64
-  store i64 %argc, i64* %_argc753
-  %_argv754 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv754
-  %_Call_retval756 = call i8* @string_of_int(i64 %_Call_retval755)
-  %_Call_retval755 = call i64 @fact(i64 5)
-  call void @print_string(i8* %_Call_retval756)
+  %_argc729 = alloca i64
+  store i64 %argc, i64* %_argc729
+  %_argv730 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv730
+  %_cstr_loc731 = getelementptr [6 x i8], [6 x i8]* @_cstr_glb732, i32 0, i32 0
+  call void @print_string(i8* %_cstr_loc731)
   ret i64 0
 }
 

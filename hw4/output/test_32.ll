@@ -1,15 +1,28 @@
-; generated from: oatprograms/run50.oat
+; generated from: oatprograms/run40.oat
 target triple = "x86_64-unknown-linux"
-@_cstr_glb740 = global [6 x i8] c"abcde\00"
+@i = global i64 8
+
+define i64 @f() {
+  %_j618 = alloca i64
+  store i64 0, i64* %_j618
+  %_Call_retval619 = call i64 @g()
+  store i64 %_Call_retval619, i64* %_j618
+  %_id620 = load i64, i64* %_j618
+  ret i64 %_id620
+}
+
+define i64 @g() {
+  %_id617 = load i64, i64* 8
+  ret i64 %_id617
+}
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc737 = alloca i64
-  store i64 %argc, i64* %_argc737
-  %_argv738 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv738
-  %_cstr_loc739 = getelementptr [6 x i8], [6 x i8]* @_cstr_glb740, i32 0, i32 0
-  call void @print_string(i8* %_cstr_loc739)
-  ret i64 0
+  %_argc614 = alloca i64
+  store i64 %argc, i64* %_argc614
+  %_argv615 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv615
+  %_Call_retval616 = call i64 @f()
+  ret i64 %_Call_retval616
 }
 
 

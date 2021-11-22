@@ -1,30 +1,42 @@
-; generated from: oatprograms/lib9.oat
+; generated from: oatprograms/lib4.oat
 target triple = "x86_64-unknown-linux"
+@str = global [6 x i8] c"hello\00"
+
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc1937 = alloca i64
-  store i64 %argc, i64* %_argc1937
-  %_argv1938 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv1938
-  %_i1939 = alloca i64
-  store i64 1, i64* %_i1939
-  br label %_start1943
-_start1943:
-  %_id1941 = load i64, i64* %_i1939
-  %_id1942 = load i64, i64* %_argc1937
-  %_bop1940 = icmp slt i64 %_id1941, %_id1942
-  br i1 %_bop1940, label %_body1944, label %_end1945
-_body1944:
-  %_index_ptr1948 = getelementptr { i64, [0 x i8*] }, { i64, [0 x i8*] }* %_id1946, i32 0, i32 1, i64 %_id1947
-  %_id1947 = load i64, i64* %_i1939
-  %_id1946 = load { i64, [0 x i8*] }*, { i64, [0 x i8*] }** %_argv1938
-  call void @print_string(i8** %_index_ptr1948)
-  %_id1952 = load i64, i64* %_i1939
-  %_bop1951 = add i64 %_id1952, 1
-  store i64 %_bop1951, i64* %_i1939
-  br label %_start1943
-_end1945:
-  %_id1953 = load i64, i64* %_argc1937
-  ret i64 %_id1953
+  %_argc2067 = alloca i64
+  store i64 %argc, i64* %_argc2067
+  %_argv2068 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv2068
+  %_arr2069 = alloca { i64, [0 x i64] }*
+  %_s2072 = alloca i64
+  %_i2073 = alloca i64
+  %_id2070 = load [6 x i8], [6 x i8]* @str
+  %_Call_retval2071 = call { i64, [0 x i64] }* @array_of_string([6 x i8] %_id2070)
+  store { i64, [0 x i64] }* %_Call_retval2071, { i64, [0 x i64] }** %_arr2069
+  store i64 0, i64* %_s2072
+  store i64 0, i64* %_i2073
+  br label %_start2076
+_start2076:
+  %_id2075 = load i64, i64* %_i2073
+  %_bop2074 = icmp slt i64 %_id2075, 5
+  br i1 %_bop2074, label %_body2077, label %_end2078
+_body2077:
+  %_id2080 = load i64, i64* %_s2072
+  %_id2081 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_arr2069
+  %_id2082 = load i64, i64* %_i2073
+  %_index_ptr2083 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id2081, i32 0, i32 1, i64 %_id2082
+  %_idx_tmp2084 = load i64, i64* %_index_ptr2083
+  %_bop2079 = add i64 %_id2080, %_idx_tmp2084
+  store i64 %_bop2079, i64* %_s2072
+  %_id2086 = load i64, i64* %_i2073
+  %_bop2085 = add i64 %_id2086, 1
+  store i64 %_bop2085, i64* %_i2073
+  br label %_start2076
+_end2078:
+  %_id2087 = load i64, i64* %_s2072
+  call void @print_int(i64 %_id2087)
+  %_id2089 = load i64, i64* %_s2072
+  ret i64 %_id2089
 }
 
 
