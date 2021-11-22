@@ -1,31 +1,31 @@
 ; generated from: oatprograms/lib9.oat
 target triple = "x86_64-unknown-linux"
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %i = alloca i64
-  %_argc2063 = alloca i64
-  store i64 %argc, i64* %_argc2063
-  %_argv2064 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv2064
-  store i64 1, i64* %i
-  br label %_start2068
-_start2068:
-  %_id2066 = load i64, i64* %i
-  %_id2067 = load i64, i64* %_argc2063
-  %_bop2065 = icmp slt i64 %_id2066, %_id2067
-  br i1 %_bop2065, label %_body2069, label %_end2070
-_body2069:
-  %_idx_tmp2074 = load i8*, i8** %_index_ptr2073
-  %_index_ptr2073 = getelementptr { i64, [0 x i8*] }, { i64, [0 x i8*] }* %_id2071, i32 0, i32 1, i64 %_id2072
-  %_id2072 = load i64, i64* %i
-  %_id2071 = load { i64, [0 x i8*] }*, { i64, [0 x i8*] }** %_argv2064
-  call void @print_string(i8* %_idx_tmp2074)
-  %_id2077 = load i64, i64* %i
-  %_bop2076 = add i64 %_id2077, 1
-  store i64 %_bop2076, i64* %i
-  br label %_start2068
-_end2070:
-  %_id2078 = load i64, i64* %_argc2063
-  ret i64 %_id2078
+  %_i2179 = alloca i64
+  %_argc2177 = alloca i64
+  store i64 %argc, i64* %_argc2177
+  %_argv2178 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv2178
+  store i64 1, i64* %_i2179
+  br label %_start2183
+_start2183:
+  %_id2181 = load i64, i64* %_i2179
+  %_id2182 = load i64, i64* %_argc2177
+  %_bop2180 = icmp slt i64 %_id2181, %_id2182
+  br i1 %_bop2180, label %_body2184, label %_end2185
+_body2184:
+  %_id2186 = load { i64, [0 x i8*] }*, { i64, [0 x i8*] }** %_argv2178
+  %_id2187 = load i64, i64* %_i2179
+  %_index_ptr2188 = getelementptr { i64, [0 x i8*] }, { i64, [0 x i8*] }* %_id2186, i32 0, i32 1, i64 %_id2187
+  %_idx_tmp2189 = load i8*, i8** %_index_ptr2188
+  call void @print_string(i8* %_idx_tmp2189)
+  %_id2192 = load i64, i64* %_i2179
+  %_bop2191 = add i64 %_id2192, 1
+  store i64 %_bop2191, i64* %_i2179
+  br label %_start2183
+_end2185:
+  %_id2193 = load i64, i64* %_argc2177
+  ret i64 %_id2193
 }
 
 

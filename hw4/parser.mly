@@ -163,10 +163,10 @@ exp:
   | b=FALSE             { loc $startpos $endpos @@ CBool false }
   | t=rtyp NULL         { loc $startpos $endpos @@ CNull t }
   | s=STRING            { loc $startpos $endpos @@ CStr s }
-  | NEW t=ty LBRACKET e=exp RBRACKET       
-                        { loc $startpos $endpos @@ NewArr (t, e)}
   | NEW t=ty LBRACKET RBRACKET LBRACE ls=separated_list(COMMA, exp) RBRACE
                         { loc $startpos $endpos @@ CArr (t, ls)} 
+  | NEW t=ty LBRACKET e=exp RBRACKET       
+                        { loc $startpos $endpos @@ NewArr (t, e)}
   | e1=exp b=bop e2=exp { loc $startpos $endpos @@ Bop (b, e1, e2) }
   | u=uop e=exp         { loc $startpos $endpos @@ Uop (u, e) }
   | id=IDENT            { loc $startpos $endpos @@ Id id }

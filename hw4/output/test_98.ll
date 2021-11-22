@@ -1,118 +1,118 @@
 ; generated from: oatprograms/binary_gcd.oat
 target triple = "x86_64-unknown-linux"
 define i64 @binary_gcd(i64 %x, i64 %y) {
-  %_x3628 = alloca i64
-  store i64 %x, i64* %_x3628
-  %_y3629 = alloca i64
-  store i64 %y, i64* %_y3629
-  %_id3631 = load i64, i64* %_x3628
-  %_id3632 = load i64, i64* %_y3629
-  %_bop3630 = icmp eq i64 %_id3631, %_id3632
-  br i1 %_bop3630, label %_then3633, label %_else3634
-_then3633:
-  %_id3636 = load i64, i64* %_x3628
-  ret i64 %_id3636
-_else3634:
-  br label %_end3635
-_end3635:
-  %_id3638 = load i64, i64* %_x3628
-  %_bop3637 = icmp eq i64 %_id3638, 0
-  br i1 %_bop3637, label %_then3639, label %_else3640
-_then3639:
-  %_id3642 = load i64, i64* %_y3629
-  ret i64 %_id3642
-_else3640:
-  br label %_end3641
-_end3641:
-  %_id3644 = load i64, i64* %_y3629
-  %_bop3643 = icmp eq i64 %_id3644, 0
-  br i1 %_bop3643, label %_then3645, label %_else3646
-_then3645:
-  %_id3648 = load i64, i64* %_x3628
-  ret i64 %_id3648
-_else3646:
-  br label %_end3647
-_end3647:
-  %_id3652 = load i64, i64* %_x3628
-  %_uop3651 = xor i64 %_id3652, -1
-  %_bop3650 = and i64 %_uop3651, 1
-  %_bop3649 = icmp eq i64 %_bop3650, 1
-  br i1 %_bop3649, label %_then3653, label %_else3654
-_then3653:
-  %_id3658 = load i64, i64* %_y3629
-  %_bop3657 = and i64 %_id3658, 1
-  %_bop3656 = icmp eq i64 %_bop3657, 1
-  br i1 %_bop3656, label %_then3659, label %_else3660
-_then3659:
-  %_bop3662 = lshr i64 %_id3663, 1
-  %_id3663 = load i64, i64* %_x3628
-  %_id3664 = load i64, i64* %_y3629
-  %_Call_retval3665 = call i64 @binary_gcd(i64 %_bop3662, i64 %_id3664)
-  ret i64 %_Call_retval3665
-_else3660:
-  %_bop3667 = lshr i64 %_id3668, 1
-  %_id3668 = load i64, i64* %_x3628
-  %_bop3669 = lshr i64 %_id3670, 1
-  %_id3670 = load i64, i64* %_y3629
-  %_Call_retval3671 = call i64 @binary_gcd(i64 %_bop3667, i64 %_bop3669)
-  %_bop3666 = shl i64 %_Call_retval3671, 1
-  ret i64 %_bop3666
-_end3661:
-  br label %_end3655
-_else3654:
-  br label %_end3655
-_end3655:
-  %_id3675 = load i64, i64* %_y3629
-  %_uop3674 = xor i64 %_id3675, -1
-  %_bop3673 = and i64 %_uop3674, 1
-  %_bop3672 = icmp eq i64 %_bop3673, 1
-  br i1 %_bop3672, label %_then3676, label %_else3677
-_then3676:
-  %_id3679 = load i64, i64* %_x3628
-  %_bop3680 = lshr i64 %_id3681, 1
-  %_id3681 = load i64, i64* %_y3629
-  %_Call_retval3682 = call i64 @binary_gcd(i64 %_id3679, i64 %_bop3680)
-  ret i64 %_Call_retval3682
-_else3677:
-  br label %_end3678
-_end3678:
-  %_id3684 = load i64, i64* %_x3628
-  %_id3685 = load i64, i64* %_y3629
-  %_bop3683 = icmp sgt i64 %_id3684, %_id3685
-  br i1 %_bop3683, label %_then3686, label %_else3687
-_then3686:
-  %_bop3689 = lshr i64 %_bop3690, 1
-  %_bop3690 = sub i64 %_id3691, %_id3692
-  %_id3692 = load i64, i64* %_y3629
-  %_id3691 = load i64, i64* %_x3628
-  %_id3693 = load i64, i64* %_y3629
-  %_Call_retval3694 = call i64 @binary_gcd(i64 %_bop3689, i64 %_id3693)
-  ret i64 %_Call_retval3694
-_else3687:
-  br label %_end3688
-_end3688:
-  %_bop3695 = lshr i64 %_bop3696, 1
-  %_bop3696 = sub i64 %_id3697, %_id3698
-  %_id3698 = load i64, i64* %_x3628
-  %_id3697 = load i64, i64* %_y3629
-  %_id3699 = load i64, i64* %_x3628
-  %_Call_retval3700 = call i64 @binary_gcd(i64 %_bop3695, i64 %_id3699)
-  ret i64 %_Call_retval3700
+  %_x3844 = alloca i64
+  store i64 %x, i64* %_x3844
+  %_y3845 = alloca i64
+  store i64 %y, i64* %_y3845
+  %_id3847 = load i64, i64* %_x3844
+  %_id3848 = load i64, i64* %_y3845
+  %_bop3846 = icmp eq i64 %_id3847, %_id3848
+  br i1 %_bop3846, label %_then3849, label %_else3850
+_then3849:
+  %_id3852 = load i64, i64* %_x3844
+  ret i64 %_id3852
+_else3850:
+  br label %_end3851
+_end3851:
+  %_id3854 = load i64, i64* %_x3844
+  %_bop3853 = icmp eq i64 %_id3854, 0
+  br i1 %_bop3853, label %_then3855, label %_else3856
+_then3855:
+  %_id3858 = load i64, i64* %_y3845
+  ret i64 %_id3858
+_else3856:
+  br label %_end3857
+_end3857:
+  %_id3860 = load i64, i64* %_y3845
+  %_bop3859 = icmp eq i64 %_id3860, 0
+  br i1 %_bop3859, label %_then3861, label %_else3862
+_then3861:
+  %_id3864 = load i64, i64* %_x3844
+  ret i64 %_id3864
+_else3862:
+  br label %_end3863
+_end3863:
+  %_id3868 = load i64, i64* %_x3844
+  %_uop3867 = xor i64 %_id3868, -1
+  %_bop3866 = and i64 %_uop3867, 1
+  %_bop3865 = icmp eq i64 %_bop3866, 1
+  br i1 %_bop3865, label %_then3869, label %_else3870
+_then3869:
+  %_id3874 = load i64, i64* %_y3845
+  %_bop3873 = and i64 %_id3874, 1
+  %_bop3872 = icmp eq i64 %_bop3873, 1
+  br i1 %_bop3872, label %_then3875, label %_else3876
+_then3875:
+  %_id3880 = load i64, i64* %_y3845
+  %_id3879 = load i64, i64* %_x3844
+  %_bop3878 = lshr i64 %_id3879, 1
+  %_Call_retval3881 = call i64 @binary_gcd(i64 %_bop3878, i64 %_id3880)
+  ret i64 %_Call_retval3881
+_else3876:
+  %_id3886 = load i64, i64* %_y3845
+  %_bop3885 = lshr i64 %_id3886, 1
+  %_id3884 = load i64, i64* %_x3844
+  %_bop3883 = lshr i64 %_id3884, 1
+  %_Call_retval3887 = call i64 @binary_gcd(i64 %_bop3883, i64 %_bop3885)
+  %_bop3882 = shl i64 %_Call_retval3887, 1
+  ret i64 %_bop3882
+_end3877:
+  br label %_end3871
+_else3870:
+  br label %_end3871
+_end3871:
+  %_id3891 = load i64, i64* %_y3845
+  %_uop3890 = xor i64 %_id3891, -1
+  %_bop3889 = and i64 %_uop3890, 1
+  %_bop3888 = icmp eq i64 %_bop3889, 1
+  br i1 %_bop3888, label %_then3892, label %_else3893
+_then3892:
+  %_id3897 = load i64, i64* %_y3845
+  %_bop3896 = lshr i64 %_id3897, 1
+  %_id3895 = load i64, i64* %_x3844
+  %_Call_retval3898 = call i64 @binary_gcd(i64 %_id3895, i64 %_bop3896)
+  ret i64 %_Call_retval3898
+_else3893:
+  br label %_end3894
+_end3894:
+  %_id3900 = load i64, i64* %_x3844
+  %_id3901 = load i64, i64* %_y3845
+  %_bop3899 = icmp sgt i64 %_id3900, %_id3901
+  br i1 %_bop3899, label %_then3902, label %_else3903
+_then3902:
+  %_id3909 = load i64, i64* %_y3845
+  %_id3907 = load i64, i64* %_x3844
+  %_id3908 = load i64, i64* %_y3845
+  %_bop3906 = sub i64 %_id3907, %_id3908
+  %_bop3905 = lshr i64 %_bop3906, 1
+  %_Call_retval3910 = call i64 @binary_gcd(i64 %_bop3905, i64 %_id3909)
+  ret i64 %_Call_retval3910
+_else3903:
+  br label %_end3904
+_end3904:
+  %_id3915 = load i64, i64* %_x3844
+  %_id3913 = load i64, i64* %_y3845
+  %_id3914 = load i64, i64* %_x3844
+  %_bop3912 = sub i64 %_id3913, %_id3914
+  %_bop3911 = lshr i64 %_bop3912, 1
+  %_Call_retval3916 = call i64 @binary_gcd(i64 %_bop3911, i64 %_id3915)
+  ret i64 %_Call_retval3916
 }
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %x = alloca i64
-  %y = alloca i64
-  %_argc3623 = alloca i64
-  store i64 %argc, i64* %_argc3623
-  %_argv3624 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv3624
-  store i64 21, i64* %x
-  store i64 15, i64* %y
-  %_id3625 = load i64, i64* %x
-  %_id3626 = load i64, i64* %y
-  %_Call_retval3627 = call i64 @binary_gcd(i64 %_id3625, i64 %_id3626)
-  ret i64 %_Call_retval3627
+  %_x3839 = alloca i64
+  %_y3840 = alloca i64
+  %_argc3837 = alloca i64
+  store i64 %argc, i64* %_argc3837
+  %_argv3838 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv3838
+  store i64 21, i64* %_x3839
+  store i64 15, i64* %_y3840
+  %_id3842 = load i64, i64* %_y3840
+  %_id3841 = load i64, i64* %_x3839
+  %_Call_retval3843 = call i64 @binary_gcd(i64 %_id3841, i64 %_id3842)
+  ret i64 %_Call_retval3843
 }
 
 

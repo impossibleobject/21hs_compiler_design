@@ -1,13 +1,13 @@
 ; generated from: oatprograms/globals5.oat
 target triple = "x86_64-unknown-linux"
-@s = global i8* bitcast ([7 x i8]* @_gstr175 to i8*)
-@_gstr175 = global [7 x i8] c"hello!\00"
+@s = global i8* bitcast ([7 x i8]* @_gstr187 to i8*)
+@_gstr187 = global [7 x i8] c"hello!\00"
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %args) {
-  %_argc173 = alloca i64
-  store i64 %argc, i64* %_argc173
-  %_args174 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %args, { i64, [0 x i8*] }** %_args174
+  %_argc185 = alloca i64
+  store i64 %argc, i64* %_argc185
+  %_args186 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %args, { i64, [0 x i8*] }** %_args186
   ret i64 17
 }
 

@@ -406,19 +406,24 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
                end
     | Index (en1, en2) -> 
       let ty1, op1_raw, s1_op = cmp_exp c en1 in (*F: need to compile id part, example case: arrayargs1.oat*)
+      (* print_endline("type of en1 is: " ^ string_of_ty ty1); *)
       let op1, s1_idx = op_is_idx en1 ty1 op1_raw in
       let s1 = s1_op >@ s1_idx in
       let ty2, op2, s2 = cmp_exp c en2 in
+      (* print_endline("type of en2 is: " ^ string_of_ty ty2); *)
       (* print_endline("ty1 gotten: " ^ string_of_ty ty1 ^ " and op: " ^ string_of_operand op1); *)
  
       let uid = gensym "index_ptr" in 
-      if((ty2 <> I64) && (unpack_ptr ty2 <> I64)) then failwith "index op not Int64";
-
+      (* if((ty2 <> I64) && (unpack_ptr ty2 <> I64)) then failwith "index op not Int64"; *)
+      (* print_endline("new call of get_elem_ty with ty: " ^ string_of_ty ty1);
+       *)
       let rec get_elem_ty (ty:Ll.ty) (acc:Ll.operand list) : (Ll.ty * Ll.operand list) =
+        (* print_endline("calling get_elem_ty with: " ^ string_of_ty ty); *)
         begin match ty with
           | Ptr t -> get_elem_ty t (acc @ [Const 0L])
-          | Struct [_; Array (si, st)] -> (st, acc @ [Const 1L]) 
-          | _ -> failwith "cmp_exp index, not well formed type"
+          | Struct [I64 ; t] -> get_elem_ty t (acc @ [Const 1L])
+          | Array (_, t) -> (t, acc)
+          | _ -> failwith ("cmp_exp index, not well formed type" ^ string_of_ty ty)
         end in
       let elem_ty, idx_list = get_elem_ty ty1 [] in
       (* print_endline("elem type: " ^ string_of_ty elem_ty); *)
@@ -445,7 +450,7 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
       let arg_tyops = List.map (fun (a, b, _) -> (a,b)) arg_tuples in
       let stream_ls = List.map (fun (_, _, c) -> c) arg_tuples in
       let retval_uid = gensym "Call_retval" in
-      let stream = List.rev (List.concat stream_ls) >@ 
+      let stream = (List.concat stream_ls) >@ 
       [I (retval_uid, Call (rty, rop, arg_tyops))] in
       (rty, Id retval_uid, stream)
     | Bop (binop,en1,en2) -> 
@@ -505,13 +510,13 @@ let rec cmp_exp (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.operand * stream =
 
 let rec cmp_stmt (c:Ctxt.t) (rt:Ll.ty) (stmt:Ast.stmt node) : Ctxt.t * stream =
   begin match stmt.elt with
-    | Decl (id, en)   -> (* let uid = gensym id in  *)(*add op_is_idx, done*)
+    | Decl (id, en)   -> let uid = gensym id in (*add op_is_idx, done*)
                          let ty, raw_op, s_op = cmp_exp c en in
                          let op, s_idx = op_is_idx en ty raw_op in
                          let s = s_op >@ s_idx in
-                         let c_new = Ctxt.add c id (ty, Id id) in
+                         let c_new = Ctxt.add c id (ty, Id uid) in
                         (*print_endline("cmp_stmt: type of uid: " ^ (string_of_ty ty)); *)
-                         (c_new, s >@ [E (id, Alloca ty)] >@ [I ("", Store (ty, op, Id id))])
+                         (c_new, s >@ [E (uid, Alloca ty)] >@ [I ("", Store (ty, op, Id uid))])
     | Assn (lhs, rhs) -> 
                          let ty2, op2_raw, s2_op = cmp_exp c rhs in (*add op_is_idx, add case dist similar to photo, done*)
                          let op2, s2_idx = op_is_idx rhs ty2 op2_raw in
@@ -562,8 +567,11 @@ let rec cmp_stmt (c:Ctxt.t) (rt:Ll.ty) (stmt:Ast.stmt node) : Ctxt.t * stream =
                         end in
                      (c, stream >@ insn >@ [T (Ret (rt, Some rop))]) *)
     | If (ec, s_then, s_else) ->
+      (* print_endline("ec is: " ^ Astlib.string_of_exp ec); *)
       let ty, op_raw, s_op = cmp_exp c ec in (*add op_is_idx, done*)
+      (* print_endline("bool exp has ty: " ^ string_of_ty ty); *)
       let op, s_idx = op_is_idx ec ty op_raw in
+      (* print_endline("Ll op is: " ^ string_of_operand op); *)
       let s = s_op >@ s_idx in
       let then_lbl = gensym "then" in
       let else_lbl = gensym "else" in

@@ -1,22 +1,22 @@
 ; generated from: oatprograms/easyrun6.oat
 target triple = "x86_64-unknown-linux"
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc51 = alloca i64
-  store i64 %argc, i64* %_argc51
-  %_argv52 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv52
-  %_uop54 = icmp eq i1 0, 1
-  %_uop58 = sub i64 0, 4
-  %_bop57 = add i64 %_uop58, 5
-  %_bop56 = icmp sgt i64 %_bop57, 0
-  %_bop60 = mul i64 6, 4
-  %_bop59 = icmp slt i64 %_bop60, 25
-  %_bop55 = and i1 %_bop56, %_bop59
-  %_bop53 = or i1 %_uop54, %_bop55
-  br i1 %_bop53, label %_then61, label %_else62
-_then61:
+  %_argc57 = alloca i64
+  store i64 %argc, i64* %_argc57
+  %_argv58 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv58
+  %_uop60 = icmp eq i1 0, 1
+  %_uop64 = sub i64 0, 4
+  %_bop63 = add i64 %_uop64, 5
+  %_bop62 = icmp sgt i64 %_bop63, 0
+  %_bop66 = mul i64 6, 4
+  %_bop65 = icmp slt i64 %_bop66, 25
+  %_bop61 = and i1 %_bop62, %_bop65
+  %_bop59 = or i1 %_uop60, %_bop61
+  br i1 %_bop59, label %_then67, label %_else68
+_then67:
   ret i64 9
-_else62:
+_else68:
   ret i64 4
 }
 

@@ -3,21 +3,21 @@ target triple = "x86_64-unknown-linux"
 @arr = global { i64, [0 x i64] }* null
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc785 = alloca i64
-  store i64 %argc, i64* %_argc785
-  %_argv786 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv786
-  %_raw_array787 = call i64* @oat_alloc_array(i64 2)
-  %_array788 = bitcast i64* %_raw_array787 to { i64, [0 x i64] }*
-  %_CArr_elem_1790 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_array788, i32 0, i32 1, i32 1
-  store i64 42, i64* %_CArr_elem_1790
-  %_CArr_elem_0789 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_array788, i32 0, i32 1, i32 0
-  store i64 17, i64* %_CArr_elem_0789
-  store { i64, [0 x i64] }* %_array788, { i64, [0 x i64] }** @arr
-  %_id791 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** @arr
-  %_index_ptr792 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id791, i32 0, i32 1, i32 1
-  %_idx_tmp793 = load i64, i64* %_index_ptr792
-  ret i64 %_idx_tmp793
+  %_argc842 = alloca i64
+  store i64 %argc, i64* %_argc842
+  %_argv843 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv843
+  %_raw_array844 = call i64* @oat_alloc_array(i64 2)
+  %_array845 = bitcast i64* %_raw_array844 to { i64, [0 x i64] }*
+  %_CArr_elem_1847 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_array845, i32 0, i32 1, i32 1
+  store i64 42, i64* %_CArr_elem_1847
+  %_CArr_elem_0846 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_array845, i32 0, i32 1, i32 0
+  store i64 17, i64* %_CArr_elem_0846
+  store { i64, [0 x i64] }* %_array845, { i64, [0 x i64] }** @arr
+  %_id848 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** @arr
+  %_index_ptr849 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id848, i32 0, i32 1, i32 1
+  %_idx_tmp850 = load i64, i64* %_index_ptr849
+  ret i64 %_idx_tmp850
 }
 
 

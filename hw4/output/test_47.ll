@@ -1,37 +1,37 @@
 ; generated from: oatprograms/fact.oat
 target triple = "x86_64-unknown-linux"
 define i64 @fact(i64 %x) {
-  %acc = alloca i64
-  %_x686 = alloca i64
-  store i64 %x, i64* %_x686
-  store i64 1, i64* %acc
-  br label %_start689
-_start689:
-  %_id688 = load i64, i64* %_x686
-  %_bop687 = icmp sgt i64 %_id688, 0
-  br i1 %_bop687, label %_body690, label %_end691
-_body690:
-  %_id693 = load i64, i64* %acc
-  %_id694 = load i64, i64* %_x686
-  %_bop692 = mul i64 %_id693, %_id694
-  store i64 %_bop692, i64* %acc
-  %_id696 = load i64, i64* %_x686
-  %_bop695 = sub i64 %_id696, 1
-  store i64 %_bop695, i64* %_x686
-  br label %_start689
-_end691:
-  %_id697 = load i64, i64* %acc
-  ret i64 %_id697
+  %_acc736 = alloca i64
+  %_x735 = alloca i64
+  store i64 %x, i64* %_x735
+  store i64 1, i64* %_acc736
+  br label %_start739
+_start739:
+  %_id738 = load i64, i64* %_x735
+  %_bop737 = icmp sgt i64 %_id738, 0
+  br i1 %_bop737, label %_body740, label %_end741
+_body740:
+  %_id743 = load i64, i64* %_acc736
+  %_id744 = load i64, i64* %_x735
+  %_bop742 = mul i64 %_id743, %_id744
+  store i64 %_bop742, i64* %_acc736
+  %_id746 = load i64, i64* %_x735
+  %_bop745 = sub i64 %_id746, 1
+  store i64 %_bop745, i64* %_x735
+  br label %_start739
+_end741:
+  %_id747 = load i64, i64* %_acc736
+  ret i64 %_id747
 }
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc681 = alloca i64
-  store i64 %argc, i64* %_argc681
-  %_argv682 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv682
-  %_Call_retval684 = call i8* @string_of_int(i64 %_Call_retval683)
-  %_Call_retval683 = call i64 @fact(i64 5)
-  call void @print_string(i8* %_Call_retval684)
+  %_argc730 = alloca i64
+  store i64 %argc, i64* %_argc730
+  %_argv731 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv731
+  %_Call_retval732 = call i64 @fact(i64 5)
+  %_Call_retval733 = call i8* @string_of_int(i64 %_Call_retval732)
+  call void @print_string(i8* %_Call_retval733)
   ret i64 0
 }
 

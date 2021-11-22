@@ -1,73 +1,73 @@
 ; generated from: oatprograms/josh_joyce_test.oat
 target triple = "x86_64-unknown-linux"
-@arr1 = global { i64, [0 x i64] }* bitcast ({ i64, [4 x i64] }* @_garr3919 to { i64, [0 x i64] }*)
-@_garr3919 = global { i64, [4 x i64] } { i64 4, [4 x i64] [ i64 1, i64 2, i64 3, i64 4 ] }
-@arr2 = global { i64, [0 x i64] }* bitcast ({ i64, [4 x i64] }* @_garr3918 to { i64, [0 x i64] }*)
-@_garr3918 = global { i64, [4 x i64] } { i64 4, [4 x i64] [ i64 1, i64 2, i64 3, i64 5 ] }
+@arr1 = global { i64, [0 x i64] }* bitcast ({ i64, [4 x i64] }* @_garr4150 to { i64, [0 x i64] }*)
+@_garr4150 = global { i64, [4 x i64] } { i64 4, [4 x i64] [ i64 1, i64 2, i64 3, i64 4 ] }
+@arr2 = global { i64, [0 x i64] }* bitcast ({ i64, [4 x i64] }* @_garr4149 to { i64, [0 x i64] }*)
+@_garr4149 = global { i64, [4 x i64] } { i64 4, [4 x i64] [ i64 1, i64 2, i64 3, i64 5 ] }
 
 define i64 @arrcheck({ i64, [0 x i64] }* %ar1, { i64, [0 x i64] }* %ar2, i64 %len) {
-  %val = alloca i64
-  %i = alloca i64
-  %_ar13894 = alloca { i64, [0 x i64] }*
-  store { i64, [0 x i64] }* %ar1, { i64, [0 x i64] }** %_ar13894
-  %_ar23895 = alloca { i64, [0 x i64] }*
-  store { i64, [0 x i64] }* %ar2, { i64, [0 x i64] }** %_ar23895
-  %_len3896 = alloca i64
-  store i64 %len, i64* %_len3896
-  store i64 0, i64* %val
-  store i64 0, i64* %i
-  br label %_start3900
-_start3900:
-  %_id3898 = load i64, i64* %i
-  %_id3899 = load i64, i64* %_len3896
-  %_bop3897 = icmp slt i64 %_id3898, %_id3899
-  br i1 %_bop3897, label %_body3901, label %_end3902
-_body3901:
-  %_id3904 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_ar13894
-  %_id3905 = load i64, i64* %i
-  %_index_ptr3906 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id3904, i32 0, i32 1, i64 %_id3905
-  %_idx_tmp3910 = load i64, i64* %_index_ptr3906
-  %_id3907 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_ar23895
-  %_id3908 = load i64, i64* %i
-  %_index_ptr3909 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id3907, i32 0, i32 1, i64 %_id3908
-  %_idx_tmp3911 = load i64, i64* %_index_ptr3909
-  %_bop3903 = icmp ne i64 %_idx_tmp3910, %_idx_tmp3911
-  br i1 %_bop3903, label %_then3912, label %_else3913
-_then3912:
-  store i64 1, i64* %val
-  br label %_end3914
-_else3913:
-  br label %_end3914
-_end3914:
-  %_id3916 = load i64, i64* %i
-  %_bop3915 = add i64 %_id3916, 1
-  store i64 %_bop3915, i64* %i
-  br label %_start3900
-_end3902:
-  %_id3917 = load i64, i64* %val
-  ret i64 %_id3917
+  %_val4126 = alloca i64
+  %_i4127 = alloca i64
+  %_ar14123 = alloca { i64, [0 x i64] }*
+  store { i64, [0 x i64] }* %ar1, { i64, [0 x i64] }** %_ar14123
+  %_ar24124 = alloca { i64, [0 x i64] }*
+  store { i64, [0 x i64] }* %ar2, { i64, [0 x i64] }** %_ar24124
+  %_len4125 = alloca i64
+  store i64 %len, i64* %_len4125
+  store i64 0, i64* %_val4126
+  store i64 0, i64* %_i4127
+  br label %_start4131
+_start4131:
+  %_id4129 = load i64, i64* %_i4127
+  %_id4130 = load i64, i64* %_len4125
+  %_bop4128 = icmp slt i64 %_id4129, %_id4130
+  br i1 %_bop4128, label %_body4132, label %_end4133
+_body4132:
+  %_id4135 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_ar14123
+  %_id4136 = load i64, i64* %_i4127
+  %_index_ptr4137 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id4135, i32 0, i32 1, i64 %_id4136
+  %_idx_tmp4141 = load i64, i64* %_index_ptr4137
+  %_id4138 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_ar24124
+  %_id4139 = load i64, i64* %_i4127
+  %_index_ptr4140 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id4138, i32 0, i32 1, i64 %_id4139
+  %_idx_tmp4142 = load i64, i64* %_index_ptr4140
+  %_bop4134 = icmp ne i64 %_idx_tmp4141, %_idx_tmp4142
+  br i1 %_bop4134, label %_then4143, label %_else4144
+_then4143:
+  store i64 1, i64* %_val4126
+  br label %_end4145
+_else4144:
+  br label %_end4145
+_end4145:
+  %_id4147 = load i64, i64* %_i4127
+  %_bop4146 = add i64 %_id4147, 1
+  store i64 %_bop4146, i64* %_i4127
+  br label %_start4131
+_end4133:
+  %_id4148 = load i64, i64* %_val4126
+  ret i64 %_id4148
 }
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %val = alloca i64
-  %_argc3884 = alloca i64
-  store i64 %argc, i64* %_argc3884
-  %_argv3885 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv3885
-  store i64 1, i64* %val
-  %_id3887 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** @arr1
-  %_id3888 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** @arr2
-  %_Call_retval3889 = call i64 @arrcheck({ i64, [0 x i64] }* %_id3887, { i64, [0 x i64] }* %_id3888, i64 4)
-  %_bop3886 = icmp eq i64 %_Call_retval3889, 1
-  br i1 %_bop3886, label %_then3890, label %_else3891
-_then3890:
-  store i64 0, i64* %val
-  br label %_end3892
-_else3891:
-  br label %_end3892
-_end3892:
-  %_id3893 = load i64, i64* %val
-  ret i64 %_id3893
+  %_val4114 = alloca i64
+  %_argc4112 = alloca i64
+  store i64 %argc, i64* %_argc4112
+  %_argv4113 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv4113
+  store i64 1, i64* %_val4114
+  %_id4117 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** @arr2
+  %_id4116 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** @arr1
+  %_Call_retval4118 = call i64 @arrcheck({ i64, [0 x i64] }* %_id4116, { i64, [0 x i64] }* %_id4117, i64 4)
+  %_bop4115 = icmp eq i64 %_Call_retval4118, 1
+  br i1 %_bop4115, label %_then4119, label %_else4120
+_then4119:
+  store i64 0, i64* %_val4114
+  br label %_end4121
+_else4120:
+  br label %_end4121
+_end4121:
+  %_id4122 = load i64, i64* %_val4114
+  ret i64 %_id4122
 }
 
 

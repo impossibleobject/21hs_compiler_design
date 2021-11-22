@@ -1,23 +1,23 @@
 ; generated from: oatprograms/run53.oat
 target triple = "x86_64-unknown-linux"
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %str = alloca i8*
-  %_argc1950 = alloca i64
-  store i64 %argc, i64* %_argc1950
-  %_argv1951 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv1951
-  store i64 110, i64* %_CArr_elem_01954
-  %_CArr_elem_01954 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_array1953, i32 0, i32 1, i32 0
-  store i64 110, i64* %_CArr_elem_11955
-  %_CArr_elem_11955 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_array1953, i32 0, i32 1, i32 1
-  store i64 110, i64* %_CArr_elem_21956
-  %_CArr_elem_21956 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_array1953, i32 0, i32 1, i32 2
-  %_array1953 = bitcast i64* %_raw_array1952 to { i64, [0 x i64] }*
-  %_raw_array1952 = call i64* @oat_alloc_array(i64 3)
-  %_Call_retval1957 = call i8* @string_of_array({ i64, [0 x i64] }* %_array1953)
-  store i8* %_Call_retval1957, i8** %str
-  %_id1958 = load i8*, i8** %str
-  call void @print_string(i8* %_id1958)
+  %_str2047 = alloca i8*
+  %_argc2045 = alloca i64
+  store i64 %argc, i64* %_argc2045
+  %_argv2046 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv2046
+  %_raw_array2048 = call i64* @oat_alloc_array(i64 3)
+  %_array2049 = bitcast i64* %_raw_array2048 to { i64, [0 x i64] }*
+  %_CArr_elem_22052 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_array2049, i32 0, i32 1, i32 2
+  store i64 110, i64* %_CArr_elem_22052
+  %_CArr_elem_12051 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_array2049, i32 0, i32 1, i32 1
+  store i64 110, i64* %_CArr_elem_12051
+  %_CArr_elem_02050 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_array2049, i32 0, i32 1, i32 0
+  store i64 110, i64* %_CArr_elem_02050
+  %_Call_retval2053 = call i8* @string_of_array({ i64, [0 x i64] }* %_array2049)
+  store i8* %_Call_retval2053, i8** %_str2047
+  %_id2054 = load i8*, i8** %_str2047
+  call void @print_string(i8* %_id2054)
   ret i64 0
 }
 
