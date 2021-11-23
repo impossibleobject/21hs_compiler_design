@@ -1,20 +1,14 @@
-; generated from: oatprograms/path3.oat
+; generated from: oatprograms/path1.oat
 target triple = "x86_64-unknown-linux"
-@arr = global { i64, [4 x i64] } { i64 4, [4 x i64] [ i64 1, i64 2, i64 3, i64 4 ] }
-@_255 = global i64 1
-@_256 = global i64 2
-@_257 = global i64 3
-@_258 = global i64 4
-
-define i64 @program(i64 %argc, { i64, [0 x i8*] }* %args) {
-  %_argc250 = alloca i64
-  store i64 %argc, i64* %_argc250
-  %_args251 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %args, { i64, [0 x i8*] }** %_args251
-  %_id252 = load { i64, [4 x i64] }, { i64, [4 x i64] }* @arr
-  %_index_ptr253 = getelementptr { i64, [4 x i64] }*, { i64, [4 x i64] }** %_id252, i32 0, i32 1, i32 2
-  %_254 = load i64, i64* %_index_ptr253
-  ret i64 %_254
+define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
+  %_x207 = alloca i64
+  %_argc205 = alloca i64
+  store i64 %argc, i64* %_argc205
+  %_argv206 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv206
+  store i64 17, i64* %_x207
+  %_id208 = load i64, i64* %_x207
+  ret i64 %_id208
 }
 
 

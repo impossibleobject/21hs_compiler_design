@@ -1,28 +1,22 @@
-; generated from: oatprograms/run28.oat
+; generated from: oatprograms/run21.oat
 target triple = "x86_64-unknown-linux"
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc427 = alloca i64
-  store i64 %argc, i64* %_argc427
-  %_argv428 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv428
-  %_i429 = alloca i64
-  %_j430 = alloca i64
-  store i64 9, i64* %_i429
-  store i64 %_bop431, i64* %_j430
-  %_id432 = load i64, i64* %_i429
-  %_id433 = load i64, i64* %_i429
-  %_bop431 = add i64 %_id432, %_id433
-  %_id439 = load i64, i64* %_i429
-  %_id441 = load i64, i64* %_i429
-  %_id442 = load i64, i64* %_i429
-  %_bop440 = mul i64 %_id441, %_id442
-  %_bop438 = add i64 %_id439, %_bop440
-  %_id443 = load i64, i64* %_j430
-  %_bop437 = sub i64 %_bop438, %_id443
-  %_bop436 = lshr i64 %_bop437, 2
-  %_bop435 = shl i64 %_bop436, 2
-  %_bop434 = ashr i64 %_bop435, 2
-  ret i64 %_bop434
+  %_i353 = alloca { i64, [0 x i64] }*
+  %_argc351 = alloca i64
+  store i64 %argc, i64* %_argc351
+  %_argv352 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv352
+  %_raw_array354 = call i64* @oat_alloc_array(i64 2)
+  %_array355 = bitcast i64* %_raw_array354 to { i64, [0 x i64] }*
+  %_CArr_elem_1357 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_array355, i32 0, i32 1, i32 1
+  store i64 0, i64* %_CArr_elem_1357
+  %_CArr_elem_0356 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_array355, i32 0, i32 1, i32 0
+  store i64 99, i64* %_CArr_elem_0356
+  store { i64, [0 x i64] }* %_array355, { i64, [0 x i64] }** %_i353
+  %_id358 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_i353
+  %_index_ptr359 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_id358, i32 0, i32 1, i32 0
+  %_idx_tmp360 = load i64, i64* %_index_ptr359
+  ret i64 %_idx_tmp360
 }
 
 

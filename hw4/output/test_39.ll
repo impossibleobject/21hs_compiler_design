@@ -1,50 +1,84 @@
-; generated from: oatprograms/run2.oat
+; generated from: oatprograms/run39.oat
 target triple = "x86_64-unknown-linux"
-@i = global i64 0
+define i64 @f1(i64 %i) {
+  %_i599 = alloca i64
+  store i64 %i, i64* %_i599
+  %_id600 = load i64, i64* %_i599
+  %_Call_retval601 = call i64 @f2(i64 %_id600)
+  ret i64 %_Call_retval601
+}
 
-define i64 @f(i64 %x, i64 %y) {
-  %_x925 = alloca i64
-  store i64 %x, i64* %_x925
-  %_y926 = alloca i64
-  store i64 %y, i64* %_y926
-  %_r927 = alloca i64
-  store i64 0, i64* %_r927
-  %_id929 = load i64, i64* %_x925
-  %_bop928 = icmp sge i64 %_id929, 1
-  br i1 %_bop928, label %_then930, label %_else931
-_then930:
-  %_bop935 = sub i64 %_id936, 1
-  %_id936 = load i64, i64* %_x925
-  %_id937 = load i64, i64* %_y926
-  %_Call_retval938 = call i64 @f(i64 %_bop935, i64 %_id937)
-  %_bop934 = add i64 1, %_Call_retval938
-  store i64 %_bop934, i64* %_r927
-  br label %_end932
-_else931:
-  %_id941 = load i64, i64* %_x925
-  %_id942 = load i64, i64* %_y926
-  %_bop940 = add i64 %_id941, %_id942
-  store i64 %_bop940, i64* %_r927
-  br label %_end932
-_end932:
-  %_id943 = load i64, i64* %_r927
-  ret i64 %_id943
+define i64 @f2(i64 %i) {
+  %_i596 = alloca i64
+  store i64 %i, i64* %_i596
+  %_id597 = load i64, i64* %_i596
+  %_Call_retval598 = call i64 @f3(i64 %_id597)
+  ret i64 %_Call_retval598
+}
+
+define i64 @f3(i64 %i) {
+  %_i593 = alloca i64
+  store i64 %i, i64* %_i593
+  %_id594 = load i64, i64* %_i593
+  %_Call_retval595 = call i64 @f4(i64 %_id594)
+  ret i64 %_Call_retval595
+}
+
+define i64 @f4(i64 %i) {
+  %_i590 = alloca i64
+  store i64 %i, i64* %_i590
+  %_id591 = load i64, i64* %_i590
+  %_Call_retval592 = call i64 @f5(i64 %_id591)
+  ret i64 %_Call_retval592
+}
+
+define i64 @f5(i64 %i) {
+  %_i587 = alloca i64
+  store i64 %i, i64* %_i587
+  %_id588 = load i64, i64* %_i587
+  %_Call_retval589 = call i64 @f6(i64 %_id588)
+  ret i64 %_Call_retval589
+}
+
+define i64 @f6(i64 %i) {
+  %_i584 = alloca i64
+  store i64 %i, i64* %_i584
+  %_id585 = load i64, i64* %_i584
+  %_Call_retval586 = call i64 @f7(i64 %_id585)
+  ret i64 %_Call_retval586
+}
+
+define i64 @f7(i64 %i) {
+  %_i581 = alloca i64
+  store i64 %i, i64* %_i581
+  %_id582 = load i64, i64* %_i581
+  %_Call_retval583 = call i64 @f8(i64 %_id582)
+  ret i64 %_Call_retval583
+}
+
+define i64 @f8(i64 %i) {
+  %_i578 = alloca i64
+  store i64 %i, i64* %_i578
+  %_id579 = load i64, i64* %_i578
+  %_Call_retval580 = call i64 @f9(i64 %_id579)
+  ret i64 %_Call_retval580
+}
+
+define i64 @f9(i64 %i) {
+  %_i576 = alloca i64
+  store i64 %i, i64* %_i576
+  %_id577 = load i64, i64* %_i576
+  ret i64 %_id577
 }
 
 define i64 @program(i64 %argc, { i64, [0 x i8*] }* %argv) {
-  %_argc915 = alloca i64
-  store i64 %argc, i64* %_argc915
-  %_argv916 = alloca { i64, [0 x i8*] }*
-  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv916
-  %_x917 = alloca i64
-  %_y918 = alloca i64
-  store i64 3, i64* %_x917
-  store i64 3, i64* %_y918
-  %_id920 = load i64, i64* %_x917
-  %_id921 = load i64, i64* %_y918
-  %_Call_retval922 = call i64 @f(i64 %_id920, i64 %_id921)
-  %_bop919 = add i64 %_Call_retval922, 0
-  ret i64 %_bop919
+  %_argc572 = alloca i64
+  store i64 %argc, i64* %_argc572
+  %_argv573 = alloca { i64, [0 x i8*] }*
+  store { i64, [0 x i8*] }* %argv, { i64, [0 x i8*] }** %_argv573
+  %_id574 = load i64, i64* %_argc572
+  %_Call_retval575 = call i64 @f1(i64 %_id574)
+  ret i64 %_Call_retval575
 }
 
 
