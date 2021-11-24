@@ -25,6 +25,14 @@ let builtins =
   ; "print_bool",       ([TBool], RetVoid)
   ]
 
+(*L: helpers*)
+let rec zip (l1:'a list) (l2:'b list) : (('a * 'b) list) =
+  begin match l1, l2 with
+    | (h1::tl1), (h2::tl2) -> (h1, h2) :: (zip tl1 tl2)
+    | _, [] -> []
+    | [], _ -> []
+  end
+
 (* binary operation types --------------------------------------------------- *)
 let typ_of_binop : Ast.binop -> Ast.ty * Ast.ty * Ast.ty = function
   | Add | Mul | Sub | Shl | Shr | Sar | IAnd | IOr -> (TInt, TInt, TInt)
@@ -47,11 +55,38 @@ let typ_of_unop : Ast.unop -> Ast.ty * Ast.ty = function
       (Don't forget about OCaml's 'and' keyword.)
 *)
 let rec subtype (c : Tctxt.t) (t1 : Ast.ty) (t2 : Ast.ty) : bool =
-  failwith "todo: subtype"
+  let srtc = subtype_ref c in
+  if(t1 = t2) then true
+  else
+    begin match t1, t2 with
+      | TRef rt1, TRef rt2 -> srtc rt1 rt2
+      | TRef rt1, TNullRef rt2 -> srtc rt1 rt2
+      | TNullRef rt1, TNullRef rt2 -> srtc rt1 rt2
+      | _, _ -> false
+    end
 
 (* Decides whether H |-r ref1 <: ref2 *)
 and subtype_ref (c : Tctxt.t) (t1 : Ast.rty) (t2 : Ast.rty) : bool =
-  failwith "todo: subtype_ref"
+  if(t1 = t2) then true
+  else
+    begin match t1, t2 with
+      | RStruct id1, RStruct id2 -> subtype_struct c id1 id2
+      | RFun (tyl1, rt1), RFun (tyl2, rt2) -> failwith "subtype_ref cannot handle functions yet"
+      | _, _ -> false
+    end 
+
+and subtype_struct (c : Tctxt.t) (id1 : Ast.id) (id2 : Ast.id) : bool =
+  (* let set_of_list (l:'a list) :  *)
+  let field_cmp (f1:Ast.field) (f2:Ast.field) : int =
+    let name1 = f1.fieldName in
+    let name2 = f2.fieldName in
+    String.compare name1 name2 in
+  let struct1 = List.sort field_cmp (Tctxt.lookup_struct id1 c) in
+  let struct2 = List.sort field_cmp (Tctxt.lookup_struct id2 c) in
+  
+  let tupl_ls = zip struct1 struct2 in
+  List.fold_left (fun acc (n1, n2) -> (n1 = n2) && acc) true tupl_ls
+
 
 
 (* well-formed types -------------------------------------------------------- *)
