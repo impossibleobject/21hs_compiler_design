@@ -105,7 +105,24 @@ and subtype_struct (c : Tctxt.t) (id1 : Ast.id) (id2 : Ast.id) : bool =
     - tc contains the structure definition context
  *)
 let rec typecheck_ty (l : 'a Ast.node) (tc : Tctxt.t) (t : Ast.ty) : unit =
-  failwith "todo: implement typecheck_ty"
+  begin match t with 
+    | TInt -> ()
+    | TBool -> ()
+    | TRef rt -> typecheck_rty l tc rt
+    | TNullRef rt -> typecheck_rty l tc rt
+    | _ -> type_error l ("type: " ^ (Astlib.string_of_ty t) ^ " not well formed")
+  end
+
+and typecheck_rty (l : 'a Ast.node) (tc : Tctxt.t) (rt : Ast.rty) : unit =
+  begin match rt with 
+    | RString -> ()
+    | RArray t -> typecheck_ty l tc t
+    | RStruct id -> 
+      try ignore (lookup_struct id tc)
+      with Not_found -> 
+      type_error l ("type: " ^ (Astlib.string_of_ty (TRef rt)) ^ " not well formed")
+    | _ -> failwith "typecheck_rty function type not implemented yet"
+  end
 
 (* typechecking expressions ------------------------------------------------- *)
 (* Typechecks an expression in the typing context c, returns the type of the
