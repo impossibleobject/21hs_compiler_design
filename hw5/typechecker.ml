@@ -71,7 +71,7 @@ and subtype_ref (c : Tctxt.t) (t1 : Ast.rty) (t2 : Ast.rty) : bool =
   else
     begin match t1, t2 with
       | RStruct id1, RStruct id2 -> subtype_struct c id1 id2
-      | RFun (tyl1, rt1), RFun (tyl2, rt2) -> failwith "subtype_ref cannot handle functions yet"
+      | RFun (tyl1, rt1), RFun (tyl2, rt2) -> subtype_fun c (tyl1, rt1) (tyl2, rt2)
       | _, _ -> false
     end 
 
@@ -132,11 +132,27 @@ and typecheck_rty (l : 'a Ast.node) (tc : Tctxt.t) (rt : Ast.rty) : unit =
   begin match rt with 
     | RString -> ()
     | RArray t -> typecheck_ty l tc t
+    | RFun (tyl, retty) -> 
+      let rec tycheck_list (ls:Ast.ty list) : unit =
+        begin match ls with
+        | [] -> ()
+        | h::tl -> typecheck_ty l tc h; 
+                   tycheck_list tl
+        end
+      in
+      tycheck_list tyl;
+      typecheck_ret_ty l tc retty
     | RStruct id -> 
       try ignore (lookup_struct id tc)
-      with Not_found -> 
-      type_error l ("type: " ^ (Astlib.string_of_ty (TRef rt)) ^ " not well formed")
-    | _ -> failwith "typecheck_rty function type not implemented yet"
+      with 
+        | _ -> type_error l ("type: " ^ (Astlib.string_of_ty (TRef rt)) ^ " not well formed")
+    | _ -> type_error l ("type: " ^ (Astlib.string_of_ty (TRef rt)) ^ " not well formed")
+  end
+
+and typecheck_ret_ty (l : 'a Ast.node) (tc : Tctxt.t) (rt : Ast.ret_ty) : unit =
+  begin match rt with
+    | RetVoid -> ()
+    | RetVal ty -> typecheck_ty l tc ty 
   end
 
 (* typechecking expressions ------------------------------------------------- *)
