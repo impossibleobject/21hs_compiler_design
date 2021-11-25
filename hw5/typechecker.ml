@@ -33,9 +33,9 @@ let rec zip (l1:'a list) (l2:'b list) : (('a * 'b) list) =
     | [], _ -> []
   end
 
-let all (f: (('a * 'b) -> bool)) (ls: ('a * 'b) list) : bool =
-  let fold (acc:bool) ((a,b):('a * 'b)) : bool =
-    (f (a,b)) && acc
+let all (p: ('a -> bool)) (ls: 'a list) : bool =
+  let fold (acc:bool) (x:'a) : bool =
+    (p x) && acc
   in
   List.fold_left fold true ls
 
@@ -193,8 +193,78 @@ and typecheck_ret_ty (l : 'a Ast.node) (tc : Tctxt.t) (rt : Ast.ret_ty) : unit =
 
 *)
 let rec typecheck_exp (c : Tctxt.t) (e : Ast.exp node) : Ast.ty =
-  failwith "todo: implement typecheck_exp"
-
+  begin match e.elt with
+  | CNull rty -> typecheck_ty e c (TRef rty);
+                  (TNullRef rty)
+  | CBool _ -> TBool
+  | CInt _ -> TInt
+  | CStr _ -> TRef RString
+  | Id id -> Tctxt.lookup id c
+  | CArr (ty, ens) -> typecheck_ty e c ty;
+    let type_ls = List.map (typecheck_exp c) ens in
+    let subtype_check = all (fun x -> (subtype c ty x)) type_ls in
+    if (subtype_check) then TRef (RArray ty) 
+    else type_error e ("typecheck_exp array: array elements not subtype of elem type")
+  | NewArr (ty, en1, id, en2) -> typecheck_ty e c ty;
+    let exp1_ty = typecheck_exp c en1 in
+    if(exp1_ty <> TInt) then type_error e ("typecheck_exp newarray: length is not int");
+    let ty_opt = lookup_option id c in
+    begin match ty_opt with
+    | Some x -> type_error e ("typecheck_exp newarray: aux variable already in scope")
+    | None -> 
+        let newc = Tctxt.add_local c id ty in
+        let exp2_ty = typecheck_exp newc en2 in
+        if(subtype newc exp2_ty ty) then TRef (RArray ty)
+        else type_error e ("typecheck_exp newarray: init value type is not subtype of elem type")
+    end
+  | Index (en1, en2) -> 
+    let arr_ty = typecheck_exp c en1 in
+    let ind_ty = typecheck_exp c en2 in
+    if (ind_ty <> TInt) then type_error e ("typecheck_exp index: index value is not an int")
+    else
+      begin match arr_ty with
+      | TRef (RArray t) -> t
+      | _ -> type_error e ("typecheck_exp index: 
+      trying to index into non-array")
+      end
+  | Length en -> let arr_ty = typecheck_exp c en in
+      begin match arr_ty with
+      | TRef (RArray t) -> TInt
+      | _ -> type_error e ("typecheck_exp length: 
+      trying to get length of non-array")
+      end
+  | CStruct (id, ls) -> typecheck_ty e c (TRef (RStruct id));
+    let id_ls, en_ls = List.split ls in
+    let type_ls = List.map (typecheck_exp c) en_ls in
+    let tup_ls = zip id_ls, type_ls in
+    let field_ls = List.map (fun (str, ty) -> {fieldName=str; ftyp=ty}) tup_ls in
+    let field_cmp (f1:Ast.field) (f2:Ast.field) : int =
+      let name1 = f1.fieldName in
+      let name2 = f2.fieldName in
+      String.compare name1 name2 in
+    let struct1 = List.sort field_cmp tup_ls in (*list of fields*)
+    let struct2 = List.sort field_cmp (Tctxt.lookup_struct id c) in (*list of fields*)
+    if(List.length struct1 <> List.length struct2) then type_error e ("typecheck_exp cstruct: length of field list doesn't match definition in context")
+    else
+      let subtype_check = all (fun (f1,f2) -> (f1.fieldName = f2.fieldName) && (subtype c f1.ftyp f2.ftyp)) (zip struct1 struct2) in
+      if(subtype_check) then TRef (RStruct id)
+      else type_error e ("typecheck_exp cstruct: field subtype check failed")
+  | Proj (en, id) -> 
+    let str_ty = typecheck_exp c en in
+    begin match str_ty with
+    | TRef (RStruct id) -> 
+      typecheck_ty en c str_ty; 
+      let field_ls = Tctxt.lookup_struct id c in
+      let id_field = List.find_opt (fun f -> f.fieldName = id) field_ls in 
+      begin match id_field with 
+      | Some x -> x.ftyp (*field was found in the list, give back the type from the record*)
+      | None -> type_error e ("typecheck_exp proj: field not found in struct definition")
+      end
+    | _ -> type_error e ("typecheck_exp proj: trying to access field of non-struct")
+    end
+  (* | Call (func, ens)  *)
+  | _ -> failwith "todo: implement typecheck_exp"
+  end
 (* statements --------------------------------------------------------------- *)
 
 (* Typecheck a statement 
