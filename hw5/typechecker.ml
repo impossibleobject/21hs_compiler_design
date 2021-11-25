@@ -77,17 +77,23 @@ and subtype_ref (c : Tctxt.t) (t1 : Ast.rty) (t2 : Ast.rty) : bool =
 
 and subtype_struct (c : Tctxt.t) (id1 : Ast.id) (id2 : Ast.id) : bool =
   (* let set_of_list (l:'a list) :  *)
-  let field_cmp (f1:Ast.field) (f2:Ast.field) : int =
+  (*let field_cmp (f1:Ast.field) (f2:Ast.field) : int =
     let name1 = f1.fieldName in
     let name2 = f2.fieldName in
     String.compare name1 name2 in
   let struct1 = List.sort field_cmp (Tctxt.lookup_struct id1 c) in
-  let struct2 = List.sort field_cmp (Tctxt.lookup_struct id2 c) in
-  
-  let tupl_ls = zip struct1 struct2 in
-  List.fold_left (fun acc (n1, n2) -> (n1 = n2) && acc) true tupl_ls
+  let struct2 = List.sort field_cmp (Tctxt.lookup_struct id2 c) in *)
+  (*F: doing width subtyping from lecture, so structs are subtypes if first n elements of struct 1
+    are in the same order and have the same name and type as the n elements of struct 2 (see forum)*)
+  let struct1 = Tctxt.lookup_struct id1 c in
+  let struct2 = Tctxt.lookup_struct id2 c in
+  if(List.length struct2 > List.length struct1) then false
+  else
+    let tupl_ls = zip struct1 struct2 in
+    List.fold_left (fun acc (n1, n2) -> (n1 = n2) && acc) true tupl_ls
 
-and subtype_fun (c : Tctxt.t) ((tyl1, rt1) : (Ast.ty list * Ast.ret_ty)) ((tyl2, rt2) : (Ast.ty list * Ast.ret_ty)) : bool =
+and subtype_fun (c : Tctxt.t) ((tyl1, rt1) : ((Ast.ty list) * Ast.ret_ty)) ((tyl2, rt2) : 
+((Ast.ty list) * Ast.ret_ty)) : bool =
     let lengths_match = ((List.length tyl1) = (List.length tyl2)) in
     if(not lengths_match) then false
     else
