@@ -33,6 +33,12 @@ let rec zip (l1:'a list) (l2:'b list) : (('a * 'b) list) =
     | [], _ -> []
   end
 
+let all (f: (('a * 'b) -> bool)) (ls: ('a * 'b) list) : bool =
+  let fold (acc:bool) ((a,b):('a * 'b)) : bool =
+    (f (a,b)) && acc
+  in
+  List.fold_left fold true ls
+
 (* binary operation types --------------------------------------------------- *)
 let typ_of_binop : Ast.binop -> Ast.ty * Ast.ty * Ast.ty = function
   | Add | Mul | Sub | Shl | Shr | Sar | IAnd | IOr -> (TInt, TInt, TInt)
@@ -90,7 +96,7 @@ and subtype_struct (c : Tctxt.t) (id1 : Ast.id) (id2 : Ast.id) : bool =
   if(List.length struct2 > List.length struct1) then false
   else
     let tupl_ls = zip struct1 struct2 in
-    List.fold_left (fun acc (n1, n2) -> (n1 = n2) && acc) true tupl_ls
+    all (fun (n1, n2) -> (n1 = n2)) tupl_ls
 
 and subtype_fun (c : Tctxt.t) ((tyl1, rt1) : ((Ast.ty list) * Ast.ret_ty)) ((tyl2, rt2) : 
 ((Ast.ty list) * Ast.ret_ty)) : bool =
@@ -106,7 +112,7 @@ and subtype_fun (c : Tctxt.t) ((tyl1, rt1) : ((Ast.ty list) * Ast.ret_ty)) ((tyl
           end
       in
       let zipped_tylists = zip tyl1 tyl2 in
-      let fold_ls_types = List.fold_left (fun acc (t1, t2) -> (subtype c t1 t2) && acc) true zipped_tylists in
+      let fold_ls_types = all (fun (t1,t2) -> subtype c t1 t2) zipped_tylists in
       fold_ls_types && (subtype_retty rt1 rt2)
   
 
@@ -164,7 +170,7 @@ and typecheck_ret_ty (l : 'a Ast.node) (tc : Tctxt.t) (rt : Ast.ret_ty) : unit =
 (* typechecking expressions ------------------------------------------------- *)
 (* Typechecks an expression in the typing context c, returns the type of the
    expression.  This function should implement the inference rules given in the
-   oad.pdf specification.  There, they are written:
+   oat.pdf specification.  There, they are written:
 
        H; G; L |- exp : t
 
