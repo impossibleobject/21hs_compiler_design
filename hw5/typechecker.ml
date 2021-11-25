@@ -87,7 +87,22 @@ and subtype_struct (c : Tctxt.t) (id1 : Ast.id) (id2 : Ast.id) : bool =
   let tupl_ls = zip struct1 struct2 in
   List.fold_left (fun acc (n1, n2) -> (n1 = n2) && acc) true tupl_ls
 
-
+and subtype_fun (c : Tctxt.t) ((tyl1, rt1) : (Ast.ty list * Ast.ret_ty)) ((tyl2, rt2) : (Ast.ty list * Ast.ret_ty)) : bool =
+    let lengths_match = ((List.length tyl1) = (List.length tyl2)) in
+    if(not lengths_match) then false
+    else
+      let subtype_retty (rty1 : Ast.ret_ty) (rty2 : Ast.ret_ty) : bool =
+        if(rty1 = rty2) then true
+        else
+          begin match rty1, rty2 with
+            | RetVal ty1, RetVal ty2 -> subtype c ty1 ty2
+            | _, _ -> false
+          end
+      in
+      let zipped_tylists = zip tyl1 tyl2 in
+      let fold_ls_types = List.fold_left (fun acc (t1, t2) -> (subtype c t1 t2) && acc) true zipped_tylists in
+      fold_ls_types && (subtype_retty rt1 rt2)
+  
 
 (* well-formed types -------------------------------------------------------- *)
 (* Implement a (set of) functions that check that types are well formed according
