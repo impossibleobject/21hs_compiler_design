@@ -395,14 +395,93 @@ let typecheck_fdecl (tc : Tctxt.t) (f : Ast.fdecl) (l : 'a Ast.node) : unit =
    constants, but can't mention other global values *)
 
 let create_struct_ctxt (p:Ast.prog) : Tctxt.t =
-  failwith "todo: create_struct_ctxt"
+  let is_tdecl (td:Ast.decl) : bool =
+    begin match td with
+    | Gtdecl t -> true
+    | _ -> false
+    end in
+  (* let unpack_node (n:Ast.node) : 'a = n.elt in*)
+  let struct_ls = (List.filter is_tdecl p) in (*F: list should contain only Gtdecls*)
+  let fold_func acc gtd : Tctxt.t = 
+    let tdn =
+      begin match gtd with
+      | Gtdecl t -> t 
+      | _ -> failwith "create_struct_ctxt: element not gtdecl"
+      end in
+    let (i,f) = tdn.elt in 
+    let lookup_opt = Tctxt.lookup_struct_option i acc in
+    let in_ctxt = 
+      begin match lookup_opt with
+      | None -> false
+      | _ -> true
+      end in
+    if (not in_ctxt) then (
+      typecheck_tdecl acc i f tdn;
+      Tctxt.add_struct acc i f )
+    else type_error tdn ("struct is defined twice")
+  in
+  let ctxt = List.fold_left fold_func Tctxt.empty struct_ls in 
+  ctxt
+
 
 let create_function_ctxt (tc:Tctxt.t) (p:Ast.prog) : Tctxt.t =
-  failwith "todo: create_function_ctxt"
+  let is_fdecl (td:Ast.decl) : bool =
+    begin match td with
+    | Gfdecl t -> true
+    | _ -> false
+    end in
+  let func_ls = (List.filter is_fdecl p) in (*F: should only contain Gfdecls*)
+  let fold_func acc gfd : Tctxt.t = 
+    let fdn =
+      begin match gfd with
+      | Gfdecl t -> t 
+      | _ -> failwith "create_struct_ctxt: element not gfdecl"
+      end in
+    let fd = fdn.elt in 
+    let id, args, retty, body = fd.fname, fd.args, fd.frtyp, fd.body in
+    let lookup_opt = Tctxt.lookup_option id acc in
+    let in_ctxt = 
+      begin match lookup_opt with
+      | None -> false
+      | _ -> true
+      end in
+    if (not in_ctxt) then (
+      typecheck_fdecl acc fd fdn;
+      let arg_tys, _ = List.split args in
+      Tctxt.add_global acc id (TRef (RFun (arg_tys, retty))) )
+    else type_error fdn ("func is defined twice")
+  in
+  let ctxt = List.fold_left fold_func tc func_ls in 
+  ctxt
 
 let create_global_ctxt (tc:Tctxt.t) (p:Ast.prog) : Tctxt.t =
-  failwith "todo: create_function_ctxt"
-
+  let is_gdecl (td:Ast.decl) : bool =
+    begin match td with
+    | Gvdecl t -> true
+    | _ -> false
+    end in
+  let glob_ls = (List.filter is_gdecl p) in (*F: should only contain Gfdecls*)
+  let fold_func acc ggd : Tctxt.t= 
+    let gdn =
+      begin match ggd with
+      | Gvdecl t -> t 
+      | _ -> failwith "create_struct_ctxt: element not gfdecl"
+      end in
+    let gd = gdn.elt in 
+    let id, init = gd.name, gd.init in
+    let lookup_opt = Tctxt.lookup_option id acc in
+    let in_ctxt = 
+      begin match lookup_opt with
+      | None -> false
+      | _ -> true
+      end in
+    if (not in_ctxt) then (
+      let init_ty = typecheck_exp acc init in (*F: does not limit other globals from appearing in exp*)
+      Tctxt.add_global acc id init_ty )
+    else type_error gdn ("func is defined twice")
+  in
+  let ctxt = List.fold_left fold_func tc glob_ls in 
+  ctxt
 
 (* This function implements the |- prog and the H ; G |- prog 
    rules of the oat.pdf specification.   
