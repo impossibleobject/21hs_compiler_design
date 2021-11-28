@@ -224,14 +224,12 @@ let rec typecheck_exp (c : Tctxt.t) (e : Ast.exp node) : Ast.ty =
     else
       begin match arr_ty with
       | TRef (RArray t) -> t
-      | _ -> type_error e ("typecheck_exp index: 
-      trying to index into non-array")
+      | _ -> type_error e ("typecheck_exp index: trying to index into non-array")
       end
   | Length en -> let arr_ty = typecheck_exp c en in
       begin match arr_ty with
       | TRef (RArray t) -> TInt
-      | _ -> type_error e ("typecheck_exp length: 
-      trying to get length of non-array")
+      | _ -> type_error e ("typecheck_exp length: trying to get length of non-array")
       end
   | CStruct (id, ls) -> typecheck_ty e c (TRef (RStruct id));
     let id_ls, en_ls = List.split ls in
@@ -338,10 +336,104 @@ let rec typecheck_exp (c : Tctxt.t) (e : Ast.exp node) : Ast.ty =
      block typecheck rules.
 *)
 let rec typecheck_stmt (tc : Tctxt.t) (s:Ast.stmt node) (to_ret:ret_ty) : Tctxt.t * bool =
-  failwith "todo: implement typecheck_stmt"
+  begin match s.elt with
+  | Assn (lhs, rhs) -> 
+    let lhs_ty = typecheck_exp tc lhs in
+    let is_func_ty = 
+      begin match lhs_ty with
+      | TRef (RFun (_,_)) -> true
+      | _ -> false
+      end in
+    if (is_func_ty) then type_error s ("typecheck_stmt: assn: lhs has function type");
+    let rhs_ty = typecheck_exp tc rhs in
+    let subty_check = subtype tc rhs_ty lhs_ty in
+    if (subty_check) then (tc, false)
+    else type_error s ("typecheck_stmt: assn: rhs type not subtype of lhs type")
+  | Decl (id, en) -> 
+    let lookup_opt = Tctxt.lookup_option id tc in
+    let id_in_ctxt = 
+      begin match lookup_opt with
+      | None -> false
+      | _ -> true
+      end in
+    if (id_in_ctxt) then type_error s ("typecheck_stmt: decl: var name already in use in scope");
+    let en_ty = typecheck_exp tc en in 
+    let new_ctxt = Tctxt.add_local tc id en_ty in
+    (new_ctxt, false)
+  | Ret en_opt -> 
+    begin match en_opt with
+    | None -> (tc, true)
+    | Some x -> 
+        let x_ty = typecheck_exp tc x in
+        let unpack_retty = 
+          begin match to_ret with
+          | RetVal t -> t 
+          | _ -> type_error s ("typecheck_stmt: ret: return types mismatch, return val expected")
+          end in
+        let subty_check = subtype tc x_ty unpack_retty in
+        if(subty_check) then (tc, true)
+        else type_error s ("typecheck_stmt: ret: subtype check of return exp failed")
+    end
+  | SCall (en, enls) -> 
+    let fun_ty = typecheck_exp tc en in
+    let arg_ty_ls, retty =
+      begin match fun_ty with
+      | TRef (RFun (ls, ry)) -> ls, ry (*F: ry here should by void*)
+      | _ -> type_error s ("typecheck_stmt: scall: function id exp not of type func")
+      end in
+    let en_ty_ls = List.map (typecheck_exp tc) enls in
+    let subty_check_ls = all (fun (f,s) -> subtype tc f s) (zip en_ty_ls arg_ty_ls) in
+    if (subty_check_ls) then (tc, false)
+    else type_error s ("typecheck_stmt: scall: subtype check of call arg exp types failed")
+  | If (cond, if_stmts, else_stmts) -> 
+    let cond_ty = typecheck_exp tc cond in
+    if (cond_ty <> TBool) then type_error s ("typecheck_stmt: if: cond exp type is not bool");
+    let _, if_ret = typecheck_block tc if_stmts to_ret in
+    let _, else_ret = typecheck_block tc else_stmts to_ret in
+    (tc, if_ret && else_ret)
+  | For (vdecls, en_opt, stmt_opt, body) -> 
+    let new_ctxt = List.fold_left (fun acc (id,en) -> Tctxt.add_local acc id (typecheck_exp acc en)) tc vdecls in
+    let en_ty =
+      begin match en_opt with
+      | Some x -> typecheck_exp new_ctxt x
+      | _ -> failwith "incomplete for-loop variant is not supported"
+      end in
+    if (en_ty <> TBool) then type_error s ("typecheck_stmt: for: loop cond not of type bool");
+    let _, _ = 
+      begin match stmt_opt with
+      | Some x -> typecheck_stmt new_ctxt x to_ret
+      | _ -> failwith "incomplete for-loop variant is not supported"
+      end in
+    let _, _ = typecheck_block new_ctxt body to_ret in 
+    (new_ctxt, false)
+  | While (en, body) -> 
+    let en_ty = typecheck_exp tc en in 
+    if (en_ty <> TBool) then type_error s ("typecheck_stmt: while: loop cond not of type bool");
+    let _, _ = typecheck_block tc body to_ret in 
+    (tc, false)
+  | Cast (rty, id, en, if_stmts, else_stmts) -> (*F: assuming this is IfQ rule *)
+    let cond_ty = typecheck_exp tc en in
+    let unpack_cond_ty = 
+      begin match cond_ty with
+      | TNullRef t -> TRef t 
+      | TRef t -> cond_ty
+      | _ -> type_error s ("typecheck_stmt: cast: ifq cond exp not ref type")
+      end in
+    let subty_check = subtype tc unpack_cond_ty (TRef rty) in
+    if(not subty_check) then type_error s ("typecheck_stmt: cast: subtype check of ref type of exp failed");
+    let if_ctxt = Tctxt.add_local tc id (TRef rty) in
+    let _, if_ret = typecheck_block if_ctxt if_stmts to_ret in
+    let _, else_ret = typecheck_block tc else_stmts to_ret in
+    (tc, if_ret && else_ret)
+  end
 
-let typecheck_block (tc : Tctxt.t) (block : Ast.block) (to_ret:ret_ty) : Tctxt.t * bool =
-  failwith "F: todo: implement typechecking for blocks"
+and typecheck_block (tc : Tctxt.t) (block : Ast.block) (to_ret:ret_ty) : Tctxt.t * bool =
+  let fold_func ((ctxt, retb):(Tctxt.t * bool)) (stmt:Ast.stmt node) : Tctxt.t * bool =
+    let new_ctxt,stmt_retb = typecheck_stmt ctxt stmt to_ret in
+    let new_retb = retb || stmt_retb in (*F: not sure if should be OR or AND*)
+    (new_ctxt, new_retb)
+  in
+  List.fold_left fold_func (tc,true) block
 
 (* struct type declarations ------------------------------------------------- *)
 (* Here is an example of how to implement the TYP_TDECLOK rule, which is 
