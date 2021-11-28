@@ -137,7 +137,7 @@ let rec typecheck_ty (l : 'a Ast.node) (tc : Tctxt.t) (t : Ast.ty) : unit =
     | TBool -> ()
     | TRef rt -> typecheck_rty l tc rt
     | TNullRef rt -> typecheck_rty l tc rt
-    | _ -> type_error l ("type: " ^ (Astlib.string_of_ty t) ^ " not well formed")
+    (* | _ -> type_error l ("type: " ^ (Astlib.string_of_ty t) ^ " not well formed") *)
   end
 
 and typecheck_rty (l : 'a Ast.node) (tc : Tctxt.t) (rt : Ast.rty) : unit =
@@ -158,7 +158,7 @@ and typecheck_rty (l : 'a Ast.node) (tc : Tctxt.t) (rt : Ast.rty) : unit =
       try ignore (lookup_struct id tc)
       with 
         | _ -> type_error l ("type: " ^ (Astlib.string_of_ty (TRef rt)) ^ " not well formed")
-    | _ -> type_error l ("type: " ^ (Astlib.string_of_ty (TRef rt)) ^ " not well formed")
+    (* | _ -> type_error l ("type: " ^ (Astlib.string_of_ty (TRef rt)) ^ " not well formed") *)
   end
 
 and typecheck_ret_ty (l : 'a Ast.node) (tc : Tctxt.t) (rt : Ast.ret_ty) : unit =
@@ -236,13 +236,13 @@ let rec typecheck_exp (c : Tctxt.t) (e : Ast.exp node) : Ast.ty =
   | CStruct (id, ls) -> typecheck_ty e c (TRef (RStruct id));
     let id_ls, en_ls = List.split ls in
     let type_ls = List.map (typecheck_exp c) en_ls in
-    let tup_ls = zip id_ls, type_ls in
+    let tup_ls = zip id_ls type_ls in
     let field_ls = List.map (fun (str, ty) -> {fieldName=str; ftyp=ty}) tup_ls in
     let field_cmp (f1:Ast.field) (f2:Ast.field) : int =
       let name1 = f1.fieldName in
       let name2 = f2.fieldName in
       String.compare name1 name2 in
-    let struct1 = List.sort field_cmp tup_ls in (*list of fields*)
+    let struct1 = List.sort field_cmp field_ls in (*list of fields*)
     let struct2 = List.sort field_cmp (Tctxt.lookup_struct id c) in (*list of fields*)
     if(List.length struct1 <> List.length struct2) then type_error e ("typecheck_exp cstruct: length of field list doesn't match definition in context")
     else
@@ -262,8 +262,47 @@ let rec typecheck_exp (c : Tctxt.t) (e : Ast.exp node) : Ast.ty =
       end
     | _ -> type_error e ("typecheck_exp proj: trying to access field of non-struct")
     end
-  (* | Call (func, ens)  *)
-  | _ -> failwith "todo: implement typecheck_exp"
+  | Call (func, ens) -> 
+    let exp_ty_fun = typecheck_exp c func in
+    let fun_tys, ret_ty = 
+      begin match exp_ty_fun with
+      | TRef (RFun (ty_ls, retty)) -> ty_ls,retty 
+      | _ -> type_error e ("typecheck_exp call: func exp is not of type fun")
+      end
+    in
+    let type_ls = List.map (typecheck_exp c) ens in
+    let zipped_ls = zip type_ls fun_tys in
+    let subtype_check = all (fun (f,s) -> subtype c f s) zipped_ls in
+    if(subtype_check) then 
+      begin match ret_ty with 
+      | RetVal t -> t 
+      | RetVoid -> TNullRef RString (*F: temporary solution, no clue what to return for void*)
+      end 
+    else type_error e ("typecheck_exp call: arg list subype check failed")
+  | Bop (bop, en1, en2) -> 
+    let polymorphic_binop ((e1,e2):(exp node * exp node)) : Ast.ty =
+      let t1 = typecheck_exp c e1 in
+      let t2 = typecheck_exp c e2 in
+      let subty_1 = subtype c t1 t2 in
+      let subty_2 = subtype c t2 t1 in
+      if (subty_1 && subty_2) then TBool 
+      else type_error e ("typecheck_exp bop: polymorphic binop: types of args not comparable")
+    in
+    begin match bop with
+    | (Eq | Neq) -> polymorphic_binop (en1,en2)
+    | _ -> 
+      let ty1, ty2, ret_ty = typ_of_binop bop in
+      let en1_ty = typecheck_exp c en1 in
+      let en2_ty = typecheck_exp c en2 in
+      if(en1_ty=ty1 && en2_ty=ty2) then ret_ty
+      else type_error e ("typecheck_exp bop: types of binop args wrong")
+    end
+  | Uop (uop, en) -> 
+    let ty1, ret_ty = typ_of_unop uop in
+    let en_ty = typecheck_exp c en in
+    if(en_ty = ty1) then ret_ty 
+    else type_error e ("typecheck_exp uop: type of uop arg wrong")
+  (* | _ -> failwith "unknown exp" *)
   end
 (* statements --------------------------------------------------------------- *)
 
