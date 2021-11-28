@@ -307,7 +307,7 @@ let rec typecheck_exp (c : Tctxt.t) (e : Ast.exp node) : Ast.ty =
 (* statements --------------------------------------------------------------- *)
 
 (* Typecheck a statement 
-   This function should implement the statment typechecking rules from oat.pdf.  
+   This function should implement the statement typechecking rules from oat.pdf.  
 
    Inputs:
     - tc: the type context
@@ -316,7 +316,7 @@ let rec typecheck_exp (c : Tctxt.t) (e : Ast.exp node) : Ast.ty =
 
    Returns:
      - the new type context (which includes newly declared variables in scope
-       after this statement
+       after this statement)
      - A boolean indicating the return behavior of a statement:
         false:  might not return
         true: definitely returns 
@@ -324,7 +324,7 @@ let rec typecheck_exp (c : Tctxt.t) (e : Ast.exp node) : Ast.ty =
         in the branching statements, both branches must definitely return
 
         Intuitively: if one of the two branches of a conditional does not 
-        contain a return statement, then the entier conditional statement might 
+        contain a return statement, then the entire conditional statement might 
         not return.
   
         looping constructs never definitely return 
@@ -340,6 +340,8 @@ let rec typecheck_exp (c : Tctxt.t) (e : Ast.exp node) : Ast.ty =
 let rec typecheck_stmt (tc : Tctxt.t) (s:Ast.stmt node) (to_ret:ret_ty) : Tctxt.t * bool =
   failwith "todo: implement typecheck_stmt"
 
+let typecheck_block (tc : Tctxt.t) (block : Ast.block) (to_ret:ret_ty) : Tctxt.t * bool =
+  failwith "F: todo: implement typechecking for blocks"
 
 (* struct type declarations ------------------------------------------------- *)
 (* Here is an example of how to implement the TYP_TDECLOK rule, which is 
@@ -354,18 +356,32 @@ let rec check_dups fs =
 
 let typecheck_tdecl (tc : Tctxt.t) id fs  (l : 'a Ast.node) : unit =
   if check_dups fs
-  then type_error l ("Repeated fields in " ^ id) 
+  then type_error l ("typecheck_tdecl: Repeated fields in " ^ id) 
   else List.iter (fun f -> typecheck_ty l tc f.ftyp) fs
 
 (* function declarations ---------------------------------------------------- *)
 (* typecheck a function declaration 
     - extends the local context with the types of the formal parameters to the 
       function
-    - typechecks the body of the function (passing in the expected return type
+    - typechecks the body of the function (passing in the expected return type)
     - checks that the function actually returns
 *)
 let typecheck_fdecl (tc : Tctxt.t) (f : Ast.fdecl) (l : 'a Ast.node) : unit =
-  failwith "todo: typecheck_fdecl"
+  let rec check_dups_args ls =
+    begin match ls with
+    | [] -> false
+    | (h_ty, h_id) :: tl -> (List.exists (fun (t, id) -> id = h_id) tl) || check_dups_args tl
+    end in
+  if (check_dups_args f.args) then type_error l ("typecheck_fdecl: func arg list of " ^ f.fname ^ " has duplicates");
+  let args_to_ctxt (acc: Tctxt.t) ((ty,id) : (Ast.ty * Ast.id)) : Tctxt.t =
+    Tctxt.add_local acc id ty 
+  in
+  let arg_ctxt = List.fold_left args_to_ctxt tc f.args in
+  let func_ctxt, returns = typecheck_block arg_ctxt f.body f.frtyp in (*F: if body does not return correct type, then error must be thrown in typecheck_block or _stmt*)
+  if(returns) then (*F: func definitely returns*)
+    ()
+  else
+    type_error l ("typecheck_fdecl: func body of " ^ f.fname ^ " does not definitely return") 
 
 (* creating the typchecking context ----------------------------------------- *)
 
