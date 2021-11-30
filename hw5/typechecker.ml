@@ -97,7 +97,7 @@ and subtype_struct (c : Tctxt.t) (id1 : Ast.id) (id2 : Ast.id) : bool =
   (*F: doing width subtyping from lecture, so structs are subtypes if first n elements of struct 1
     are in the same order and have the same name and type as the n elements of struct 2 (see forum)*)
   let struct1 = Tctxt.lookup_struct id1 c in
-  let struct2 = Tctxt.lookup_struct id2 c in
+  let struct2 = Tctxt.lookup_struct id2 c in 
   if(List.length struct2 > List.length struct1) then false
   else
     let tupl_ls = zip struct1 struct2 in
@@ -205,7 +205,12 @@ let rec typecheck_exp (c : Tctxt.t) (e : Ast.exp node) : Ast.ty =
   | CBool _ -> TBool
   | CInt _ -> TInt
   | CStr _ -> TRef RString
-  | Id id -> Tctxt.lookup id c
+  | Id id -> 
+    let lookup_id = Tctxt.lookup_option id c in
+    begin match lookup_id with 
+    | Some x -> x
+    | None -> type_error e ("typecheck_exp id: iden not found in ctxt")
+    end
   | CArr (ty, ens) -> typecheck_ty e c ty;
     let type_ls = List.map (typecheck_exp c) ens in
     let subtype_check = all (fun x -> (subtype c ty x)) type_ls in
@@ -247,7 +252,12 @@ let rec typecheck_exp (c : Tctxt.t) (e : Ast.exp node) : Ast.ty =
       let name2 = f2.fieldName in
       String.compare name1 name2 in
     let struct1 = List.sort field_cmp field_ls in (*list of fields*)
-    let struct2 = List.sort field_cmp (Tctxt.lookup_struct id c) in (*list of fields*)
+    let lookup_str = 
+      begin match (Tctxt.lookup_struct_option id c) with
+      | Some x -> x 
+      | None -> type_error e ("typecheck_exp cstruct: struct iden not found in ctxt")
+      end in
+    let struct2 = List.sort field_cmp lookup_str in (*list of fields*)
     if(List.length struct1 <> List.length struct2) then type_error e ("typecheck_exp cstruct: length of field list doesn't match definition in context")
     else
       let subtype_check = all (fun (f1,f2) -> (f1.fieldName = f2.fieldName) && (subtype c f1.ftyp f2.ftyp)) (zip struct1 struct2) in
@@ -258,7 +268,11 @@ let rec typecheck_exp (c : Tctxt.t) (e : Ast.exp node) : Ast.ty =
     begin match str_ty with
     | TRef (RStruct id) -> 
       typecheck_ty en c str_ty; 
-      let field_ls = Tctxt.lookup_struct id c in
+      let field_ls = 
+        begin match (Tctxt.lookup_struct_option id c) with
+        | Some x -> x 
+        | None -> type_error e ("typecheck_exp cstruct: struct iden not found in ctxt")
+        end in
       let id_field = List.find_opt (fun f -> f.fieldName = fld) field_ls in 
       begin match id_field with 
       | Some x -> x.ftyp (*field was found in the list, give back the type from the record*)
@@ -275,12 +289,13 @@ let rec typecheck_exp (c : Tctxt.t) (e : Ast.exp node) : Ast.ty =
       end
     in
     let type_ls = List.map (typecheck_exp c) ens in
+    if (List.length fun_tys <> List.length type_ls) then type_error e ("typecheck_exp call: num of args passed not same as args expected");
     let zipped_ls = zip fun_tys type_ls in
     let subtype_check = all (fun (f,s) -> subtype c f s) zipped_ls in
     if(subtype_check) then 
       begin match ret_ty with 
       | RetVal t -> t 
-      | RetVoid -> TNullRef RString (*F: temporary solution, no clue what to return for void*)
+      | RetVoid -> type_error e ("typecheck_exp call: void function should not return a type")
       end 
     else type_error e ("typecheck_exp call: arg list subype check failed")
   | Bop (bop, en1, en2) -> 
@@ -356,7 +371,7 @@ let rec typecheck_stmt (tc : Tctxt.t) (s:Ast.stmt node) (to_ret:ret_ty) : Tctxt.
     if (subty_check) then (tc, false)
     else type_error s ("typecheck_stmt: assn: rhs type not subtype of lhs type")
   | Decl (id, en) -> 
-    let lookup_opt = Tctxt.lookup_option id tc in
+    let lookup_opt = Tctxt.lookup_local_option id tc in
     let id_in_ctxt = 
       begin match lookup_opt with
       | None -> false
@@ -387,7 +402,9 @@ let rec typecheck_stmt (tc : Tctxt.t) (s:Ast.stmt node) (to_ret:ret_ty) : Tctxt.
       | TRef (RFun (ls, ry)) -> ls, ry (*F: ry here should by void*)
       | _ -> type_error s ("typecheck_stmt: scall: function id exp not of type func")
       end in
+    if (retty<>RetVoid) then type_error s ("typechecl_stmt: scall: function should be returning void"); 
     let en_ty_ls = List.map (typecheck_exp tc) enls in
+    if (List.length arg_ty_ls <> List.length en_ty_ls) then type_error s ("typecheck_stmt scall: num of args passed not same as args expected");
     let subty_check_ls = all (fun (f,s) -> subtype tc f s) (zip arg_ty_ls en_ty_ls) in
     if (subty_check_ls) then (tc, false)
     else type_error s ("typecheck_stmt: scall: subtype check of call arg exp types failed")
@@ -600,7 +617,7 @@ let create_global_ctxt (tc:Tctxt.t) (p:Ast.prog) : Tctxt.t =
     if (not in_ctxt) then (
       let init_ty = typecheck_exp acc init in (*F: does not limit other globals from appearing in exp*)
       Tctxt.add_global acc id init_ty )
-    else type_error gdn ("func is defined twice")
+    else type_error gdn ("global is defined twice")
   in
   let ctxt = List.fold_left fold_func tc glob_ls in 
   ctxt
