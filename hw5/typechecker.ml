@@ -63,13 +63,18 @@ let typ_of_unop : Ast.unop -> Ast.ty * Ast.ty = function
 let rec subtype (c : Tctxt.t) (t1 : Ast.ty) (t2 : Ast.ty) : bool =
   let srtc = subtype_ref c in
   if(t1 = t2) then true
-  else
+  else(
+    (* print_endline("t1, t2 are: " ^ (Astlib.string_of_ty t1) ^ ", " ^ (Astlib.string_of_ty t2)); *)
     begin match t1, t2 with
-      | TRef rt1, TRef rt2 -> srtc rt1 rt2
-      | TRef rt1, TNullRef rt2 -> srtc rt1 rt2
-      | TNullRef rt1, TNullRef rt2 -> srtc rt1 rt2
+      | TRef rt1, TRef rt2 ->         (* print_endline("subtype, both TRef"); *)
+                                      srtc rt1 rt2
+      | TRef rt1, TNullRef rt2 ->     (* print_endline("subtype, second TNullRef"); *)
+                                      srtc rt1 rt2
+      | TNullRef rt1, TNullRef rt2 -> (* print_endline("subtype, both TNullRef"); *)
+                                      srtc rt1 rt2
       | _, _ -> false
     end
+  )
 
 (* Decides whether H |-r ref1 <: ref2 *)
 and subtype_ref (c : Tctxt.t) (t1 : Ast.rty) (t2 : Ast.rty) : bool =
@@ -96,7 +101,7 @@ and subtype_struct (c : Tctxt.t) (id1 : Ast.id) (id2 : Ast.id) : bool =
   if(List.length struct2 > List.length struct1) then false
   else
     let tupl_ls = zip struct1 struct2 in
-    all (fun (n1, n2) -> (n1 = n2)) tupl_ls
+    all (fun (n1, n2) -> (n1.fieldName = n2.fieldName) && (n1.ftyp = n2.ftyp)) tupl_ls
 
 and subtype_fun (c : Tctxt.t) ((tyl1, rt1) : ((Ast.ty list) * Ast.ret_ty)) ((tyl2, rt2) : 
 ((Ast.ty list) * Ast.ret_ty)) : bool =
@@ -107,7 +112,8 @@ and subtype_fun (c : Tctxt.t) ((tyl1, rt1) : ((Ast.ty list) * Ast.ret_ty)) ((tyl
         if(rty1 = rty2) then true
         else
           begin match rty1, rty2 with
-            | RetVal ty1, RetVal ty2 -> subtype c ty1 ty2
+            (*F: func inp subtype, output reverse => supertype, lecture or generally how functions work*)
+            | RetVal ty1, RetVal ty2 -> subtype c ty2 ty1 
             | _, _ -> false
           end
       in
@@ -247,13 +253,13 @@ let rec typecheck_exp (c : Tctxt.t) (e : Ast.exp node) : Ast.ty =
       let subtype_check = all (fun (f1,f2) -> (f1.fieldName = f2.fieldName) && (subtype c f1.ftyp f2.ftyp)) (zip struct1 struct2) in
       if(subtype_check) then TRef (RStruct id)
       else type_error e ("typecheck_exp cstruct: field subtype check failed")
-  | Proj (en, id) -> 
+  | Proj (en, fld) -> 
     let str_ty = typecheck_exp c en in
     begin match str_ty with
     | TRef (RStruct id) -> 
       typecheck_ty en c str_ty; 
       let field_ls = Tctxt.lookup_struct id c in
-      let id_field = List.find_opt (fun f -> f.fieldName = id) field_ls in 
+      let id_field = List.find_opt (fun f -> f.fieldName = fld) field_ls in 
       begin match id_field with 
       | Some x -> x.ftyp (*field was found in the list, give back the type from the record*)
       | None -> type_error e ("typecheck_exp proj: field not found in struct definition")
@@ -269,7 +275,7 @@ let rec typecheck_exp (c : Tctxt.t) (e : Ast.exp node) : Ast.ty =
       end
     in
     let type_ls = List.map (typecheck_exp c) ens in
-    let zipped_ls = zip type_ls fun_tys in
+    let zipped_ls = zip fun_tys type_ls in
     let subtype_check = all (fun (f,s) -> subtype c f s) zipped_ls in
     if(subtype_check) then 
       begin match ret_ty with 
@@ -382,7 +388,7 @@ let rec typecheck_stmt (tc : Tctxt.t) (s:Ast.stmt node) (to_ret:ret_ty) : Tctxt.
       | _ -> type_error s ("typecheck_stmt: scall: function id exp not of type func")
       end in
     let en_ty_ls = List.map (typecheck_exp tc) enls in
-    let subty_check_ls = all (fun (f,s) -> subtype tc f s) (zip en_ty_ls arg_ty_ls) in
+    let subty_check_ls = all (fun (f,s) -> subtype tc f s) (zip arg_ty_ls en_ty_ls) in
     if (subty_check_ls) then (tc, false)
     else type_error s ("typecheck_stmt: scall: subtype check of call arg exp types failed")
   | If (cond, if_stmts, else_stmts) -> 
@@ -428,12 +434,13 @@ let rec typecheck_stmt (tc : Tctxt.t) (s:Ast.stmt node) (to_ret:ret_ty) : Tctxt.
   end
 
 and typecheck_block (tc : Tctxt.t) (block : Ast.block) (to_ret:ret_ty) : Tctxt.t * bool =
-  let fold_func ((ctxt, retb):(Tctxt.t * bool)) (stmt:Ast.stmt node) : Tctxt.t * bool =
+  let fold_func ((ctxt, retb):(Tctxt.t * bool list)) (stmt:Ast.stmt node) : Tctxt.t * bool list=
     let new_ctxt,stmt_retb = typecheck_stmt ctxt stmt to_ret in
-    let new_retb = retb || stmt_retb in (*F: not sure if should be OR or AND*)
+    let new_retb = stmt_retb::retb in (*F: not sure if should be OR or AND*)
     (new_ctxt, new_retb)
   in
-  List.fold_left fold_func (tc,true) block
+  let res_ctxt, res_bool_ls = List.fold_left fold_func (tc,[]) block in
+  (res_ctxt, List.hd res_bool_ls && all not (List.tl res_bool_ls))
 
 (* struct type declarations ------------------------------------------------- *)
 (* Here is an example of how to implement the TYP_TDECLOK rule, which is 
@@ -533,6 +540,13 @@ let create_struct_ctxt (p:Ast.prog) : Tctxt.t =
 
 
 let create_function_ctxt (tc:Tctxt.t) (p:Ast.prog) : Tctxt.t =
+  let rec integrate_builtins ls ctxt : Tctxt.t = 
+    begin match ls with
+    | [] -> ctxt
+    | (id,(argtys,rty))::tl -> integrate_builtins tl (Tctxt.add_global ctxt id (TRef (RFun (argtys, rty))))
+    end
+    in
+  let intermed_ctxt = integrate_builtins builtins tc in
   let is_fdecl (td:Ast.decl) : bool =
     begin match td with
     | Gfdecl t -> true
@@ -559,7 +573,7 @@ let create_function_ctxt (tc:Tctxt.t) (p:Ast.prog) : Tctxt.t =
       Tctxt.add_global acc id (TRef (RFun (arg_tys, retty))) )
     else type_error fdn ("func is defined twice")
   in
-  let ctxt = List.fold_left fold_func tc func_ls in 
+  let ctxt = List.fold_left fold_func intermed_ctxt func_ls in
   ctxt
 
 let create_global_ctxt (tc:Tctxt.t) (p:Ast.prog) : Tctxt.t =

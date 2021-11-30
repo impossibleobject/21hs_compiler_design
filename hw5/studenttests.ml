@@ -5,12 +5,33 @@ open Ll
 open Backend
 open Ast
 open Tctxt
+open Printexc
 
 (* These tests are provided by you -- they will be graded manually *)
 
 (* You should also add additional test cases here to help you   *)
 (* debug your program.                                          *)
 
+(*F: functions for testing oat programs*)
+
+let typecheck path () =
+  let () = Platform.verb @@ Printf.sprintf "** Processing: %s\n" path in
+  let oat_ast = parse_oat_file path in
+  Typechecker.typecheck_program oat_ast
+
+let typecheck_error (a : assertion) () =
+  try a (); failwith "Should have a type error" with Typechecker.TypeError s -> ()
+
+let typecheck_correct (a : assertion) () =
+  try a () with Typechecker.TypeError s -> failwith ("Should not have had a type error " ^ s)
+
+let typecheck_file_error tests =
+  List.map (fun p -> p, typecheck_error (typecheck p)) tests
+
+let typecheck_file_correct tests =
+  List.map (fun p -> p, typecheck_correct (typecheck p)) tests
+
+(*F: unit tests*)
 let custom_ctxt1 = 
   let custom_field_ls1 = [
     {fieldName = "x"; ftyp = TInt};
@@ -151,10 +172,21 @@ let typecheck_unit_tests = [
       (TRef (RStruct "nonexistent"))
     with _ -> ())
   )
-]  
+]
+
+let typecheck_subtyping_student_tests =
+  [ 
+    ("student_oat_progr/generic_test.oat");
+  ]
 
 let provided_tests : suite = [
-  GradedTest("STUDENT subtype unit tests", 11, subtype_unit_tests);
-  GradedTest("STUDENT typecheck_ty unit tests", 5, typecheck_unit_tests);
+  GradedTest("STUDENT subtype unit tests", 0, subtype_unit_tests);
+  GradedTest("STUDENT typecheck_ty unit tests", 0, typecheck_unit_tests);
+  
 ] 
+
+let provided_tests_oatprograms : suite =
+  [
+    GradedTest("STUDENT typecheck_ty oat_progr tests", 0, typecheck_file_correct typecheck_subtyping_student_tests);
+  ]
 
