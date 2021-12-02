@@ -39,6 +39,9 @@ let all (p: ('a -> bool)) (ls: 'a list) : bool =
   in
   List.fold_left fold true ls
 
+(* let in_ctxt (ctxt:Tctxt.t) (id:Ast.id) (is_struct:bool) : bool =
+  ctxt. *)
+
 (* binary operation types --------------------------------------------------- *)
 let typ_of_binop : Ast.binop -> Ast.ty * Ast.ty * Ast.ty = function
   | Add | Mul | Sub | Shl | Shr | Sar | IAnd | IOr -> (TInt, TInt, TInt)
@@ -87,13 +90,6 @@ and subtype_ref (c : Tctxt.t) (t1 : Ast.rty) (t2 : Ast.rty) : bool =
     end 
 
 and subtype_struct (c : Tctxt.t) (id1 : Ast.id) (id2 : Ast.id) : bool =
-  (* let set_of_list (l:'a list) :  *)
-  (*let field_cmp (f1:Ast.field) (f2:Ast.field) : int =
-    let name1 = f1.fieldName in
-    let name2 = f2.fieldName in
-    String.compare name1 name2 in
-  let struct1 = List.sort field_cmp (Tctxt.lookup_struct id1 c) in
-  let struct2 = List.sort field_cmp (Tctxt.lookup_struct id2 c) in *)
   (*F: doing width subtyping from lecture, so structs are subtypes if first n elements of struct 1
     are in the same order and have the same name and type as the n elements of struct 2 (see forum)*)
   let struct1 = Tctxt.lookup_struct id1 c in
@@ -378,12 +374,6 @@ let rec typecheck_stmt (tc : Tctxt.t) (s:Ast.stmt node) (to_ret:ret_ty) : Tctxt.
       end in
     if(is_func_id) then type_error s ("typecheck_stmt: assn: lhs is global func id");
     let lhs_ty = typecheck_exp tc lhs in
-    (* let is_func_ty = 
-      begin match lhs_ty with
-      | TRef (RFun (_,_)) -> true
-      | _ -> false
-      end in
-    if (is_func_ty) then type_error s ("typecheck_stmt: assn: lhs has function type"); *)
     let rhs_ty = typecheck_exp tc rhs in
     let subty_check = subtype tc rhs_ty lhs_ty in 
     if (subty_check) then (tc, false)
