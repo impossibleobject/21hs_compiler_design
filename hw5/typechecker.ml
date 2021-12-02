@@ -112,14 +112,14 @@ and subtype_fun (c : Tctxt.t) ((tyl1, rt1) : ((Ast.ty list) * Ast.ret_ty)) ((tyl
         if(rty1 = rty2) then true
         else
           begin match rty1, rty2 with
-            (*F: func inp subtype, output reverse => supertype, lecture or generally how functions work*)
-            | RetVal ty1, RetVal ty2 -> subtype c ty2 ty1 
+            (*F: return types have to be in order*)
+            | RetVal ty1, RetVal ty2 -> subtype c ty1 ty2
             | _, _ -> false
           end
       in
-      let zipped_tylists = zip tyl1 tyl2 in
-      let fold_ls_types = all (fun (t1,t2) -> subtype c t1 t2) zipped_tylists in
-      fold_ls_types && (subtype_retty rt1 rt2)
+      let zipped_tylists = zip tyl2 tyl1 in (*L: arg types have to be flipped*)
+      let fold_arg_types = all (fun (t1,t2) -> subtype c t1 t2) zipped_tylists in
+      fold_arg_types && (subtype_retty rt1 rt2)
   
 
 (* well-formed types -------------------------------------------------------- *)
@@ -296,14 +296,14 @@ let rec typecheck_exp (c : Tctxt.t) (e : Ast.exp node) : Ast.ty =
     in
     let type_ls = List.map (typecheck_exp c) ens in
     if (List.length fun_tys <> List.length type_ls) then type_error e ("typecheck_exp call: num of args passed not same as args expected");
-    let zipped_ls = zip fun_tys type_ls in
+    let zipped_ls = zip type_ls fun_tys in
     let subtype_check = all (fun (f,s) -> subtype c f s) zipped_ls in
     if(subtype_check) then 
       begin match ret_ty with 
       | RetVal t -> t 
       | RetVoid -> type_error e ("typecheck_exp call: void function should not return a type")
       end 
-    else type_error e ("typecheck_exp call: arg list subype check failed")
+    else type_error e ("typecheck_exp call: arg list subtype check failed")
   | Bop (bop, en1, en2) -> 
     let polymorphic_binop ((e1,e2):(exp node * exp node)) : Ast.ty =
       let t1 = typecheck_exp c e1 in
@@ -365,15 +365,27 @@ let rec typecheck_exp (c : Tctxt.t) (e : Ast.exp node) : Ast.ty =
 let rec typecheck_stmt (tc : Tctxt.t) (s:Ast.stmt node) (to_ret:ret_ty) : Tctxt.t * bool =
   begin match s.elt with
   | Assn (lhs, rhs) -> 
+    let lhs_elt = lhs.elt in
+    let is_func_id =
+      begin match lhs_elt with
+      | Id id -> 
+          let lookup_loc_opt = Tctxt.lookup_local_option id tc in 
+          begin match lookup_loc_opt with
+          | None -> true
+          | _ -> false
+          end
+      | _ -> false
+      end in
+    if(is_func_id) then type_error s ("typecheck_stmt: assn: lhs is global func id");
     let lhs_ty = typecheck_exp tc lhs in
-    let is_func_ty = 
+    (* let is_func_ty = 
       begin match lhs_ty with
       | TRef (RFun (_,_)) -> true
       | _ -> false
       end in
-    if (is_func_ty) then type_error s ("typecheck_stmt: assn: lhs has function type");
+    if (is_func_ty) then type_error s ("typecheck_stmt: assn: lhs has function type"); *)
     let rhs_ty = typecheck_exp tc rhs in
-    let subty_check = subtype tc rhs_ty lhs_ty in
+    let subty_check = subtype tc rhs_ty lhs_ty in 
     if (subty_check) then (tc, false)
     else type_error s ("typecheck_stmt: assn: rhs type not subtype of lhs type")
   | Decl (id, en) -> 
@@ -411,7 +423,7 @@ let rec typecheck_stmt (tc : Tctxt.t) (s:Ast.stmt node) (to_ret:ret_ty) : Tctxt.
     if (retty<>RetVoid) then type_error s ("typechecl_stmt: scall: function should be returning void"); 
     let en_ty_ls = List.map (typecheck_exp tc) enls in
     if (List.length arg_ty_ls <> List.length en_ty_ls) then type_error s ("typecheck_stmt scall: num of args passed not same as args expected");
-    let subty_check_ls = all (fun (f,s) -> subtype tc f s) (zip arg_ty_ls en_ty_ls) in
+    let subty_check_ls = all (fun (f,s) -> subtype tc f s) (zip en_ty_ls arg_ty_ls) in
     if (subty_check_ls) then (tc, false)
     else type_error s ("typecheck_stmt: scall: subtype check of call arg exp types failed")
   | If (cond, if_stmts, else_stmts) -> 
@@ -463,7 +475,10 @@ and typecheck_block (tc : Tctxt.t) (block : Ast.block) (to_ret:ret_ty) : Tctxt.t
     (new_ctxt, new_retb)
   in
   let res_ctxt, res_bool_ls = List.fold_left fold_func (tc,[]) block in
-  (res_ctxt, List.hd res_bool_ls && all not (List.tl res_bool_ls))
+  begin match res_bool_ls with
+  | [] -> (res_ctxt, false)
+  | _ -> (res_ctxt, List.hd res_bool_ls && all not (List.tl res_bool_ls))
+  end 
 
 (* struct type declarations ------------------------------------------------- *)
 (* Here is an example of how to implement the TYP_TDECLOK rule, which is 
@@ -563,41 +578,54 @@ let create_struct_ctxt (p:Ast.prog) : Tctxt.t =
 
 
 let create_function_ctxt (tc:Tctxt.t) (p:Ast.prog) : Tctxt.t =
-  let rec integrate_builtins ls ctxt : Tctxt.t = 
-    begin match ls with
-    | [] -> ctxt
-    | (id,(argtys,rty))::tl -> integrate_builtins tl (Tctxt.add_global ctxt id (TRef (RFun (argtys, rty))))
-    end
+  let builtin_ctxt = 
+    let rec integrate_builtins ls ctxt : Tctxt.t = 
+      begin match ls with
+      | [] -> ctxt
+      | (id,(argtys,rty))::tl -> integrate_builtins tl (Tctxt.add_global ctxt id (TRef (RFun (argtys, rty))))
+      end in
+    integrate_builtins builtins tc in
+  
+  let func_ls = 
+    let is_fdecl (td:Ast.decl) : bool =
+      begin match td with
+      | Gfdecl t -> true
+      | _ -> false
+      end in
+    (List.filter is_fdecl p) in (*F: should only contain Gfdecls*)
+  
+  let fdecl_ctxt = 
+    let add_fdecls old_ctxt gfd : Tctxt.t =
+      let fdn =
+        begin match gfd with
+        | Gfdecl t -> t 
+        | _ -> failwith "create_struct_ctxt: element not gfdecl"
+        end in
+      let fd = fdn.elt in 
+      let id, args, retty, body = fd.fname, fd.args, fd.frtyp, fd.body in
+      let lookup_opt = Tctxt.lookup_option id old_ctxt in
+      let in_ctxt = 
+        begin match lookup_opt with
+        | None -> false
+        | _ -> true
+        end in
+      if (not in_ctxt) then 
+        let arg_tys, _ = List.split args in
+        Tctxt.add_global old_ctxt id (TRef (RFun (arg_tys, retty))) 
+      else type_error fdn ("func is defined twice")
     in
-  let intermed_ctxt = integrate_builtins builtins tc in
-  let is_fdecl (td:Ast.decl) : bool =
-    begin match td with
-    | Gfdecl t -> true
-    | _ -> false
-    end in
-  let func_ls = (List.filter is_fdecl p) in (*F: should only contain Gfdecls*)
-  let fold_func acc gfd : Tctxt.t = 
+    List.fold_left add_fdecls builtin_ctxt func_ls in 
+  let unpack_and_typecheck_fdecl gfd : unit = 
     let fdn =
       begin match gfd with
       | Gfdecl t -> t 
       | _ -> failwith "create_struct_ctxt: element not gfdecl"
       end in
     let fd = fdn.elt in 
-    let id, args, retty, body = fd.fname, fd.args, fd.frtyp, fd.body in
-    let lookup_opt = Tctxt.lookup_option id acc in
-    let in_ctxt = 
-      begin match lookup_opt with
-      | None -> false
-      | _ -> true
-      end in
-    if (not in_ctxt) then (
-      typecheck_fdecl acc fd fdn;
-      let arg_tys, _ = List.split args in
-      Tctxt.add_global acc id (TRef (RFun (arg_tys, retty))) )
-    else type_error fdn ("func is defined twice")
+    typecheck_fdecl fdecl_ctxt fd fdn
   in
-  let ctxt = List.fold_left fold_func intermed_ctxt func_ls in
-  ctxt
+  ignore (List.map unpack_and_typecheck_fdecl func_ls);
+  fdecl_ctxt
 
 let create_global_ctxt (tc:Tctxt.t) (p:Ast.prog) : Tctxt.t =
   let is_gdecl (td:Ast.decl) : bool =

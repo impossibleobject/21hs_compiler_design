@@ -109,12 +109,13 @@ let subtype_unit_tests = [
         (TRef (RFun ([TInt; TBool], RetVoid))) then
         failwith "should not succeed" else ())
   )
-  ; (*#6*)("subtype_fun_fun_2",
+  (*L: test is wrong*)
+  (* ; (*#6*)("subtype_fun_fun_2",
   (fun () ->
       if Typechecker.subtype custom_ctxt1 (TRef (RFun ([TRef (RStruct "custom1"); TBool], RetVoid))) 
         (TRef (RFun ([TRef (RStruct "supercustom1"); TBool], RetVoid))) then
         () else failwith "should not fail")
-  )
+  ) *)
   ; (*#7*)("subtype_str_str",
   (fun () ->
       if Typechecker.subtype custom_ctxt1 (TRef (RStruct "custom1")) (TRef (RStruct "custom2")) then
