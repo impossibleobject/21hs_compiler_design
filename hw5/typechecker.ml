@@ -213,6 +213,12 @@ let rec typecheck_exp (c : Tctxt.t) (e : Ast.exp node) : Ast.ty =
     end
   | CArr (ty, ens) -> typecheck_ty e c ty;
     let type_ls = List.map (typecheck_exp c) ens in
+    let find_nullref t : bool =
+      begin match t with
+      | TNullRef _ -> true
+      | _ -> false
+      end in
+    if (List.exists find_nullref type_ls) then type_error e ("typecheck_exp carr: array is being init with null values, not allowed");
     let subtype_check = all (fun x -> (subtype c ty x)) type_ls in
     if (subtype_check) then TRef (RArray ty) 
     else type_error e ("typecheck_exp array: array elements not subtype of elem type")
