@@ -1,22 +1,5 @@
-struct A {
-  int x
-}
+global x = 42;
 
-struct B {
-  int x;
-  int y
-}
-
-A f() {
-  return new A {x = 3};
-}
-
-B g() {
-  return new B {x = 3; y = 4};
-}
-
-int l() {
-  var x = f;
-  x = g;
-  return 3;
+int program(int argc, string[] args) {
+  return x;
 }
