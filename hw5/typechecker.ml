@@ -39,8 +39,6 @@ let all (p: ('a -> bool)) (ls: 'a list) : bool =
   in
   List.fold_left fold true ls
 
-(* let in_ctxt (ctxt:Tctxt.t) (id:Ast.id) (is_struct:bool) : bool =
-  ctxt. *)
 
 (* binary operation types --------------------------------------------------- *)
 let typ_of_binop : Ast.binop -> Ast.ty * Ast.ty * Ast.ty = function
@@ -537,6 +535,33 @@ let typecheck_fdecl (tc : Tctxt.t) (f : Ast.fdecl) (l : 'a Ast.node) : unit =
    NOTE: global initializers may mention function identifiers as
    constants, but can't mention other global values *)
 
+  (*L: helpers for creating the different contexts*)
+  let unpack_decl (ctxt:Tctxt.t) (decl:Ast.decl) : (Ast.id * (Ast.ty * Ast.id) list * Ast.ret_ty * bool) =
+    begin match decl with
+      | Gvdecl gdn -> failwith "not impl yet"
+      | Gfdecl fdn -> 
+        let fd = fdn.elt in
+        let id, args, retty = fd.fname, fd.args, fd.frtyp in
+        let lookup_opt = Tctxt.lookup_option id ctxt in
+        let in_ctxt =
+          begin match lookup_opt with
+          | None -> false
+          | _ -> true
+          end in
+        (id, args, retty, in_ctxt)
+      | Gtdecl tdn -> failwith "not impl yet"
+    end
+  
+  let typecheck_decl (ctxt:Tctxt.t) (decl:Ast.decl) : unit =
+    begin match decl with
+      | Gvdecl gdn -> failwith "not impl yet"
+      | Gfdecl fdn -> let fd = fdn.elt in 
+                      typecheck_fdecl ctxt fd fdn
+      | Gtdecl tdn -> failwith "not impl yet"
+    end
+
+
+
 let create_struct_ctxt (p:Ast.prog) : Tctxt.t =
   let is_tdecl (td:Ast.decl) : bool =
     begin match td with
@@ -569,12 +594,9 @@ let create_struct_ctxt (p:Ast.prog) : Tctxt.t =
 
 let create_function_ctxt (tc:Tctxt.t) (p:Ast.prog) : Tctxt.t =
   let builtin_ctxt = 
-    let rec integrate_builtins ls ctxt : Tctxt.t = 
-      begin match ls with
-      | [] -> ctxt
-      | (id,(argtys,rty))::tl -> integrate_builtins tl (Tctxt.add_global ctxt id (TRef (RFun (argtys, rty))))
-      end in
-    integrate_builtins builtins tc in
+    let builtins_to_ctxt (ctxt:Tctxt.t) ((id,fty):(Ast.id * Tctxt.fty)) : Tctxt.t =
+      Tctxt.add_global ctxt id (TRef (RFun (fst fty, snd fty))) in (*L: no idea why this doesn't just accept fty*)
+    List.fold_left builtins_to_ctxt tc builtins in
   
   let func_ls = 
     let is_fdecl (td:Ast.decl) : bool =
@@ -586,35 +608,20 @@ let create_function_ctxt (tc:Tctxt.t) (p:Ast.prog) : Tctxt.t =
   
   let fdecl_ctxt = 
     let add_fdecls old_ctxt gfd : Tctxt.t =
-      let fdn =
-        begin match gfd with
-        | Gfdecl t -> t 
-        | _ -> failwith "create_struct_ctxt: element not gfdecl"
-        end in
-      let fd = fdn.elt in 
-      let id, args, retty, body = fd.fname, fd.args, fd.frtyp, fd.body in
-      let lookup_opt = Tctxt.lookup_option id old_ctxt in
-      let in_ctxt = 
-        begin match lookup_opt with
-        | None -> false
-        | _ -> true
-        end in
+      let id, args, retty, in_ctxt = unpack_decl old_ctxt gfd in
       if (not in_ctxt) then 
         let arg_tys, _ = List.split args in
         Tctxt.add_global old_ctxt id (TRef (RFun (arg_tys, retty))) 
-      else type_error fdn ("func is defined twice")
+      else
+        let fdn =
+          begin match gfd with
+          | Gfdecl t -> t 
+          | _ -> failwith "create_struct_ctxt: element not gfdecl"
+          end in
+        type_error fdn ("func is defined twice")
     in
     List.fold_left add_fdecls builtin_ctxt func_ls in 
-  let unpack_and_typecheck_fdecl gfd : unit = 
-    let fdn =
-      begin match gfd with
-      | Gfdecl t -> t 
-      | _ -> failwith "create_struct_ctxt: element not gfdecl"
-      end in
-    let fd = fdn.elt in 
-    typecheck_fdecl fdecl_ctxt fd fdn
-  in
-  ignore (List.map unpack_and_typecheck_fdecl func_ls);
+  ignore (List.map (typecheck_decl fdecl_ctxt) func_ls);
   fdecl_ctxt
 
 let create_global_ctxt (tc:Tctxt.t) (p:Ast.prog) : Tctxt.t =
@@ -624,7 +631,7 @@ let create_global_ctxt (tc:Tctxt.t) (p:Ast.prog) : Tctxt.t =
     | _ -> false
     end in
   let glob_ls = (List.filter is_gdecl p) in (*F: should only contain Gfdecls*)
-  let fold_func acc ggd : Tctxt.t= 
+  let fold_func acc ggd : Tctxt.t = 
     let gdn =
       begin match ggd with
       | Gvdecl t -> t 
