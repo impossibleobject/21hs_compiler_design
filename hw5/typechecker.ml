@@ -200,9 +200,11 @@ let rec typecheck_exp (c : Tctxt.t) (e : Ast.exp node) : Ast.ty =
   | CInt _ -> TInt
   | CStr _ -> TRef RString
   | Id id -> 
+    print_endline("id is: " ^ id); 
     let lookup_id = Tctxt.lookup_option id c in
     begin match lookup_id with 
-    | Some x -> x
+    | Some x -> print_endline("looked up type of id is: " ^ Astlib.string_of_ty x); 
+                x
     | None -> type_error e ("typecheck_exp id: iden not found in ctxt")
     end
   | CArr (ty, ens) -> typecheck_ty e c ty;
@@ -359,18 +361,18 @@ let rec typecheck_exp (c : Tctxt.t) (e : Ast.exp node) : Ast.ty =
 let rec typecheck_stmt (tc : Tctxt.t) (s:Ast.stmt node) (to_ret:ret_ty) : Tctxt.t * bool =
   begin match s.elt with
   | Assn (lhs, rhs) -> 
-    let lhs_elt = lhs.elt in
     let is_func_id =
-      begin match lhs_elt with
+      begin match lhs.elt with
       | Id id -> 
           let lookup_opt = Tctxt.lookup_global_option id tc in (*can overwrite global but not local with func*)
           let lookup_shadow_opt = Tctxt.lookup_local_option id tc in
           begin match lookup_opt with
           | None -> false
           | Some x -> 
+            (* print_endline("type of id is: " ^ Astlib.string_of_ty x); *)
             begin match x with
               | TRef (RFun (argtys, retty)) -> 
-                print_endline("id is: " ^ id);
+                (* print_endline("id is: " ^ id); *)
                 lookup_shadow_opt = None
               | _ -> false
             end

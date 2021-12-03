@@ -1,5 +1,10 @@
-global x = 42;
+int f(int x, int y) {
+  return x + y;
+}
 
-int program(int argc, string[] args) {
-  return x;
+global x = f;
+global y = x;
+
+int program(int argc, string[] argv) {
+  return y(3,4);
 }
