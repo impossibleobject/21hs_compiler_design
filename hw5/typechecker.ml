@@ -363,18 +363,21 @@ let rec typecheck_stmt (tc : Tctxt.t) (s:Ast.stmt node) (to_ret:ret_ty) : Tctxt.
     let is_func_id =
       begin match lhs_elt with
       | Id id -> 
-          let lookup_opt = Tctxt.lookup_option id tc in 
+          let lookup_opt = Tctxt.lookup_global_option id tc in (*can overwrite global but not local with func*)
+          let lookup_shadow_opt = Tctxt.lookup_local_option id tc in
           begin match lookup_opt with
           | None -> false
           | Some x -> 
             begin match x with
-              | TRef (RFun (argtys, retty)) -> true
+              | TRef (RFun (argtys, retty)) -> 
+                print_endline("id is: " ^ id);
+                lookup_shadow_opt = None
               | _ -> false
             end
           end
       | _ -> false
       end in
-    if(is_func_id) then type_error s ("typecheck_stmt: assn: lhs is global func id");
+    if(is_func_id) then type_error s ("typecheck_stmt: assn: lhs: is global func id");
     let lhs_ty = typecheck_exp tc lhs in
     let rhs_ty = typecheck_exp tc rhs in
     let subty_check = subtype tc rhs_ty lhs_ty in 
