@@ -200,10 +200,10 @@ let rec typecheck_exp (c : Tctxt.t) (e : Ast.exp node) : Ast.ty =
   | CInt _ -> TInt
   | CStr _ -> TRef RString
   | Id id -> 
-    print_endline("id is: " ^ id); 
+    (* print_endline("id is: " ^ id); *) 
     let lookup_id = Tctxt.lookup_option id c in
     begin match lookup_id with 
-    | Some x -> print_endline("looked up type of id is: " ^ Astlib.string_of_ty x); 
+    | Some x -> (* print_endline("looked up type of id is: " ^ Astlib.string_of_ty x);  *)
                 x
     | None -> type_error e ("typecheck_exp id: iden not found in ctxt")
     end
@@ -657,7 +657,7 @@ let create_global_ctxt (tc:Tctxt.t) (p:Ast.prog) : Tctxt.t =
     if (in_ctxt old_ctxt ggd) then type_error gdn ("global is defined twice")
     else 
       ( (*print_endline("init is: " ^ string_of_exp init); *)
-        let init_ty = typecheck_exp old_ctxt init in (*F: does not limit other globals from appearing in exp*)
+        let init_ty = typecheck_exp tc init in (*F: tc is used instead of accumulator to limit other globals being ref in global declarations*)
       Tctxt.add_global old_ctxt id init_ty )
   in
   let ctxt = List.fold_left add_gdecl tc glob_ls in 
