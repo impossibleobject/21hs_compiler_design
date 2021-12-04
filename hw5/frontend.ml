@@ -262,7 +262,9 @@ let rec cmp_exp (tc : TypeCtxt.t) (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.ope
     cmp_ty tc ret_ty, Id ans_id, code >:: I (ans_id, cmp_uop op uop)
 
   | Ast.Id id ->
+    print_endline("cmp_exp, entering id case, id is: " ^ id);
     let t, op = Ctxt.lookup id c in
+    print_endline("did not fail on lookup");
     begin match t with
       | Ptr (Fun _) -> t, op, []
       | Ptr t ->
@@ -276,8 +278,14 @@ let rec cmp_exp (tc : TypeCtxt.t) (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.ope
        of the array struct representation.
   *)
   | Ast.Length e ->
-    failwith "todo:implement Ast.Length case"
-
+    begin match e.elt with
+      | CArr (elem_ty, ens) -> (I64, Const (Int64.of_int (List.length ens)), [])
+      | NewArr (elem_ty, en_length, id, en_init) -> 
+        let tyl, opl, sl = cmp_exp tc c en_length in
+        if(tyl <> I64) then failwith "cmp_exp -> length: length expr is not I64";
+        (I64, opl, sl)
+      | _ -> failwith "cmp_exp -> length: expr is not array"
+    end
   | Ast.Index (e, i) ->
     let ans_ty, ptr_op, code = cmp_exp_lhs tc c exp in
     let ans_id = gensym "index" in
@@ -313,7 +321,27 @@ let rec cmp_exp (tc : TypeCtxt.t) (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.ope
   | Ast.NewArr (elt_ty, e1, id, e2) ->    
     let _, size_op, size_code = cmp_exp tc c e1 in
     let arr_ty, arr_op, alloc_code = oat_alloc_array tc elt_ty size_op in
-    arr_ty, arr_op, size_code >@ alloc_code
+    let for_loop_ast =
+      let vd = [(id, no_loc (CInt 0L))] in
+      let idn = no_loc (Id id) in
+      let check = Some (no_loc (Bop (Lt, idn, e1))) in
+      let inc = Some (no_loc (Assn (idn, no_loc (Bop (Add, idn, no_loc(CInt 1L)))))) in
+      let arr_name =
+        begin match arr_op with
+        | Ll.Id i -> i
+        | _ -> failwith "newarr: ll operand for array is not an Id"
+        end in 
+      let body =
+        let namenode = no_loc (Ast.Id arr_name) in
+        let assnidxn = no_loc (Index (namenode, idn)) in
+        [no_loc (Assn (assnidxn, e2))] in
+      For (vd, check, inc, body)  
+    in
+    let intermed_c = Ctxt.add c id (I64, Id id) in
+    print_endline("cmp_exp: -> Newarr, starting to compile the for loop");
+    let for_c, for_str = cmp_stmt tc intermed_c arr_ty (no_loc for_loop_ast) in
+    arr_ty, arr_op, size_code >@ alloc_code >@ for_str
+
 
    (* STRUCT TASK: complete this code that compiles struct expressions.
       For each field component of the struct
@@ -360,11 +388,20 @@ and cmp_exp_lhs (tc : TypeCtxt.t) (c:Ctxt.t) (e:exp node) : Ll.ty * Ll.operand *
       | Ptr (Struct [_; Array (_,t)]) -> t 
       | _ -> failwith "Index: indexed into non pointer" in
     let ptr_id, tmp_id = gensym "index_ptr", gensym "tmp" in
+    let ptr_i64 = gensym "ptr_arr" in
     ans_ty, (Id ptr_id),
     arr_code >@ ind_code >@ lift
-      [ptr_id, Gep(arr_ty, arr_op, [i64_op_of_int 0; i64_op_of_int 1; ind_op]) ]
+      [ ptr_i64, Bitcast (arr_ty, arr_op, Ptr I64)
+      ; "", Call(Void, Gid "oat_assert_array_length", [(Ptr I64, Id ptr_i64); (I64, ind_op)])
+      ; ptr_id, Gep(arr_ty, arr_op, [i64_op_of_int 0; i64_op_of_int 1; ind_op])]
 
-   
+   (*let oat_alloc_array ct (t:Ast.ty) (size:Ll.operand) : Ll.ty * operand * stream =
+  let ans_id, arr_id = gensym "array", gensym "raw_array" in
+  let ans_ty = cmp_ty ct @@ TRef (RArray t) in
+  let arr_ty = Ptr I64 in
+  ans_ty, Id ans_id, lift
+    [ arr_id, Call(arr_ty, Gid "oat_alloc_array", [I64, size])
+    ; ans_id, Bitcast(arr_ty, Id arr_id, ans_ty) ]*)
 
   | _ -> failwith "invalid lhs expression"
 
@@ -438,7 +475,9 @@ and cmp_stmt (tc : TypeCtxt.t) (c:Ctxt.t) (rt:Ll.ty) (stmt:Ast.stmt node) : Ctxt
     failwith "todo: implement Ast.Cast case"
 
   | Ast.While (guard, body) ->
+     print_endline("cmp_stmt: while: starting to compile guard");
      let guard_ty, guard_op, guard_code = cmp_exp tc c guard in
+     print_endline("cmp_stmt: while: finished compiling guard");
      let lcond, lbody, lpost = gensym "cond", gensym "body", gensym "post" in
      let body_code = cmp_block tc c rt body  in
      c, [] 
@@ -452,6 +491,7 @@ and cmp_stmt (tc : TypeCtxt.t) (c:Ctxt.t) (rt:Ll.ty) (stmt:Ast.stmt node) : Ctxt
      let after = match after with Some s -> [s] | None -> [] in
      let body = body @ after in
      let ds = List.map (fun d -> no_loc (Decl d)) inits in
+     print_endline("cmp_stmt -> about to compile block in for case");
      let stream = cmp_block tc c rt (ds @ [no_loc @@ Ast.While (guard, body)]) in
      c, stream
 
