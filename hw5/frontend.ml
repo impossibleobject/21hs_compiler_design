@@ -28,6 +28,11 @@ let ( >@ ) x y = y @ x
 let ( >:: ) x y = y :: x
 let lift : (uid * insn) list -> stream = List.rev_map (fun (x,i) -> I (x,i))
 
+
+
+(*L: our own helpers*)
+let sum (ls:int list) : int = List.fold_left (+) 0 ls
+
 (* Build a CFG and collection of global variable definitions from a stream *)
 let cfg_of_stream (code:stream) : Ll.cfg * (Ll.gid * Ll.gdecl) list  =
     let gs, einsns, insns, term_opt, blks = List.fold_left
@@ -195,8 +200,29 @@ let oat_alloc_array ct (t:Ast.ty) (size:Ll.operand) : Ll.ty * operand * stream =
 
    - make sure to calculate the correct amount of space to allocate!
 *)
-let oat_alloc_struct ct (id:Ast.id) : Ll.ty * operand * stream =
-  failwith "TODO: oat_alloc_struct"
+let rec size_ll_ty (ty:Ll.ty) : int =
+  begin match ty with
+    | I1    -> 1
+    | I8    -> 1
+    | I64   -> 8
+    | Ptr p -> 8
+    | Struct tys -> sum (List.map size_ll_ty tys)
+    | Array (l, elemty) -> l * size_ll_ty elemty
+    | _ -> failwith "size_ll_ty does not work on functions, namedts and Void"
+  end
+
+let oat_alloc_struct (ct:TypeCtxt.t) (id:Ast.id) : Ll.ty * operand * stream = (*L: added type typectxt instead of regular ctxt*)
+  let fields = TypeCtxt.lookup id ct in
+  let ast_ty_ls = List.map (fun f -> f.ftyp) fields in
+  let size = 
+    let ast_ty_to_size = fun ast_ty -> size_ll_ty (cmp_ty ct ast_ty) in
+    sum (List.map ast_ty_to_size ast_ty_ls) in
+  let ans_id, struct_id = gensym "struct", gensym "raw_struct" in
+  let ans_ty = cmp_ty ct @@ TRef (RStruct id) in
+  let struct_ty = Ptr I64 in
+  ans_ty, Id ans_id, lift
+    [ struct_id, Call(struct_ty, Gid "oat_malloc", [I64, Const (Int64.of_int size)])
+    ; ans_id, Bitcast(struct_ty, Id struct_id, ans_ty) ]
 
 
 let str_arr_ty s = Array(1 + String.length s, I8)
@@ -287,7 +313,7 @@ let rec cmp_exp (tc : TypeCtxt.t) (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.ope
       | _ -> failwith "cmp_exp -> length: expr is not array"
     end
   | Ast.Index (e, i) ->
-    let ans_ty, ptr_op, code = cmp_exp_lhs tc c exp in
+    let ans_ty, ptr_op, code = cmp_exp_lhs tc c e in (*L: e was exp, no idea why*)
     let ans_id = gensym "index" in
     ans_ty, Id ans_id, code >:: I(ans_id, Load(Ptr ans_ty, ptr_op))
 
@@ -324,7 +350,7 @@ let rec cmp_exp (tc : TypeCtxt.t) (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.ope
     let for_loop_ast =
       let vd = [(id, no_loc (CInt 0L))] in
       let idn = no_loc (Id id) in
-      let check = Some (no_loc (Bop (Lt, idn, e1))) in
+      let guard = Some (no_loc (Bop (Lt, idn, e1))) in
       let inc = Some (no_loc (Assn (idn, no_loc (Bop (Add, idn, no_loc(CInt 1L)))))) in
       let arr_name =
         begin match arr_op with
@@ -332,10 +358,11 @@ let rec cmp_exp (tc : TypeCtxt.t) (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.ope
         | _ -> failwith "newarr: ll operand for array is not an Id"
         end in 
       let body =
+        print_endline("cmp_exp -> newarr, arr_name is: " ^ arr_name);
         let namenode = no_loc (Ast.Id arr_name) in
         let assnidxn = no_loc (Index (namenode, idn)) in
         [no_loc (Assn (assnidxn, e2))] in
-      For (vd, check, inc, body)  
+      For (vd, guard, inc, body)  
     in
     let intermed_c = Ctxt.add c id (I64, Id id) in
     print_endline("cmp_exp: -> Newarr, starting to compile the for loop");
@@ -382,6 +409,7 @@ and cmp_exp_lhs (tc : TypeCtxt.t) (c:Ctxt.t) (e:exp node) : Ll.ty * Ll.operand *
      be thrown...)
   *)
   | Ast.Index (e, i) ->
+    print_endline("cmp_exp -> index, starting to look for: " ^ Astlib.string_of_exp e);
     let arr_ty, arr_op, arr_code = cmp_exp tc c e in
     let _, ind_op, ind_code = cmp_exp tc c i in
     let ans_ty = match arr_ty with 
