@@ -313,7 +313,7 @@ let rec cmp_exp (tc : TypeCtxt.t) (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.ope
       | _ -> failwith "cmp_exp -> length: expr is not array"
     end
   | Ast.Index (e, i) ->
-    let ans_ty, ptr_op, code = cmp_exp_lhs tc c e in (*L: e was exp, no idea why*)
+    let ans_ty, ptr_op, code = cmp_exp_lhs tc c exp in (*L: e was exp, no idea why*)
     let ans_id = gensym "index" in
     ans_ty, Id ans_id, code >:: I(ans_id, Load(Ptr ans_ty, ptr_op))
 
@@ -347,27 +347,38 @@ let rec cmp_exp (tc : TypeCtxt.t) (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.ope
   | Ast.NewArr (elt_ty, e1, id, e2) ->    
     let _, size_op, size_code = cmp_exp tc c e1 in
     let arr_ty, arr_op, alloc_code = oat_alloc_array tc elt_ty size_op in
-    let for_loop_ast =
-      let vd = [(id, no_loc (CInt 0L))] in
-      let idn = no_loc (Id id) in
-      let guard = Some (no_loc (Bop (Lt, idn, e1))) in
-      let inc = Some (no_loc (Assn (idn, no_loc (Bop (Add, idn, no_loc(CInt 1L)))))) in
-      let arr_name =
-        begin match arr_op with
-        | Ll.Id i -> i
-        | _ -> failwith "newarr: ll operand for array is not an Id"
-        end in 
-      let body =
-        print_endline("cmp_exp -> newarr, arr_name is: " ^ arr_name);
-        let namenode = no_loc (Ast.Id arr_name) in
-        let assnidxn = no_loc (Index (namenode, idn)) in
-        [no_loc (Assn (assnidxn, e2))] in
-      For (vd, guard, inc, body)  
+    let ll_idx = gensym id in
+    let intermed_c = Ctxt.add c id (I64, Id ll_idx) in
+    let elem_ty, elem_op, elem_s = cmp_exp tc intermed_c e2 in
+
+    let ll_instr = 
+      let guard = gensym "guard" in
+      let body = gensym "body" in
+      let fin = gensym "end" in
+      let cmp = gensym "cmp" in
+      let arr_ptr = gensym "arr_ptr" in
+      let load_idx = gensym "load_idx" in
+      let upd_idx = gensym "upd_idx" in
+      let upd_ptr = gensym "upd_ptr" in
+      []
+      >:: I(arr_ptr, Bitcast(arr_ty, arr_op, Ptr elem_ty))
+      >:: I(ll_idx, Alloca I64) 
+      >:: I("", Store (I64, Const 0L, Id ll_idx))
+      >:: T(Br guard)
+      >:: L guard
+      >:: I(load_idx, Load (Ptr I64, Id ll_idx))
+      >:: I(cmp, Icmp (Ll.Slt, I64, Id load_idx, size_op))
+      >:: T(Cbr (Id cmp, body, fin))
+      >:: L body
+      >@  elem_s
+      >:: I(upd_ptr, Gep(Ptr elem_ty, Id arr_ptr, [Id load_idx]))
+      >:: I("", Store (elem_ty, elem_op, Id upd_ptr))
+      >:: I(upd_idx, Binop (Add, I64, Id load_idx, Const 1L))
+      >:: I("", Store (I64, Id upd_idx, Id ll_idx))
+      >:: T(Br guard)
+      >:: L fin
     in
-    let intermed_c = Ctxt.add c id (I64, Id id) in
-    print_endline("cmp_exp: -> Newarr, starting to compile the for loop");
-    let for_c, for_str = cmp_stmt tc intermed_c arr_ty (no_loc for_loop_ast) in
-    arr_ty, arr_op, size_code >@ alloc_code >@ for_str
+    arr_ty, arr_op, size_code >@ alloc_code >@ ll_instr
 
 
    (* STRUCT TASK: complete this code that compiles struct expressions.
@@ -411,6 +422,8 @@ and cmp_exp_lhs (tc : TypeCtxt.t) (c:Ctxt.t) (e:exp node) : Ll.ty * Ll.operand *
   | Ast.Index (e, i) ->
     print_endline("cmp_exp -> index, starting to look for: " ^ Astlib.string_of_exp e);
     let arr_ty, arr_op, arr_code = cmp_exp tc c e in
+    print_endline("cmp_exp -> index, arr_ty: " ^ string_of_ty arr_ty);
+    print_endline("cmp_exp -> index, arr_op: " ^ string_of_operand arr_op);
     let _, ind_op, ind_code = cmp_exp tc c i in
     let ans_ty = match arr_ty with 
       | Ptr (Struct [_; Array (_,t)]) -> t 
@@ -419,7 +432,8 @@ and cmp_exp_lhs (tc : TypeCtxt.t) (c:Ctxt.t) (e:exp node) : Ll.ty * Ll.operand *
     let ptr_i64 = gensym "ptr_arr" in
     ans_ty, (Id ptr_id),
     arr_code >@ ind_code >@ lift
-      [ ptr_i64, Bitcast (arr_ty, arr_op, Ptr I64)
+      [ (* ptr_i64, Bitcast (arr_ty, arr_op, Ptr I64) *)
+        ptr_i64, Gep(arr_ty, arr_op, [i64_op_of_int 0; i64_op_of_int 0])
       ; "", Call(Void, Gid "oat_assert_array_length", [(Ptr I64, Id ptr_i64); (I64, ind_op)])
       ; ptr_id, Gep(arr_ty, arr_op, [i64_op_of_int 0; i64_op_of_int 1; ind_op])]
 
