@@ -304,6 +304,7 @@ let rec cmp_exp (tc : TypeCtxt.t) (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.ope
        of the array struct representation.
   *)
   | Ast.Length e ->
+    print_endline("entering cmp_exp -> length");
     begin match e.elt with
       | CArr (elem_ty, ens) -> (I64, Const (Int64.of_int (List.length ens)), [])
       | NewArr (elem_ty, en_length, id, en_init) -> 
@@ -430,11 +431,14 @@ and cmp_exp_lhs (tc : TypeCtxt.t) (c:Ctxt.t) (e:exp node) : Ll.ty * Ll.operand *
       | _ -> failwith "Index: indexed into non pointer" in
     let ptr_id, tmp_id = gensym "index_ptr", gensym "tmp" in
     let ptr_i64 = gensym "ptr_arr" in
+    let int_val = gensym "int_val" in
     ans_ty, (Id ptr_id),
     arr_code >@ ind_code >@ lift
       [ (* ptr_i64, Bitcast (arr_ty, arr_op, Ptr I64) *)
         ptr_i64, Gep(arr_ty, arr_op, [i64_op_of_int 0; i64_op_of_int 0])
-      ; "", Call(Void, Gid "oat_assert_array_length", [(Ptr I64, Id ptr_i64); (I64, ind_op)])
+      ; int_val, Load(Ptr I64, Id ptr_i64)
+      ; "", Call(Void, Gid "print_int", [(I64, Id int_val)])
+      (* ; "", Call(Void, Gid "oat_assert_array_length", [(Ptr I64, Id ptr_i64); (I64, ind_op)]) *)
       ; ptr_id, Gep(arr_ty, arr_op, [i64_op_of_int 0; i64_op_of_int 1; ind_op])]
 
    (*let oat_alloc_array ct (t:Ast.ty) (size:Ll.operand) : Ll.ty * operand * stream =
