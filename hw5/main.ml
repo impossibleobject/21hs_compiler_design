@@ -5,7 +5,7 @@ open Driver
 open Gradedtests
 
 exception Ran_tests
-let suite = ref ( (* Studenttests.provided_tests @ *) (* Gradedtests.graded_tests @ *) Studenttests.provided_tests_oatprograms)
+let suite = ref ( (* Studenttests.provided_tests @ *) Gradedtests.graded_tests @ Studenttests.provided_tests_oatprograms)
 
 let execute_tests () =
   Platform.configure_os ();
