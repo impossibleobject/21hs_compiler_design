@@ -534,14 +534,38 @@ and cmp_stmt (tc : TypeCtxt.t) (c:Ctxt.t) (rt:Ll.ty) (stmt:Ast.stmt node) : Ctxt
        - check whether the value computed by exp is null, if so jump to
          the 'null' block, otherwise take the 'notnull' block
 
-       - the identifier id is in scope in the 'nutnull' block and so 
+       - the identifier id is in scope in the 'notnull' block and so 
          needs to be allocated (and added to the context)
 
        - as in the if-the-else construct, you should jump to the common
          merge label after either block
   *)
   | Ast.Cast (typ, id, exp, notnull, null) ->
-    failwith "todo: implement Ast.Cast case"
+    let id_ty, id_op, id_str = cmp_exp tc c exp in 
+    let nn_lbl = gensym "notnull" in
+    let nu_lbl = gensym "null" in
+    let fin = gensym "end_ifq" in
+    let comp =
+      let cmp_op = gensym "cmp" in
+      [ I (cmp_op, Icmp (Eq, id_ty, Null, id_op)) 
+      ; T (Cbr (Id cmp_op, nu_lbl, nn_lbl))]
+    in
+    let nn_elts =
+      let assn = no_loc (Decl (id, exp)) in
+      cmp_block tc c rt (assn::notnull)
+    in
+    let nu_elts = cmp_block tc c rt null in
+    let stream =
+      comp 
+      >:: L nu_lbl
+      >@ nu_elts
+      >:: T (Br fin)
+      >:: L nn_lbl
+      >@ nn_elts
+      >:: T (Br fin)
+      >:: L fin
+    in
+    c, stream
 
   | Ast.While (guard, body) ->
      (* print_endline("cmp_stmt: while: starting to compile guard"); *)
