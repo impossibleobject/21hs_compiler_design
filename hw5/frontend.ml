@@ -472,14 +472,6 @@ and cmp_exp_lhs (tc : TypeCtxt.t) (c:Ctxt.t) (e:exp node) : Ll.ty * Ll.operand *
       ; "", Call(Void, Gid "oat_assert_array_length", [(Ptr I64, Id ptr_i64); (I64, ind_op)])
       ; ptr_id, Gep(arr_ty, arr_op, [i64_op_of_int 0; i64_op_of_int 1; ind_op])]
 
-   (*let oat_alloc_array ct (t:Ast.ty) (size:Ll.operand) : Ll.ty * operand * stream =
-  let ans_id, arr_id = gensym "array", gensym "raw_array" in
-  let ans_ty = cmp_ty ct @@ TRef (RArray t) in
-  let arr_ty = Ptr I64 in
-  ans_ty, Id ans_id, lift
-    [ arr_id, Call(arr_ty, Gid "oat_alloc_array", [I64, size])
-    ; ans_id, Bitcast(arr_ty, Id arr_id, ans_ty) ]*)
-
   | _ -> failwith "invalid lhs expression"
 
 and cmp_call (tc : TypeCtxt.t) (c:Ctxt.t) (exp:Ast.exp node) (es:Ast.exp node list) : Ll.ty * Ll.operand * stream =
@@ -708,7 +700,24 @@ let rec cmp_gexp c (tc : TypeCtxt.t) (e:Ast.exp node) : Ll.gdecl * (Ll.gid * Ll.
 
   (* STRUCT TASK: Complete this code that generates the global initializers for a struct value. *)  
   | CStruct (id, cs) ->
-    failwith "todo: Cstruct case of cmp_gexp"
+    let field_ls = TypeCtxt.lookup id tc in
+    let fty_ls = List.map (fun x -> cmp_ty tc x.ftyp) field_ls in
+    
+    let rec sort_ls ls acc : exp node list =
+      begin match ls with
+      | [] -> acc
+      | h::tl -> sort_ls tl (acc @ [(List.assoc h.fieldName cs)])
+      end in
+    let sorted_ens = sort_ls field_ls [] in
+    let elts, gs = List.fold_right
+        (fun en (elts, gs) ->
+           let gd, gs' = cmp_gexp c tc en in
+           gd::elts, gs' @ gs) sorted_ens ([], [])
+    in
+    let gid = gensym "global_struct" in 
+    let str_t = Namedt id in
+    let str_i = GStruct elts in
+    (Ptr str_t, GGid gid), (gid, (str_t, str_i))::gs
 
   | _ -> failwith "bad global initializer"
 
