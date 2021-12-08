@@ -1,14 +1,15 @@
-int[] f(int[] x, int[] y, bool b) {
-  if ( b ) {
-    return x;
-  } else {
-    return y;
-  }
+int f(int[][] a) {
+  return a[1][1];
+}
+
+int g(int x) {
+  var arr = new int[][3]{i-> new int[3]{j -> x}};
+  return arr[1][1];
 }
 
 int program (int argc, string[] argv) {
-  var x = new int[3]{i -> 0};
-  var y = new int[3]{i -> 0};
-  f(x, y, true)[3] = 17;
-  return x[0];
+  var a = new int[][3]{i -> new int[3]{j -> j}};
+  var arr = new int[][4]{i -> new int[5]{j -> i*j }};
+  var arr0 = new int[][3]{i -> new int[3]{j -> i*j}};
+  return arr[3][4] + a[1][2] + f(arr0) + g(4); 
 }

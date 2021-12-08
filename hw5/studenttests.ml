@@ -211,7 +211,7 @@ let oat_file_test path args =
   let () = Platform.sh (Printf.sprintf "rm -f %s %s %s" dot_ll_file exec_file tmp_file) Platform.ignore_error in
   let () = Platform.verb @@ Printf.sprintf "** Executable output:\n%s\n" result in
   (*L: print stmt to get result*)
-  (* let () = Platform.sh (Printf.sprintf "echo %s end_of_result " result) Platform.ignore_error in *) 
+  let () = Platform.sh (Printf.sprintf "echo %s end_of_result " result) Platform.ignore_error in 
   result
 
 let executed_oat_file tests =
@@ -224,7 +224,7 @@ let executed_oat_file tests =
 (*L: just add last two parts of tuple to end for respective thing and copy code to generic_test.oat*)
 let running_student_tests =
   [ 
-    ("student_oat_progr/generic_test.oat", "", "17")
+    ("student_oat_progr/generic_test.oat", "", "19")
   ]
 
 let provided_tests_oatprograms : suite =

@@ -223,9 +223,10 @@ let rec typecheck_exp (c : Tctxt.t) (e : Ast.exp node) : Ast.ty =
     if(exp1_ty <> TInt) then type_error e ("typecheck_exp newarray: length is not int");
     let ty_opt = lookup_option id c in
     begin match ty_opt with
-    | Some x -> type_error e ("typecheck_exp newarray: aux variable already in scope")
+    | Some x -> print_endline("id that appears twice is: " ^ id);
+                type_error e ("typecheck_exp newarray: aux variable already in scope")
     | None -> 
-        let newc = Tctxt.add_local c id ty in
+        let newc = Tctxt.add_local c id TInt in
         let exp2_ty = typecheck_exp newc en2 in
         if(subtype newc exp2_ty ty) then TRef (RArray ty)
         else type_error e ("typecheck_exp newarray: init value type is not subtype of elem type")
@@ -313,10 +314,14 @@ let rec typecheck_exp (c : Tctxt.t) (e : Ast.exp node) : Ast.ty =
     | (Eq | Neq) -> polymorphic_binop (en1,en2)
     | _ -> 
       let ty1, ty2, ret_ty = typ_of_binop bop in
+      (* print_endline("exprs: " ^ string_of_exp en1 ^ " " ^ string_of_exp en2); *)
       let en1_ty = typecheck_exp c en1 in
       let en2_ty = typecheck_exp c en2 in
       if(en1_ty=ty1 && en2_ty=ty2) then ret_ty
-      else type_error e ("typecheck_exp bop: types of binop args wrong")
+      else 
+        ((* print_endline("binop types: " ^ string_of_ty ty1 ^ " " ^ string_of_ty ty2);
+        print_endline("expr types: " ^ string_of_ty en1_ty ^ " " ^ string_of_ty en2_ty); *)
+        type_error e ("typecheck_exp bop: types of binop args wrong"))
     end
   | Uop (uop, en) -> 
     let ty1, ret_ty = typ_of_unop uop in
@@ -392,7 +397,9 @@ let rec typecheck_stmt (tc : Tctxt.t) (s:Ast.stmt node) (to_ret:ret_ty) : Tctxt.
       | None -> false
       | _ -> true
       end in
-    if (id_in_ctxt) then type_error s ("typecheck_stmt: decl: var name already in use in scope");
+    if (id_in_ctxt) then
+      (print_endline("id that appears twice is: " ^ id);
+      type_error s ("typecheck_stmt: decl: var name already in use in scope"););
     let en_ty = typecheck_exp tc en in 
     let new_ctxt = Tctxt.add_local tc id en_ty in
     (new_ctxt, false)
@@ -443,7 +450,7 @@ let rec typecheck_stmt (tc : Tctxt.t) (s:Ast.stmt node) (to_ret:ret_ty) : Tctxt.
       | _ -> failwith "incomplete for-loop variant is not supported"
       end in
     let _, _ = typecheck_block new_ctxt body to_ret in 
-    (new_ctxt, false)
+    (tc, false)
   | While (en, body) -> 
     let en_ty = typecheck_exp tc en in 
     if (en_ty <> TBool) then type_error s ("typecheck_stmt: while: loop cond not of type bool");

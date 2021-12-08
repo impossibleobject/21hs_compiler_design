@@ -351,7 +351,7 @@ let rec cmp_exp (tc : TypeCtxt.t) (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.ope
     (* print_endline("cmp_exp -> newarr, type of newarr: " ^ Llutil.string_of_ty arr_ty);
     print_endline("cmp_exp -> newarr, operand of newarr: " ^ Llutil.string_of_operand arr_op); *)
     let ll_idx = gensym id in
-    let intermed_c = Ctxt.add c id (I64, Id ll_idx) in
+    let intermed_c = Ctxt.add c id (Ptr I64, Id ll_idx) in
     let elem_ty, elem_op, elem_s = cmp_exp tc intermed_c e2 in
 
     let ll_instr = 
@@ -360,23 +360,25 @@ let rec cmp_exp (tc : TypeCtxt.t) (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.ope
       let fin = gensym "end" in
       let cmp = gensym "cmp" in
       let arr_ptr = gensym "arr_ptr" in
-      let load_idx = gensym "load_idx" in
+      let loop_idx = gensym "loop_idx" in
+      let load_idx = gensym "load_idx" in (*L: has to be 1 higher than loop_idx, first element is length*)
       let upd_idx = gensym "upd_idx" in
       let upd_ptr = gensym "upd_ptr" in
       []
       >:: I(arr_ptr, Bitcast(arr_ty, arr_op, Ptr elem_ty))
       >:: I(ll_idx, Alloca I64) 
-      >:: I("", Store (I64, Const 1L, Id ll_idx))
+      >:: I("", Store (I64, Const 0L, Id ll_idx))
       >:: T(Br guard)
       >:: L guard
-      >:: I(load_idx, Load (Ptr I64, Id ll_idx))
-      >:: I(cmp, Icmp (Ll.Sle, I64, Id load_idx, size_op))
+      >:: I(loop_idx, Load (Ptr I64, Id ll_idx))
+      >:: I(cmp, Icmp (Ll.Slt, I64, Id loop_idx, size_op))
       >:: T(Cbr (Id cmp, body, fin))
       >:: L body
       >@  elem_s
+      >:: I(load_idx, Binop(Add, I64, Const 1L, Id loop_idx))
       >:: I(upd_ptr, Gep(Ptr elem_ty, Id arr_ptr, [Id load_idx]))
       >:: I("", Store (elem_ty, elem_op, Id upd_ptr))
-      >:: I(upd_idx, Binop (Add, I64, Id load_idx, Const 1L))
+      >:: I(upd_idx, Binop (Add, I64, Id loop_idx, Const 1L))
       >:: I("", Store (I64, Id upd_idx, Id ll_idx))
       >:: T(Br guard)
       >:: L fin
