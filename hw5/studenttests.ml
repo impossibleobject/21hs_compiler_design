@@ -224,7 +224,7 @@ let executed_oat_file tests =
 (*L: just add last two parts of tuple to end for respective thing and copy code to generic_test.oat*)
 let running_student_tests =
   [ 
-    ("student_oat_progr/generic_test.oat", "", "19")
+    ("student_oat_progr/generic_test.oat", "", "160")
   ]
 
 let provided_tests_oatprograms : suite =

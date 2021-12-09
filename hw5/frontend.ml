@@ -214,14 +214,14 @@ let rec size_ll_ty (ty:Ll.ty) : int =
 let oat_alloc_struct (ct:TypeCtxt.t) (id:Ast.id) : Ll.ty * operand * stream = (*L: added type typectxt instead of regular ctxt*)
   let fields = TypeCtxt.lookup id ct in
   let ast_ty_ls = List.map (fun f -> f.ftyp) fields in
-  let size = 
+  let struct_size = 
     let ast_ty_to_size = fun ast_ty -> size_ll_ty (cmp_ty ct ast_ty) in
     sum (List.map ast_ty_to_size ast_ty_ls) in
   let ans_id, struct_id = gensym "struct", gensym "raw_struct" in
   let ans_ty = cmp_ty ct @@ TRef (RStruct id) in
   let struct_ty = Ptr (I64) in
   ans_ty, Id ans_id, lift
-    [ struct_id, Call(struct_ty, Gid "oat_malloc", [I64, Const (Int64.of_int size)])
+    [ struct_id, Call(struct_ty, Gid "oat_malloc", [I64, Const (Int64.of_int struct_size)])
     ; ans_id, Bitcast(struct_ty, Id struct_id, ans_ty) ]
 
 
@@ -288,9 +288,7 @@ let rec cmp_exp (tc : TypeCtxt.t) (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.ope
     cmp_ty tc ret_ty, Id ans_id, code >:: I (ans_id, cmp_uop op uop)
 
   | Ast.Id id ->
-    (* print_endline("cmp_exp, entering id case, id is: " ^ id); *)
     let t, op = Ctxt.lookup id c in
-    (* print_endline("did not fail on lookup"); *)
     begin match t with
       | Ptr (Fun _) -> t, op, []
       | Ptr t ->
@@ -304,7 +302,6 @@ let rec cmp_exp (tc : TypeCtxt.t) (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.ope
        of the array struct representation.
   *)
   | Ast.Length e ->
-    (* print_endline("entering cmp_exp -> length"); *)
     begin match e.elt with
       | CArr (elem_ty, ens) -> (I64, Const (Int64.of_int (List.length ens)), [])
       | NewArr (elem_ty, en_length, id, en_init) -> 
@@ -314,7 +311,7 @@ let rec cmp_exp (tc : TypeCtxt.t) (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.ope
       | _ -> failwith "cmp_exp -> length: expr is not array"
     end
   | Ast.Index (e, i) ->
-    let ans_ty, ptr_op, code = cmp_exp_lhs tc c exp in (*L: e was exp, no idea why*)
+    let ans_ty, ptr_op, code = cmp_exp_lhs tc c exp in
     let ans_id = gensym "index" in
     ans_ty, Id ans_id, code >:: I(ans_id, Load(Ptr ans_ty, ptr_op))
 
@@ -348,8 +345,6 @@ let rec cmp_exp (tc : TypeCtxt.t) (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.ope
   | Ast.NewArr (elt_ty, e1, id, e2) ->    
     let _, size_op, size_code = cmp_exp tc c e1 in
     let arr_ty, arr_op, alloc_code = oat_alloc_array tc elt_ty size_op in
-    (* print_endline("cmp_exp -> newarr, type of newarr: " ^ Llutil.string_of_ty arr_ty);
-    print_endline("cmp_exp -> newarr, operand of newarr: " ^ Llutil.string_of_operand arr_op); *)
     let ll_idx = gensym id in
     let intermed_c = Ctxt.add c id (Ptr I64, Id ll_idx) in
     let elem_ty, elem_op, elem_s = cmp_exp tc intermed_c e2 in
@@ -375,7 +370,7 @@ let rec cmp_exp (tc : TypeCtxt.t) (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.ope
       >:: T(Cbr (Id cmp, body, fin))
       >:: L body
       >@  elem_s
-      >:: I(load_idx, Binop(Add, I64, Const 1L, Id loop_idx))
+      >:: I(load_idx, Binop(Add, I64, Const 1L, Id loop_idx)) (*L: incr index to skip length in gep*)
       >:: I(upd_ptr, Gep(Ptr elem_ty, Id arr_ptr, [Id load_idx]))
       >:: I("", Store (elem_ty, elem_op, Id upd_ptr))
       >:: I(upd_idx, Binop (Add, I64, Id loop_idx, Const 1L))
@@ -397,7 +392,6 @@ let rec cmp_exp (tc : TypeCtxt.t) (c:Ctxt.t) (exp:Ast.exp node) : Ll.ty * Ll.ope
     let ty_op_s = List.map (fun x -> fst x, cmp_exp tc c (snd x)) l in
     let stream =
       let en_into_field (s:stream) ((fid, (ty, op, fs)):(Ast.id * (Ll.ty * Ll.operand * stream))) : stream =
-        (* let idx = TypeCtxt.index_of_field id fid tc in *)
         let f_ty, f_idx = TypeCtxt.lookup_field_name id fid tc in
         let f_ty_ll = cmp_ty tc f_ty in
         let f_ptr, f_bcast = gensym "field_ptr", gensym "field_bcast" in
@@ -454,23 +448,16 @@ and cmp_exp_lhs (tc : TypeCtxt.t) (c:Ctxt.t) (e:exp node) : Ll.ty * Ll.operand *
      be thrown...)
   *)
   | Ast.Index (e, i) ->
-    (* print_endline("cmp_exp -> index, starting to look for: " ^ Astlib.string_of_exp e); *)
     let arr_ty, arr_op, arr_code = cmp_exp tc c e in
-    (* print_endline("cmp_exp -> index, arr_ty: " ^ string_of_ty arr_ty);
-    print_endline("cmp_exp -> index, arr_op: " ^ string_of_operand arr_op); *)
     let _, ind_op, ind_code = cmp_exp tc c i in
     let ans_ty = match arr_ty with 
       | Ptr (Struct [_; Array (_,t)]) -> t 
       | _ -> failwith "Index: indexed into non pointer" in
     let ptr_id, tmp_id = gensym "index_ptr", gensym "tmp" in
     let ptr_i64 = gensym "ptr_arr" in
-    (* let int_val = gensym "int_val" in *)
     ans_ty, (Id ptr_id),
     arr_code >@ ind_code >@ lift
-      [ (* ptr_i64, Bitcast (arr_ty, arr_op, Ptr I64) *)
-        ptr_i64, Gep(arr_ty, arr_op, [i64_op_of_int 0; i64_op_of_int 0])
-      (* ; int_val, Load(Ptr I64, Id ptr_i64) *)
-      (* ; "", Call(Void, Gid "print_int", [(I64, Id int_val)]) *)
+      [ ptr_i64, Gep(arr_ty, arr_op, [i64_op_of_int 0; i64_op_of_int 0])
       ; "", Call(Void, Gid "oat_assert_array_length", [(Ptr I64, Id ptr_i64); (I64, ind_op)])
       ; ptr_id, Gep(arr_ty, arr_op, [i64_op_of_int 0; i64_op_of_int 1; ind_op])]
 
@@ -570,9 +557,7 @@ and cmp_stmt (tc : TypeCtxt.t) (c:Ctxt.t) (rt:Ll.ty) (stmt:Ast.stmt node) : Ctxt
     c, stream
 
   | Ast.While (guard, body) ->
-     (* print_endline("cmp_stmt: while: starting to compile guard"); *)
      let guard_ty, guard_op, guard_code = cmp_exp tc c guard in
-     (* print_endline("cmp_stmt: while: finished compiling guard"); *)
      let lcond, lbody, lpost = gensym "cond", gensym "body", gensym "post" in
      let body_code = cmp_block tc c rt body  in
      c, [] 
@@ -586,7 +571,6 @@ and cmp_stmt (tc : TypeCtxt.t) (c:Ctxt.t) (rt:Ll.ty) (stmt:Ast.stmt node) : Ctxt
      let after = match after with Some s -> [s] | None -> [] in
      let body = body @ after in
      let ds = List.map (fun d -> no_loc (Decl d)) inits in
-     (* print_endline("cmp_stmt -> about to compile block in for case"); *)
      let stream = cmp_block tc c rt (ds @ [no_loc @@ Ast.While (guard, body)]) in
      c, stream
 
@@ -727,7 +711,6 @@ let rec cmp_gexp c (tc : TypeCtxt.t) (e:Ast.exp node) : Ll.gdecl * (Ll.gid * Ll.
   (* STRUCT TASK: Complete this code that generates the global initializers for a struct value. *)  
   | CStruct (id, cs) ->
     let field_ls = TypeCtxt.lookup id tc in
-    let fty_ls = List.map (fun x -> cmp_ty tc x.ftyp) field_ls in
     
     let rec sort_ls ls acc : exp node list =
       begin match ls with
