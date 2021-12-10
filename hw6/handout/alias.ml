@@ -34,7 +34,36 @@ type fact = SymPtr.t UidM.t
 
  *)
 let insn_flow ((u,i):uid * insn) (d:fact) : fact =
-  failwith "Alias.insn_flow unimplemented"
+  let is_ptr (ty:Ll.ty) : bool =
+    begin match ty with
+      | Ptr _ -> true
+      | _ -> false
+    end in
+  let get_uid (op:Ll.operand) : Ll.uid = 
+    begin match op with
+      | Id uid -> uid 
+      | Gid gid -> gid
+      | _ -> failwith "get_uid, operand is not pointer"
+    end in
+  let add_alias (curr_d:fact) (op:Ll.operand) : fact =
+    UidM.add (get_uid op) SymPtr.MayAlias curr_d in
+  begin match i with 
+    | Alloca _ -> UidM.add u SymPtr.Unique d 
+    | Store (ty, op_src, op_dst) -> 
+      if(is_ptr ty) then
+        let d_1 = add_alias d op_src in
+        let d_2 = add_alias d_1 op_dst in
+        d_2
+      else add_alias d op_dst;
+    | Bitcast (ty1, op, ty2) -> add_alias d op
+    | Gep (ty, op, ops) -> add_alias d op
+    | Call (retty, retop, args) ->
+      let arg_ptrs = List.filter (fun x -> is_ptr (fst x)) args in
+      let arg_d = List.fold_left (fun dc tyop -> add_alias dc (snd tyop)) d arg_ptrs in
+      add_alias arg_d retop
+    | _ -> d
+  end
+  
 
 
 (* The flow function across terminators is trivial: they never change alias info *)
@@ -68,8 +97,25 @@ module Fact =
        It may be useful to define a helper function that knows how to take the
        join of two SymPtr.t facts.
     *)
+    
+
     let combine (ds:fact list) : fact =
-      failwith "Alias.Fact.combine not implemented"
+      let join (d1:fact) (d2:fact) : fact =
+        let f k a b =
+          begin match a,b with
+          | Some x, Some y -> 
+              begin match x,y with
+              | SymPtr.UndefAlias, _ -> b
+              | _, SymPtr.UndefAlias -> a
+              | _ -> Some SymPtr.MayAlias
+              end
+          | Some x, None -> a
+          | None, Some y -> b
+          | _ -> None
+          end in
+        UidM.merge f d1 d2
+      in
+      List.fold_left join UidM.empty ds
   end
 
 (* instantiate the general framework ---------------------------------------- *)
