@@ -86,8 +86,30 @@ module type FACT =
 *)
 module Make (Fact : FACT) (Graph : DFA_GRAPH with type fact := Fact.t) =
   struct
+    let set_to_list = Graph.NodeS.elements
+
+    let rec process_node_list (g:Graph.t) (ns:Graph.node list) : Graph.t = 
+      begin match ns with
+        | [] -> g
+        | n::tl ->
+          let old_out = Graph.out g n in
+          let comb_facts = 
+            let preds = Graph.preds g n in
+            let pred_facts = List.map (Graph.out g) (set_to_list preds) in
+            Fact.combine pred_facts in
+          let new_out = Graph.flow g n comb_facts in
+          let out_change = (Fact.compare old_out new_out) <> 0 in
+          if(out_change) then
+            let new_g = Graph.add_fact n new_out g in
+            let succs = Graph.succs g n in
+            let succ_ls = set_to_list succs in
+            process_node_list new_g (succ_ls @ tl)
+          else process_node_list g tl
+      end
+      
 
     let solve (g:Graph.t) : Graph.t =
-      failwith "TODO HW6: Solver.solve unimplemented"
+      let workset = set_to_list (Graph.nodes g) in
+      process_node_list g workset
   end
 
