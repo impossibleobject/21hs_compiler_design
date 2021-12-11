@@ -92,7 +92,25 @@ module Fact =
     (* The constprop analysis should take the meet over predecessors to compute the
        flow into a node. You may find the UidM.merge function useful *)
     let combine (ds:fact list) : fact = 
-      failwith "Constprop.Fact.combine unimplemented"
+      let meet (d1:fact) (d2:fact) : fact =
+        let f k a b =
+          begin match a,b with
+          | Some x, Some y -> 
+              begin match x,y with
+              | SymConst.Const c, SymConst.Const d -> a (*L: c and d should be same*)
+              | SymConst.UndefConst, SymConst.Const c -> b
+              | SymConst.Const c, SymConst.UndefConst -> a
+              | SymConst.UndefConst, SymConst.UndefConst -> a
+              | SymConst.NonConst, _ -> a
+              | _, SymConst.NonConst -> b
+              end
+          | Some x, None -> a
+          | None, Some y -> b
+          | _ -> None
+          end in
+        UidM.merge f d1 d2
+      in
+      List.fold_left meet UidM.empty ds
   end
 
 (* instantiate the general framework ---------------------------------------- *)
@@ -118,14 +136,56 @@ let analyze (g:Cfg.t) : Graph.t =
 (* run constant propagation on a cfg given analysis results ----------------- *)
 (* HINT: your cp_block implementation will probably rely on several helper 
    functions.                                                                 *)
+type acc = (uid -> Fact.t) * (Ll.uid * Ll.insn) list
 let run (cg:Graph.t) (cfg:Cfg.t) : Cfg.t =
   let open SymConst in
   
-
   let cp_block (l:Ll.lbl) (cfg:Cfg.t) : Cfg.t =
-    let b = Cfg.block cfg l in
-    let cb = Graph.uid_out cg l in
-    failwith "Constprop.cp_block unimplemented"
+    let b : Ll.block = Cfg.block cfg l in 
+    let cb : uid -> Fact.t = Graph.uid_out cg l in
+
+    let rec process_insns (uid_insns:(Ll.uid * Ll.insn) list) : (Ll.uid * Ll.insn) list =
+      let uid_is_cnst (uid:Ll.uid) : bool * Ll.operand =
+        let fact = cb uid in
+        let symconst = UidM.find_or SymConst.UndefConst fact uid in
+        begin match symconst with
+        | SymConst.Const i -> true, Const i
+        | _                -> false, Null
+        end in
+        
+      let repl_uid (uid:Ll.uid) (const_op:Ll.operand) (uid_ins, insn:(Ll.uid * Ll.insn)) : (Ll.uid * Ll.insn) =
+        let repl (op_old:Ll.operand) : Ll.operand =
+          begin match op_old with
+          | Id uid_old -> if(uid_old = uid) then const_op else op_old
+          | _ -> op_old
+          end in
+        let new_ins =
+          begin match insn with
+          | Binop (bop, ty, op1, op2) -> Binop(bop, ty, repl op1, repl op2)
+          | Store (ty, src, dst) -> Store (ty, repl src, dst)
+          | Icmp (cnd, ty, op1, op2) -> Icmp (cnd, ty, repl op1, repl op2)
+          | Call (ty, op, args) -> Call (ty, op, List.map (fun x -> fst x, repl (snd x)) args)
+          | Gep (ty, op, ops) -> Gep (ty, op, List.map repl ops)
+          | _ -> insn
+          end in
+        uid_ins, new_ins in
+        
+      begin match uid_insns with
+      | [] -> []
+      | h::tl ->
+        let uid = fst h in
+        let is_cnst, repl_op = uid_is_cnst uid in
+        if(is_cnst) then 
+          h::process_insns (List.map (repl_uid uid repl_op) tl)
+        else
+          h::process_insns tl 
+      end in
+    
+      
+    let processed_insns = process_insns b.insns in
+    let new_b = {insns=processed_insns; term=b.term} in
+    Cfg.add_block l new_b cfg
+
   in
 
   LblS.fold cp_block (Cfg.nodes cfg) cfg
