@@ -24,7 +24,43 @@ open Datastructures
 let dce_block (lb:uid -> Liveness.Fact.t) 
               (ab:uid -> Alias.fact)
               (b:Ll.block) : Ll.block =
-  failwith "Dce.dce_block unimplemented"
+  let dce_ins ((uid, ins): Ll.uid * Ll.insn) : (uid * insn) option =
+    let is_live u =
+      let live_set = lb uid in
+      UidS.mem u live_set
+    in
+    begin match ins with
+    | Call _ -> Some (uid,ins)
+    | Store (ty, op1, op2) -> 
+      let get_uid (op:Ll.operand) : Ll.uid = 
+        begin match op with
+          | Id uid -> uid
+          | Gid g -> g
+          | _ -> failwith "get_uid, operand is not pointer"
+        end in
+      let is_alias = 
+        let alias = UidM.find_or Alias.SymPtr.UndefAlias (ab uid) (get_uid op2) in
+        begin match alias with
+        | Alias.SymPtr.MayAlias -> true
+        | _ -> false
+        end in
+      if (is_alias || is_live (get_uid op2)) then Some (uid,ins)
+      else None
+    | _ -> if(is_live uid) then Some (uid,ins) else None
+    end
+  in
+  let opt_ins = List.map dce_ins b.insns in
+  let filtered_ins = List.filter (fun x -> x <> None) opt_ins in
+  let deopt_ins = 
+    let deopt (x : (uid * insn) option) : uid * insn = 
+      begin match x with
+      | Some a -> a
+      | _ -> failwith "filter did not work"
+    end in
+    List.map deopt filtered_ins in
+  {insns=deopt_ins; term=b.term}
+  
+    
 
 let run (lg:Liveness.Graph.t) (ag:Alias.Graph.t) (cfg:Cfg.t) : Cfg.t =
 
