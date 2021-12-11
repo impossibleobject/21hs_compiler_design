@@ -20,7 +20,7 @@ define i64 @f(i64 %_x17593, i64 %_x27590, i64 %_x37587, i64 %_x47584, i64 %_x575
 }
 
 define i64 @program(i64 %_argc7565, { i64, [0 x i8*] }* %_argv7562) {
-  %_result7571 = call i64 @f(i64 1, i64 2, i64 3, i64 4, i64 5, i64 5, i64 4, i64 3)
+  %_result7571 = call i64 @f(i64 1, i64 2, i64 3, i64 4, i64 5, i64 -5, i64 -4, i64 -3)
   ret i64 %_result7571
 }
 

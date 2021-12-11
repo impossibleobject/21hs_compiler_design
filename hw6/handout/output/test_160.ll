@@ -8,7 +8,7 @@ _else8271:
 _merge8270:
   ret i64 0
 _then8272:
-  %_bop8269 = add i64 131, 6
+  %_bop8269 = add i64 -102, 6
   ret i64 %_bop8269
 }
 

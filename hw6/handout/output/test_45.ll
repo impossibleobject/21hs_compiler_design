@@ -11,7 +11,7 @@ both_even:
   ret i64 %23
 gcd:
   %neg1 = sub i64 0, 1
-  %1 = xor i64 1, %u
+  %1 = xor i64 -1, %u
   %2 = and i64 1, %1
   %3 = icmp ne i64 0, %2
   br i1 %3, label %u_even, label %u_odd

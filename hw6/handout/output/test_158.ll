@@ -1,7 +1,7 @@
 ; generated from: oatprograms/easyrun6.oat
 target triple = "x86_64-unknown-linux"
 define i64 @program(i64 %_argc8228, { i64, [0 x i8*] }* %_argv8225) {
-  %_bop8238 = or i1 1, 44
+  %_bop8238 = or i1 0, 1
   br i1 %_bop8238, label %_then8241, label %_else8240
 _else8240:
   ret i64 4

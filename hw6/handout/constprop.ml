@@ -49,9 +49,45 @@ let insn_flow (u,i:uid * insn) (d:fact) : fact =
     | _ -> failwith "Gid or Null gotten"
     end 
   in
-  let get_symconst op1 op2 = 
+  let binop_aux i1 i2 bop : int64 =
+    begin match bop with
+    | Add  -> Int64.add i1 i2
+    | Sub  -> Int64.sub i1 i2
+    | Mul  -> Int64.mul i1 i2
+    | Shl  -> Int64.shift_left i1 (Int64.to_int i2)
+    | Lshr -> Int64.shift_right_logical i1 (Int64.to_int i2)
+    | Ashr -> Int64.shift_right i1 (Int64.to_int i2)
+    | And  -> Int64.logand i1 i2
+    | Or   -> Int64.logor  i1 i2
+    | Xor  -> Int64.logxor i1 i2
+    end in 
+  let icmp_aux i1 i2 cnd : bool =
+    let int_cmp = Int64.compare i1 i2 in
+    begin match cnd with
+    | Eq -> (int_cmp = 0)
+    | Ne -> (int_cmp <> 0)
+    | Slt -> (int_cmp = -1)
+    | Sle -> (int_cmp = -1 || int_cmp = 0)
+    | Sgt -> (int_cmp = 1)
+    | Sge -> (int_cmp = 1 || int_cmp = 0)
+    end
+  in
+  let get_symconst i = 
+    let op1, op2, bop_opt, cnd_opt =
+      begin match i with
+      | Binop (bop, ty, o1, o2) -> o1, o2, Some bop, None  
+      | Icmp (cnd, ty, o1, o2)  -> o1, o2, None, Some cnd
+      | _ -> failwith "impossible"
+      end in
     begin match (is_const op1), (is_const op2) with
-    | SymConst.Const i1, SymConst.Const i2 -> SymConst.Const (Int64.add i1 i2)
+    | SymConst.Const i1, SymConst.Const i2 -> 
+      begin match bop_opt, cnd_opt with
+      | Some bop, None -> SymConst.Const (binop_aux i1 i2 bop)
+      | None, Some cnd -> 
+        if(icmp_aux i1 i2 cnd) then SymConst.Const 1L
+        else SymConst.Const 0L
+      | _, _ -> failwith "impossible"
+      end
     | SymConst.UndefConst, _ -> SymConst.UndefConst
     | _, SymConst.UndefConst -> SymConst.UndefConst
     | SymConst.NonConst, _ -> SymConst.NonConst
@@ -60,8 +96,7 @@ let insn_flow (u,i:uid * insn) (d:fact) : fact =
   in
   let symconst = 
     begin match i with
-    | Binop (_, _, op1, op2) -> get_symconst op1 op2
-    | Icmp (_, _, op1, op2) -> get_symconst op1 op2
+    | Binop _ | Icmp _ -> get_symconst i
     | Store _ | Call (Void, _, _) -> SymConst.UndefConst
     | _ -> SymConst.NonConst
     end 

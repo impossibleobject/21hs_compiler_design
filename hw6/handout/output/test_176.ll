@@ -37,7 +37,7 @@ define i64 @f(i64 %_x18901, i64 %_x28898, i64 %_x38895, i64 %_x48892, i64 %_x588
 
 define i64 @program(i64 %_argc8869, { i64, [0 x i8*] }* %_argv8866) {
   %_x8876 = alloca i64
-  %_result8875 = call i64 @f(i64 1, i64 2, i64 3, i64 4, i64 5, i64 5, i64 4, i64 3)
+  %_result8875 = call i64 @f(i64 1, i64 2, i64 3, i64 4, i64 5, i64 -5, i64 -4, i64 -3)
   store i64 %_result8875, i64* %_x8876
   %_x8878 = load i64, i64* %_x8876
   call void @print_int(i64 %_x8878)

@@ -17,7 +17,7 @@ define i64 @compute_determinant({ i64, [0 x { i64, [0 x i64] }*] }* %_matrix4452
   store { i64, [0 x { i64, [0 x i64] }*] }* %_matrix4452, { i64, [0 x { i64, [0 x i64] }*] }** %_matrix4453
   store i64 %_n4449, i64* %_n4450
   store i64 0, i64* %_sum4455
-  store i64 1, i64* %_multiplier4458
+  store i64 -1, i64* %_multiplier4458
   %_n4460 = load i64, i64* %_n4450
   %_bop4461 = icmp eq i64 %_n4460, 1
   br i1 %_bop4461, label %_then4658, label %_else4657
@@ -190,7 +190,7 @@ _post4548:
   br label %_cond4541
 _post4587:
   %_multiplier4629 = load i64, i64* %_multiplier4458
-  %_bop4631 = mul i64 %_multiplier4629, 1
+  %_bop4631 = mul i64 %_multiplier4629, -1
   store i64 %_bop4631, i64* %_multiplier4458
   %_sum4633 = load i64, i64* %_sum4455
   %_multiplier4634 = load i64, i64* %_multiplier4458

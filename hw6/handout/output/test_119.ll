@@ -39,7 +39,7 @@ _body6358:
   %_tmp6363 = bitcast { i64, [0 x i64] }* %_inserted6360 to i64*
   call void @oat_assert_array_length(i64* %_tmp6363, i64 %_i6361)
   %_index_ptr6364 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_inserted6360, i32 0, i32 1, i64 %_i6361
-  store i64 1, i64* %_index_ptr6364
+  store i64 -1, i64* %_index_ptr6364
   %_i6367 = load i64, i64* %_i6351
   %_bop6368 = add i64 %_i6367, 1
   store i64 %_bop6368, i64* %_i6351
