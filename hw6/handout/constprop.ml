@@ -37,7 +37,36 @@ type fact = SymConst.t UidM.t
    - Uid of all other instructions are NonConst-out
  *)
 let insn_flow (u,i:uid * insn) (d:fact) : fact =
-  failwith "Constprop.insn_flow unimplemented"
+  let is_const (op:Ll.operand) : SymConst.t =
+    begin match op with
+    | Const i1 -> SymConst.Const i1
+    | Id id -> 
+      let value = UidM.find_or SymConst.UndefConst d id in
+      begin match value with
+      | Const c -> SymConst.Const c
+      | _ -> value
+      end
+    | _ -> failwith "Gid or Null gotten"
+    end 
+  in
+  let get_symconst op1 op2 = 
+    begin match (is_const op1), (is_const op2) with
+    | SymConst.Const i1, SymConst.Const i2 -> SymConst.Const (Int64.add i1 i2)
+    | SymConst.UndefConst, _ -> SymConst.UndefConst
+    | _, SymConst.UndefConst -> SymConst.UndefConst
+    | SymConst.NonConst, _ -> SymConst.NonConst
+    | _, SymConst.NonConst -> SymConst.NonConst 
+    end
+  in
+  let symconst = 
+    begin match i with
+    | Binop (_, _, op1, op2) -> get_symconst op1 op2
+    | Icmp (_, _, op1, op2) -> get_symconst op1 op2
+    | Store _ | Call (Void, _, _) -> SymConst.UndefConst
+    | _ -> SymConst.NonConst
+    end 
+  in
+  UidM.add u symconst d
 
 (* The flow function across terminators is trivial: they never change const info *)
 let terminator_flow (t:terminator) (d:fact) : fact = d
