@@ -179,6 +179,12 @@ let run (cg:Graph.t) (cfg:Cfg.t) : Cfg.t =
     let b : Ll.block = Cfg.block cfg l in 
     let cb : uid -> Fact.t = Graph.uid_out cg l in
 
+    let repl (uid_new:Ll.uid) (const_op:Ll.operand) (op_old:Ll.operand) : Ll.operand =
+      begin match op_old with
+      | Id uid_old -> if(uid_old = uid_new) then const_op else op_old
+      | _ -> op_old
+      end in
+
     let rec process_insns (uid_insns:(Ll.uid * Ll.insn) list) : (Ll.uid * Ll.insn) list =
       let uid_is_cnst (uid:Ll.uid) : bool * Ll.operand =
         let fact = cb uid in
@@ -189,11 +195,7 @@ let run (cg:Graph.t) (cfg:Cfg.t) : Cfg.t =
         end in
         
       let repl_uid (uid:Ll.uid) (const_op:Ll.operand) (uid_ins, insn:(Ll.uid * Ll.insn)) : (Ll.uid * Ll.insn) =
-        let repl (op_old:Ll.operand) : Ll.operand =
-          begin match op_old with
-          | Id uid_old -> if(uid_old = uid) then const_op else op_old
-          | _ -> op_old
-          end in
+        let repl = repl uid const_op in
         let new_ins =
           begin match insn with
           | Binop (bop, ty, op1, op2) -> Binop(bop, ty, repl op1, repl op2)
@@ -215,10 +217,31 @@ let run (cg:Graph.t) (cfg:Cfg.t) : Cfg.t =
         else
           h::process_insns tl 
       end in
-    
-      
+    let processed_term = 
+      let termuid, term = b.term in 
+      let find_op curr_op =
+        begin match curr_op with
+        | Id id -> 
+          let f = cb termuid in
+          let symconst = UidM.find_or SymConst.UndefConst f id in
+          begin match symconst with
+          | SymConst.Const i -> id, Ll.Const i
+          | _ -> id, curr_op
+          end
+        | _ -> "", curr_op
+        end in
+       
+      begin match term with
+      | Ret (_, None) | Br _ -> b.term
+      | Ret (ty, Some op)     -> 
+        let new_uid, new_op = find_op op in
+        termuid, Ret (ty, Some (repl new_uid new_op op))
+      | Cbr (op, lbl1, lbl2)  -> 
+        let new_uid, new_op = find_op op in
+        termuid, Cbr (repl new_uid new_op op, lbl1, lbl2)
+      end in
     let processed_insns = process_insns b.insns in
-    let new_b = {insns=processed_insns; term=b.term} in
+    let new_b = {insns=processed_insns; term=processed_term} in
     Cfg.add_block l new_b cfg
 
   in

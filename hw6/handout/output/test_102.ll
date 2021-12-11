@@ -168,8 +168,7 @@ _post2809:
   %_a2873 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_a2823
   %_result2874 = call i8* @string_of_array({ i64, [0 x i64] }* %_a2873)
   call void @print_string(i8* %_result2874)
-  %_unop2876 = sub i64 0, 1
-  ret i64 %_unop2876
+  ret i64 -1
 }
 
 

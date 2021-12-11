@@ -1,8 +1,7 @@
 ; generated from: oatprograms/easyrun7.oat
 target triple = "x86_64-unknown-linux"
 define i64 @program(i64 %_argc8245, { i64, [0 x i8*] }* %_argv8242) {
-  %_bop8251 = icmp sge i64 2, 2
-  br i1 %_bop8251, label %_then8254, label %_else8253
+  br i1 1, label %_then8254, label %_else8253
 _else8253:
   ret i64 46
 _merge8252:
