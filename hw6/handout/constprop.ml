@@ -132,7 +132,11 @@ module Fact =
           begin match a,b with
           | Some x, Some y -> 
               begin match x,y with
-              | SymConst.Const c, SymConst.Const d -> a (*L: c and d should be same*)
+              | SymConst.Const c, SymConst.Const d -> 
+                (*F: need to set as nonconst if the vals don't match -> path specific execution; see book*)
+                if (c=d) then a
+                else Some SymConst.NonConst
+                (* a L: c and d should be same *)
               | SymConst.UndefConst, SymConst.Const c -> b
               | SymConst.Const c, SymConst.UndefConst -> a
               | SymConst.UndefConst, SymConst.UndefConst -> a
