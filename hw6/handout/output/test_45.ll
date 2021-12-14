@@ -10,7 +10,6 @@ both_even:
   %23 = shl i64 %22, 1
   ret i64 %23
 gcd:
-  %neg1 = sub i64 0, 1
   %1 = xor i64 -1, %u
   %2 = and i64 1, %1
   %3 = icmp ne i64 0, %2
@@ -35,7 +34,7 @@ u_gt:
   %13 = call i64 @binary_gcd(i64 %12, i64 %v)
   ret i64 %13
 u_odd:
-  %4 = xor i64 %neg1, %v
+  %4 = xor i64 -1, %v
   %5 = and i64 1, %4
   %6 = icmp ne i64 0, %5
   br i1 %6, label %v_even, label %v_odd

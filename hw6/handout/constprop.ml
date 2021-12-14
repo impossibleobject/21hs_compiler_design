@@ -188,63 +188,60 @@ let run (cg:Graph.t) (cfg:Cfg.t) : Cfg.t =
       | Id uid_old -> if(uid_old = uid_new) then const_op else op_old
       | _ -> op_old
       end in
-
-    let rec process_insns (uid_insns:(Ll.uid * Ll.insn) list) : (Ll.uid * Ll.insn) list =
-      let uid_is_cnst (uid:Ll.uid) : bool * Ll.operand =
-        let fact = cb uid in
-        let symconst = UidM.find_or SymConst.UndefConst fact uid in
+    
+    let find_op curr_op uid_ins =
+      begin match curr_op with
+      | Id id -> 
+        let f = cb uid_ins in
+        let symconst = UidM.find_or SymConst.UndefConst f id in
         begin match symconst with
-        | SymConst.Const i -> true, Const i
-        | _                -> false, Null
-        end in
-        
-      let repl_uid (uid:Ll.uid) (const_op:Ll.operand) (uid_ins, insn:(Ll.uid * Ll.insn)) : (Ll.uid * Ll.insn) =
-        let repl = repl uid const_op in
-        let new_ins =
-          begin match insn with
-          | Binop (bop, ty, op1, op2) -> Binop(bop, ty, repl op1, repl op2)
-          | Store (ty, src, dst) -> Store (ty, repl src, dst)
-          | Icmp (cnd, ty, op1, op2) -> Icmp (cnd, ty, repl op1, repl op2)
-          | Call (ty, op, args) -> Call (ty, op, List.map (fun x -> fst x, repl (snd x)) args)
-          | Gep (ty, op, ops) -> Gep (ty, op, List.map repl ops)
-          | _ -> insn
-          end in
-        uid_ins, new_ins in
-        
-      begin match uid_insns with
-      | [] -> []
-      | h::tl ->
-        let uid = fst h in
-        let is_cnst, repl_op = uid_is_cnst uid in
-        if(is_cnst) then 
-          h::process_insns (List.map (repl_uid uid repl_op) tl)
-        else
-          h::process_insns tl 
+        | SymConst.Const i -> id, Ll.Const i
+        | _ -> id, curr_op
+        end
+      | _ -> "", curr_op
       end in
+    
+    let process_insn ((uid_ins, insn):(Ll.uid * Ll.insn)) : (Ll.uid * Ll.insn) =
+      let new_ins =
+        begin match insn with
+          | Binop (bop, ty, op1, op2) -> 
+            let id_op1, new_op1 = find_op op1 uid_ins in
+            let id_op2, new_op2 = find_op op2 uid_ins in
+            Binop(bop, ty, (repl id_op1 new_op1 op1), (repl id_op2 new_op2 op2))
+          | Store (ty, src, dst) -> 
+            let id_src, new_src = find_op src uid_ins in
+            Store (ty, (repl id_src new_src src), dst)
+          | Icmp (cnd, ty, op1, op2) -> 
+            let id_op1, new_op1 = find_op op1 uid_ins in
+            let id_op2, new_op2 = find_op op2 uid_ins in
+            Icmp (cnd, ty, (repl id_op1 new_op1 op1), (repl id_op2 new_op2 op2))
+          | Call (ty, op, args) -> 
+            let map_fun = ( fun (idi, opi) -> 
+              let id_op, new_op = find_op opi uid_ins in
+              idi, repl id_op new_op opi ) in
+            Call (ty, op, List.map map_fun args)
+          | Gep (ty, op, ops) -> 
+            let map_fun_gep = ( fun opi ->
+              let id_op, new_op = find_op opi uid_ins in
+              repl id_op new_op opi ) in
+            Gep (ty, op, List.map map_fun_gep ops)
+          | _ -> insn
+        end in
+      uid_ins, new_ins
+    in
+
     let processed_term = 
       let termuid, term = b.term in 
-      let find_op curr_op =
-        begin match curr_op with
-        | Id id -> 
-          let f = cb termuid in
-          let symconst = UidM.find_or SymConst.UndefConst f id in
-          begin match symconst with
-          | SymConst.Const i -> id, Ll.Const i
-          | _ -> id, curr_op
-          end
-        | _ -> "", curr_op
-        end in
-       
       begin match term with
       | Ret (_, None) | Br _ -> b.term
       | Ret (ty, Some op)     -> 
-        let new_uid, new_op = find_op op in
+        let new_uid, new_op = find_op op termuid in
         termuid, Ret (ty, Some (repl new_uid new_op op))
       | Cbr (op, lbl1, lbl2)  -> 
-        let new_uid, new_op = find_op op in
+        let new_uid, new_op = find_op op termuid in
         termuid, Cbr (repl new_uid new_op op, lbl1, lbl2)
       end in
-    let processed_insns = process_insns b.insns in
+    let processed_insns = List.map process_insn b.insns in
     let new_b = {insns=processed_insns; term=processed_term} in
     Cfg.add_block l new_b cfg
 
