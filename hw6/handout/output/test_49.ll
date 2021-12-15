@@ -1,48 +1,68 @@
-; generated from: llprograms/naive_factor_nonprime.ll
+; generated from: oatprograms/arrayargs3.oat
 target triple = "x86_64-unknown-linux"
-define i64 @naive_mod(i64 %top, i64 %bottom) {
-  %product_sum = alloca i64
-  store i64 0, i64* %product_sum
-  br label %start
-final:
-  %2 = load i64, i64* %product_sum
-  %un_exceeded = sub i64 %2, %bottom
-  %out = sub i64 %top, %un_exceeded
-  ret i64 %out
-start:
-  %1 = load i64, i64* %product_sum
-  %plus = add i64 %bottom, %1
-  store i64 %plus, i64* %product_sum
-  %exceeded = icmp sgt i64 %plus, %top
-  br i1 %exceeded, label %final, label %start
+@x = global { i64, [0 x i64] }* bitcast ({ i64, [3 x i64] }* @_global_arr7401 to { i64, [0 x i64] }*)
+@_global_arr7401 = global { i64, [3 x i64] } { i64 3, [3 x i64] [ i64 1, i64 2, i64 3 ] }
+@y = global { i64, [0 x i64] }* bitcast ({ i64, [3 x i64] }* @_global_arr7400 to { i64, [0 x i64] }*)
+@_global_arr7400 = global { i64, [3 x i64] } { i64 3, [3 x i64] [ i64 4, i64 5, i64 6 ] }
+
+define { i64, [0 x i64] }* @f({ i64, [0 x i64] }* %_x7408, { i64, [0 x i64] }* %_y7405, i1 %_b7402) {
+  %_x7409 = alloca { i64, [0 x i64] }*
+  %_y7406 = alloca { i64, [0 x i64] }*
+  %_b7403 = alloca i1
+  store { i64, [0 x i64] }* %_x7408, { i64, [0 x i64] }** %_x7409
+  store { i64, [0 x i64] }* %_y7405, { i64, [0 x i64] }** %_y7406
+  store i1 %_b7402, i1* %_b7403
+  %_b7411 = load i1, i1* %_b7403
+  br i1 %_b7411, label %_then7416, label %_else7415
+_else7415:
+  %_y7413 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_y7406
+  ret { i64, [0 x i64] }* %_y7413
+_merge7414:
+  ret { i64, [0 x i64] }* null
+_then7416:
+  %_x7412 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** %_x7409
+  ret { i64, [0 x i64] }* %_x7412
 }
 
-define i64 @naive_prime(i64 %n) {
-  %factor_attempt = alloca i64
-  store i64 2, i64* %factor_attempt
-  br label %loop
-final_false:
-  ret i64 0
-final_true:
-  ret i64 1
-inc:
-  %2 = load i64, i64* %factor_attempt
-  %plus = add i64 1, %1
-  store i64 %plus, i64* %factor_attempt
-  %mod_result = call i64 @naive_mod(i64 %n, i64 %2)
-  %is_composite = icmp eq i64 0, %mod_result
-  br i1 %is_composite, label %final_false, label %loop
-loop:
-  %1 = load i64, i64* %factor_attempt
-  %sqr = mul i64 %1, %1
-  %exceed_cap = icmp sgt i64 %sqr, %n
-  br i1 %exceed_cap, label %final_true, label %inc
+define i64 @program(i64 %_argc7372, { i64, [0 x i8*] }* %_argv7369) {
+  %_z7397 = alloca i64
+  %_y7375 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** @y
+  %_x7376 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** @x
+  %_result7377 = call { i64, [0 x i64] }* @f({ i64, [0 x i64] }* %_x7376, { i64, [0 x i64] }* %_y7375, i1 1)
+  %_tmp7379 = bitcast { i64, [0 x i64] }* %_result7377 to i64*
+  call void @oat_assert_array_length(i64* %_tmp7379, i64 0)
+  %_index_ptr7380 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_result7377, i32 0, i32 1, i32 0
+  store i64 17, i64* %_index_ptr7380
+  %_y7382 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** @y
+  %_x7383 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** @x
+  %_result7384 = call { i64, [0 x i64] }* @f({ i64, [0 x i64] }* %_x7383, { i64, [0 x i64] }* %_y7382, i1 1)
+  %_tmp7386 = bitcast { i64, [0 x i64] }* %_result7384 to i64*
+  call void @oat_assert_array_length(i64* %_tmp7386, i64 0)
+  %_index_ptr7387 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_result7384, i32 0, i32 1, i32 0
+  %_index7388 = load i64, i64* %_index_ptr7387
+  %_x7389 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** @x
+  %_y7390 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** @y
+  %_result7391 = call { i64, [0 x i64] }* @f({ i64, [0 x i64] }* %_y7390, { i64, [0 x i64] }* %_x7389, i1 0)
+  %_tmp7393 = bitcast { i64, [0 x i64] }* %_result7391 to i64*
+  call void @oat_assert_array_length(i64* %_tmp7393, i64 0)
+  %_index_ptr7394 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_result7391, i32 0, i32 1, i32 0
+  %_index7395 = load i64, i64* %_index_ptr7394
+  %_bop7396 = add i64 %_index7388, %_index7395
+  store i64 %_bop7396, i64* %_z7397
+  %_z7399 = load i64, i64* %_z7397
+  ret i64 %_z7399
 }
 
-define i64 @main(i64 %argc, i8** %arcv) {
-  %result = call i64 @naive_prime(i64 100)
-  ret i64 %result
-}
 
-
-
+declare i64* @oat_malloc(i64)
+declare i64* @oat_alloc_array(i64)
+declare void @oat_assert_not_null(i8*)
+declare void @oat_assert_array_length(i64*, i64)
+declare { i64, [0 x i64] }* @array_of_string(i8*)
+declare i8* @string_of_array({ i64, [0 x i64] }*)
+declare i64 @length_of_string(i8*)
+declare i8* @string_of_int(i64)
+declare i8* @string_cat(i8*, i8*)
+declare void @print_string(i8*)
+declare void @print_int(i64)
+declare void @print_bool(i1)

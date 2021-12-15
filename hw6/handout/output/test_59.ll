@@ -1,14 +1,27 @@
-; generated from: oatprograms/path2.oat
+; generated from: oatprograms/run54.oat
 target triple = "x86_64-unknown-linux"
-define i64 @program(i64 %_argc97, { i64, [0 x i8*] }* %_argv94) {
-  %_x100 = alloca i64
-  %_y102 = alloca i64
-  store i64 17, i64* %_x100
-  store i64 18, i64* %_y102
-  %_x104 = load i64, i64* %_x100
-  %_y105 = load i64, i64* %_y102
-  %_bop106 = add i64 %_x104, %_y105
-  ret i64 %_bop106
+define i64 @f(i64 %_x18993, i64 %_x28990, i64 %_x38987, i64 %_x48984, i64 %_x58981, i64 %_x68978, i64 %_x78975, i64 %_x88972) {
+  %_x18994 = alloca i64
+  %_x28991 = alloca i64
+  %_x38988 = alloca i64
+  %_x48985 = alloca i64
+  store i64 %_x18993, i64* %_x18994
+  store i64 %_x28990, i64* %_x28991
+  store i64 %_x38987, i64* %_x38988
+  store i64 %_x48984, i64* %_x48985
+  %_x18996 = load i64, i64* %_x18994
+  %_x28997 = load i64, i64* %_x28991
+  %_bop8998 = add i64 %_x18996, %_x28997
+  %_x38999 = load i64, i64* %_x38988
+  %_bop9000 = add i64 %_bop8998, %_x38999
+  %_x49001 = load i64, i64* %_x48985
+  %_bop9002 = add i64 %_bop9000, %_x49001
+  ret i64 %_bop9002
+}
+
+define i64 @program(i64 %_argc8965, { i64, [0 x i8*] }* %_argv8962) {
+  %_result8971 = call i64 @f(i64 1, i64 2, i64 3, i64 4, i64 5, i64 -5, i64 -4, i64 -3)
+  ret i64 %_result8971
 }
 
 

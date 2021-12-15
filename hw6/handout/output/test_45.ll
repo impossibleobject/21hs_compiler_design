@@ -1,65 +1,37 @@
-; generated from: llprograms/binary_gcd.ll
+; generated from: hw5programs/compile_local_fptr.oat
 target triple = "x86_64-unknown-linux"
-define i64 @binary_gcd(i64 %u, i64 %v) {
-  %u_eq_v = icmp eq i64 %u, %v
-  br i1 %u_eq_v, label %ret_u, label %term1
-both_even:
-  %20 = lshr i64 %u, 1
-  %21 = lshr i64 %v, 1
-  %22 = call i64 @binary_gcd(i64 %20, i64 %21)
-  %23 = shl i64 %22, 1
-  ret i64 %23
-gcd:
-  %1 = xor i64 -1, %u
-  %2 = and i64 1, %1
-  %3 = icmp ne i64 0, %2
-  br i1 %3, label %u_even, label %u_odd
-ret_u:
-  ret i64 %u
-ret_v:
-  ret i64 %v
-term1:
-  %u_0 = icmp eq i64 0, %u
-  br i1 %u_0, label %ret_v, label %term2
-term2:
-  %v_0 = icmp eq i64 0, %v
-  br i1 %v_0, label %ret_u, label %gcd
-u_even:
-  %16 = and i64 %v, 1
-  %17 = icmp ne i64 0, %16
-  br i1 %17, label %ue_vo, label %both_even
-u_gt:
-  %11 = sub i64 %u, %v
-  %12 = lshr i64 %11, 1
-  %13 = call i64 @binary_gcd(i64 %12, i64 %v)
-  ret i64 %13
-u_odd:
-  %4 = xor i64 -1, %v
-  %5 = and i64 1, %4
-  %6 = icmp ne i64 0, %5
-  br i1 %6, label %v_even, label %v_odd
-ue_vo:
-  %18 = lshr i64 %u, 1
-  %19 = call i64 @binary_gcd(i64 %18, i64 %v)
-  ret i64 %19
-v_even:
-  %14 = lshr i64 %v, 1
-  %15 = call i64 @binary_gcd(i64 %u, i64 %14)
-  ret i64 %15
-v_gt:
-  %8 = sub i64 %v, %u
-  %9 = lshr i64 %8, 1
-  %10 = call i64 @binary_gcd(i64 %9, i64 %u)
-  ret i64 %10
-v_odd:
-  %7 = icmp sgt i64 %u, %v
-  br i1 %7, label %u_gt, label %v_gt
+define i64 @add(i64 %_x7119, i64 %_y7116) {
+  %_x7120 = alloca i64
+  %_y7117 = alloca i64
+  store i64 %_x7119, i64* %_x7120
+  store i64 %_y7116, i64* %_y7117
+  %_x7122 = load i64, i64* %_x7120
+  %_y7123 = load i64, i64* %_y7117
+  %_bop7124 = add i64 %_x7122, %_y7123
+  ret i64 %_bop7124
 }
 
-define i64 @main(i64 %argc, i8** %argv) {
-  %1 = call i64 @binary_gcd(i64 21, i64 15)
-  ret i64 %1
+define i64 @program(i64 %_argc7106, { i64, [0 x i8*] }* %_argv7103) {
+  %_plus7109 = alloca i64 (i64, i64)*
+  %_loc_add7112 = alloca i64 (i64, i64)*
+  store i64 (i64, i64)* @add, i64 (i64, i64)** %_plus7109
+  %_plus7111 = load i64 (i64, i64)*, i64 (i64, i64)** %_plus7109
+  store i64 (i64, i64)* %_plus7111, i64 (i64, i64)** %_loc_add7112
+  %_loc_add7114 = load i64 (i64, i64)*, i64 (i64, i64)** %_loc_add7112
+  %_result7115 = call i64 %_loc_add7114(i64 2, i64 3)
+  ret i64 %_result7115
 }
 
 
-
+declare i64* @oat_malloc(i64)
+declare i64* @oat_alloc_array(i64)
+declare void @oat_assert_not_null(i8*)
+declare void @oat_assert_array_length(i64*, i64)
+declare { i64, [0 x i64] }* @array_of_string(i8*)
+declare i8* @string_of_array({ i64, [0 x i64] }*)
+declare i64 @length_of_string(i8*)
+declare i8* @string_of_int(i64)
+declare i8* @string_cat(i8*, i8*)
+declare void @print_string(i8*)
+declare void @print_int(i64)
+declare void @print_bool(i1)

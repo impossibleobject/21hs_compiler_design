@@ -1,48 +1,37 @@
-; generated from: llprograms/naive_factor_prime.ll
+; generated from: hw5programs/compile_builtin_argument.oat
 target triple = "x86_64-unknown-linux"
-define i64 @naive_mod(i64 %top, i64 %bottom) {
-  %product_sum = alloca i64
-  store i64 0, i64* %product_sum
-  br label %start
-final:
-  %2 = load i64, i64* %product_sum
-  %un_exceeded = sub i64 %2, %bottom
-  %out = sub i64 %top, %un_exceeded
-  ret i64 %out
-start:
-  %1 = load i64, i64* %product_sum
-  %plus = add i64 %bottom, %1
-  store i64 %plus, i64* %product_sum
-  %exceeded = icmp sgt i64 %plus, %top
-  br i1 %exceeded, label %final, label %start
+@_str_arr7201 = global [3 x i8] c"ab\00"
+
+define void @run2(void (i8*)* %_f7207, i8* %_arg7204) {
+  %_f7208 = alloca void (i8*)*
+  %_arg7205 = alloca i8*
+  store void (i8*)* %_f7207, void (i8*)** %_f7208
+  store i8* %_arg7204, i8** %_arg7205
+  %_f7210 = load void (i8*)*, void (i8*)** %_f7208
+  %_arg7211 = load i8*, i8** %_arg7205
+  call void %_f7210(i8* %_arg7211)
+  %_f7213 = load void (i8*)*, void (i8*)** %_f7208
+  %_arg7214 = load i8*, i8** %_arg7205
+  call void %_f7213(i8* %_arg7214)
+  ret void
 }
 
-define i64 @naive_prime(i64 %n) {
-  %factor_attempt = alloca i64
-  store i64 2, i64* %factor_attempt
-  br label %loop
-final_false:
+define i64 @program(i64 %_argc7198, { i64, [0 x i8*] }* %_argv7195) {
+  %_str7202 = getelementptr [3 x i8], [3 x i8]* @_str_arr7201, i32 0, i32 0
+  call void @run2(void (i8*)* @print_string, i8* %_str7202)
   ret i64 0
-final_true:
-  ret i64 1
-inc:
-  %2 = load i64, i64* %factor_attempt
-  %plus = add i64 1, %1
-  store i64 %plus, i64* %factor_attempt
-  %mod_result = call i64 @naive_mod(i64 %n, i64 %2)
-  %is_composite = icmp eq i64 0, %mod_result
-  br i1 %is_composite, label %final_false, label %loop
-loop:
-  %1 = load i64, i64* %factor_attempt
-  %sqr = mul i64 %1, %1
-  %exceed_cap = icmp sgt i64 %sqr, %n
-  br i1 %exceed_cap, label %final_true, label %inc
-}
-
-define i64 @main(i64 %argc, i8** %arcv) {
-  %result = call i64 @naive_prime(i64 19)
-  ret i64 %result
 }
 
 
-
+declare i64* @oat_malloc(i64)
+declare i64* @oat_alloc_array(i64)
+declare void @oat_assert_not_null(i8*)
+declare void @oat_assert_array_length(i64*, i64)
+declare { i64, [0 x i64] }* @array_of_string(i8*)
+declare i8* @string_of_array({ i64, [0 x i64] }*)
+declare i64 @length_of_string(i8*)
+declare i8* @string_of_int(i64)
+declare i8* @string_cat(i8*, i8*)
+declare void @print_string(i8*)
+declare void @print_int(i64)
+declare void @print_bool(i1)

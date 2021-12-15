@@ -1,15 +1,23 @@
-; generated from: oatprograms/path3.oat
+; generated from: oatprograms/run55.oat
 target triple = "x86_64-unknown-linux"
-@arr = global { i64, [0 x i64] }* bitcast ({ i64, [4 x i64] }* @_global_arr118 to { i64, [0 x i64] }*)
-@_global_arr118 = global { i64, [4 x i64] } { i64 4, [4 x i64] [ i64 1, i64 2, i64 3, i64 4 ] }
+define i64 @f(i64 %_x19034, i64 %_x29031, i64 %_x39028, i64 %_x49025, i64 %_x59022, i64 %_x69019, i64 %_x79016, i64 %_x89013) {
+  %_x19035 = alloca i64
+  %_x29032 = alloca i64
+  %_x39029 = alloca i64
+  store i64 %_x19034, i64* %_x19035
+  store i64 %_x29031, i64* %_x29032
+  store i64 %_x39028, i64* %_x39029
+  %_x19037 = load i64, i64* %_x19035
+  %_x29038 = load i64, i64* %_x29032
+  %_bop9039 = add i64 %_x19037, %_x29038
+  %_x39040 = load i64, i64* %_x39029
+  %_bop9041 = add i64 %_bop9039, %_x39040
+  ret i64 %_bop9041
+}
 
-define i64 @program(i64 %_argc110, { i64, [0 x i8*] }* %_args107) {
-  %_arr113 = load { i64, [0 x i64] }*, { i64, [0 x i64] }** @arr
-  %_tmp115 = bitcast { i64, [0 x i64] }* %_arr113 to i64*
-  call void @oat_assert_array_length(i64* %_tmp115, i64 2)
-  %_index_ptr116 = getelementptr { i64, [0 x i64] }, { i64, [0 x i64] }* %_arr113, i32 0, i32 1, i32 2
-  %_index117 = load i64, i64* %_index_ptr116
-  ret i64 %_index117
+define i64 @program(i64 %_argc9006, { i64, [0 x i8*] }* %_argv9003) {
+  %_result9012 = call i64 @f(i64 1, i64 2, i64 3, i64 4, i64 5, i64 -5, i64 -4, i64 -3)
+  ret i64 %_result9012
 }
 
 
