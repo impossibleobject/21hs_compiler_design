@@ -24,19 +24,19 @@ main:
 	leaq	v2(%rip), %rax
 	addq	$0, %rax
 	addq	$0, %rax
-	movq	%rax, %rdi
+	movq	%rax, %rdx
 	movq	$5, %rax
-	movq	%rdi, %rcx
+	movq	%rdx, %rcx
 	movq	%rax, (%rcx)
 	leaq	v2(%rip), %rax
 	movq	%rax, %rsi
-	pushq	%rdi
 	pushq	%rsi
+	pushq	%rdx
 	movq	%rsi, %rdi
 	callq	foo
+	popq	%rdx
 	popq	%rsi
-	popq	%rdi
-	movq	(%rdi), %rsi
+	movq	(%rdx), %rsi
 	movq	%rsi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
@@ -49,9 +49,9 @@ foo:
 	movq	%rdi, %rax
 	addq	$0, %rax
 	addq	$0, %rax
-	movq	%rax, %rdi
+	movq	%rax, %rdx
 	movq	$6, %rax
-	movq	%rdi, %rcx
+	movq	%rdx, %rcx
 	movq	%rax, (%rcx)
 	movq	%rbp, %rsp
 	popq	%rbp

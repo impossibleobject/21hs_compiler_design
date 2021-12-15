@@ -40,13 +40,13 @@ let insn_flow (u,i:uid * insn) (d:fact) : fact =
   let is_const (op:Ll.operand) : SymConst.t =
     begin match op with
     | Const i1 -> SymConst.Const i1
-    | Id id -> 
+    | Id id | Gid id -> 
       let value = UidM.find_or SymConst.UndefConst d id in
       begin match value with
       | Const c -> SymConst.Const c
       | _ -> value
       end
-    | _ -> failwith "Gid or Null gotten"
+    | _ -> SymConst.UndefConst
     end 
   in
   let binop_aux i1 i2 bop : int64 =

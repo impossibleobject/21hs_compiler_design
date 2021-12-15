@@ -36,7 +36,9 @@ let dce_block (lb:uid -> Liveness.Fact.t)
         begin match op with
           | Id uid -> uid
           | Gid g -> g
-          | _ -> failwith "get_uid, operand is not pointer"
+          | _ -> 
+            print_endline("operand is: " ^ Llutil.string_of_operand op);
+            failwith "get_uid, operand is not pointer"
         end in
       let is_alias = 
         let alias = UidM.find_or Alias.SymPtr.UndefAlias (ab uid) (get_uid op2) in

@@ -45,7 +45,10 @@ let insn_flow ((u,i):uid * insn) (d:fact) : fact =
       begin match op with
         | Id uid -> uid, false
         | Gid g -> g, true
-        | _ -> failwith "get_uid, operand is not pointer"
+        | Null -> "", true (*L: no idea how to handle this yet*)
+        | _ -> 
+          print_endline("operand is: " ^ Llutil.string_of_operand op); 
+          failwith "get_uid, operand is not pointer"
       end in
     let uid, is_gbl = get_uid op in
     if (is_gbl) then curr_d (*L: should not add globals here*)

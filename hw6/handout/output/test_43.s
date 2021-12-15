@@ -1,27 +1,94 @@
 	.data
-	.globl	gbl
-gbl:
+	.globl	test1
+test1:
+	.quad	0
+	.quad	0
+	.quad	100
+	.data
+	.globl	test2
+test2:
+	.quad	test1
+	.quad	0
+	.quad	10
+	.data
+	.globl	test3
+test3:
+	.quad	0
+	.quad	0
 	.quad	1
-	.quad	2
-	.quad	3
-	.quad	0
-	.quad	0
-	.quad	0
-	.quad	0
+	.data
+	.globl	test
+test:
+	.quad	test2
+	.quad	test3
+	.quad	5
+	.text
+	.globl	sum_tree
+sum_tree:
+	pushq	%rbp
+	movq	%rsp, %rbp
+	cmpq	$0, %rdi
+	sete	%dl
+	andq	$1, %rdx
+	cmpq	$0, %rdx
+	jne	then
+	jmp	else
+	.text
+else:
+	movq	%rdi, %rax
+	addq	$0, %rax
+	addq	$16, %rax
+	movq	%rax, %rdx
+	movq	(%rdx), %rsi
+	movq	%rdi, %rax
+	addq	$0, %rax
+	addq	$8, %rax
+	movq	%rax, %rdx
+	movq	(%rdx), %r8 
+	pushq	%r8 
+	pushq	%rdi
+	pushq	%rsi
+	movq	%r8 , %rdi
+	callq	sum_tree
+	popq	%rsi
+	popq	%rdi
+	popq	%r8 
+	movq	%rax, %rdx
+	movq	%rsi, %r8 
+	addq	%rdx, %r8 
+	movq	%rdi, %rax
+	addq	$0, %rax
+	addq	$0, %rax
+	movq	%rax, %rdx
+	movq	(%rdx), %rsi
+	pushq	%r8 
+	pushq	%rsi
+	movq	%rsi, %rdi
+	callq	sum_tree
+	popq	%rsi
+	popq	%r8 
+	movq	%rax, %rdx
+	movq	%r8 , %rsi
+	addq	%rdx, %rsi
+	movq	%rsi, %rax
+	movq	%rbp, %rsp
+	popq	%rbp
+	retq	
+	.text
+then:
+	movq	$0, %rax
+	movq	%rbp, %rsp
+	popq	%rbp
+	retq	
 	.text
 	.globl	main
 main:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	leaq	gbl(%rip), %rax
-	addq	$0, %rax
-	addq	$0, %rax
-	addq	$0, %rax
-	addq	$8, %rax
-	addq	$8, %rax
-	movq	%rax, %rdi
-	movq	(%rdi), %rsi
-	movq	%rsi, %rax
+	leaq	test(%rip), %rdi
+	callq	sum_tree
+	movq	%rax, %rdx
+	movq	%rdx, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

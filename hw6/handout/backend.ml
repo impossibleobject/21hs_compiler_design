@@ -769,7 +769,34 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
                     |> remove (Alloc.LReg Rcx)
                    )
   in
-  (* module RegSet = MakeSet (X86.reg) in *)
+  let allocate lo uid =
+    let loc =
+    try
+      let used_locs =
+        UidSet.fold (fun y -> LocSet.add (List.assoc y lo)) (live.live_in uid) LocSet.empty
+      in
+      let available_locs = LocSet.diff pal used_locs in
+      LocSet.choose available_locs
+    with
+    | Not_found -> spill ()
+    in
+    Platform.verb @@ Printf.sprintf "allocated: %s <- %s\n" (Alloc.str_loc loc) uid; loc
+  in
+
+  let lo =
+    fold_fdecl
+      (fun lo (x, _) -> (x, alloc_arg())::lo)
+      (fun lo l -> (l, Alloc.LLbl (Platform.mangle l))::lo)
+      (fun lo (x, i) ->
+        if insn_assigns i 
+        then (x, allocate lo x)::lo
+        else (x, Alloc.LVoid)::lo)
+      (fun lo _ -> lo)
+      [] f in
+  { uid_loc = (fun x -> List.assoc x lo)
+  ; spill_bytes = 8 * !n_spill
+  }
+  (* (* module RegSet = MakeSet (X86.reg) in *)
   let regs = List.map (fun x -> Some x) [ Rdi; Rsi; Rdx; R09; R08; R10; R11 ] in
   (* print_endline("start making uid list"); *)
   let uids =
@@ -837,7 +864,7 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
   in
   { uid_loc = map_loc
   ; spill_bytes = 8 * !n_spill
-  }
+  } *)
 
 
 

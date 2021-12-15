@@ -3,8 +3,9 @@
 foo:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	addq	%rdi, %rdi
-	movq	%rdi, %rax
+	movq	%rdi, %rdx
+	addq	%rdi, %rdx
+	movq	%rdx, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -15,8 +16,8 @@ main:
 	movq	%rsp, %rbp
 	movq	$17, %rdi
 	callq	foo
-	movq	%rax, %rdi
-	movq	%rdi, %rax
+	movq	%rax, %rdx
+	movq	%rdx, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
