@@ -857,7 +857,7 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
     in
 
   let allocate (lo,reg_u) uid  =
-    let loc =
+    let loc = 
     try
       let used_locs =
         UidSet.fold (fun y -> LocSet.add (List.assoc y lo)) (live.live_in uid) LocSet.empty
