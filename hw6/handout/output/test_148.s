@@ -3,10 +3,8 @@
 f:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	subq	$24, %rsp
+	subq	$56, %rsp
 	movq	%rcx, -8(%rbp)
-	subq	$8, %rsp
-	movq	%rsp, %r9 
 	subq	$8, %rsp
 	movq	%rsp, %r10
 	subq	$8, %rsp
@@ -15,33 +13,69 @@ f:
 	movq	%rsp, -16(%rbp)
 	subq	$8, %rsp
 	movq	%rsp, -24(%rbp)
-	movq	%rdi, (%r9 )
-	movq	%rsi, (%r10)
-	movq	%rdx, (%r11)
-	movq	-8(%rbp), %rax
+	subq	$8, %rsp
+	movq	%rsp, -32(%rbp)
+	subq	$8, %rsp
+	movq	%rsp, -40(%rbp)
+	subq	$8, %rsp
+	movq	%rsp, -48(%rbp)
+	subq	$8, %rsp
+	movq	%rsp, -56(%rbp)
+	movq	%rdi, (%r10)
+	movq	%rsi, (%r11)
+	movq	%rdx, %rax
 	movq	-16(%rbp), %rcx
 	movq	%rax, (%rcx)
-	movq	%r8 , %rax
+	movq	-8(%rbp), %rax
 	movq	-24(%rbp), %rcx
 	movq	%rax, (%rcx)
-	movq	(%r9 ), %rdx
-	movq	(%r10), %rsi
+	movq	%r8 , %rax
+	movq	-32(%rbp), %rcx
+	movq	%rax, (%rcx)
+	movq	%r9 , %rax
+	movq	-40(%rbp), %rcx
+	movq	%rax, (%rcx)
+	movq	16(%rbp), %rax
+	movq	-48(%rbp), %rcx
+	movq	%rax, (%rcx)
+	movq	24(%rbp), %rax
+	movq	-56(%rbp), %rcx
+	movq	%rax, (%rcx)
+	movq	(%r10), %rdx
+	movq	(%r11), %rsi
 	movq	%rdx, %rdi
 	addq	%rsi, %rdi
-	movq	(%r11), %rdx
+	movq	-16(%rbp), %rax
+	movq	(%rax), %rax
+	movq	%rax, %rdx
 	movq	%rdi, %rsi
 	addq	%rdx, %rsi
-	movq	-16(%rbp), %rax
+	movq	-24(%rbp), %rax
 	movq	(%rax), %rax
 	movq	%rax, %rdx
 	movq	%rsi, %rdi
 	addq	%rdx, %rdi
-	movq	-24(%rbp), %rax
+	movq	-32(%rbp), %rax
 	movq	(%rax), %rax
 	movq	%rax, %rdx
 	movq	%rdi, %rsi
 	addq	%rdx, %rsi
-	movq	%rsi, %rax
+	movq	-40(%rbp), %rax
+	movq	(%rax), %rax
+	movq	%rax, %rdx
+	movq	%rsi, %rdi
+	addq	%rdx, %rdi
+	movq	-48(%rbp), %rax
+	movq	(%rax), %rax
+	movq	%rax, %rdx
+	movq	%rdi, %rsi
+	addq	%rdx, %rsi
+	movq	-56(%rbp), %rax
+	movq	(%rax), %rax
+	movq	%rax, %rdx
+	movq	%rsi, %rdi
+	addq	%rdx, %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -50,6 +84,9 @@ f:
 program:
 	pushq	%rbp
 	movq	%rsp, %rbp
+	subq	$8, %rsp
+	movq	%rsp, %rdx
+	pushq	%rdx
 	pushq	$-3
 	pushq	$-4
 	movq	$-5, %r9 
@@ -60,8 +97,15 @@ program:
 	movq	$1, %rdi
 	callq	f
 	addq	$16, %rsp
-	movq	%rax, %rdx
-	movq	%rdx, %rax
+	popq	%rdx
+	movq	%rax, %rsi
+	movq	%rsi, (%rdx)
+	movq	(%rdx), %rsi
+	pushq	%rsi
+	movq	%rsi, %rdi
+	callq	print_int
+	popq	%rsi
+	movq	$41, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

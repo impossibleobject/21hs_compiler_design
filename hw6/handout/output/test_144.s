@@ -28,9 +28,9 @@ program:
 	movq	$0, %rax
 	movq	%rdx, %rcx
 	movq	%rax, (%rcx)
-	jmp	_cond7350
+	jmp	_cond7322
 	.text
-_body7349:
+_body7321:
 	movq	(%r9 ), %r10
 	movq	(%rdx), %r11
 	movq	%r10, %rax
@@ -60,26 +60,29 @@ _body7349:
 	imulq	$8, %rax
 	addq	%rcx, %rax
 	movq	%rax, -16(%rbp)
-	movq	$2, %rax
+	movq	(%rdx), %r10
+	movq	%r10, %r11
+	addq	$1, %r11
+	movq	%r11, %rax
 	movq	-16(%rbp), %rcx
 	movq	%rax, (%rcx)
 	movq	(%rdx), %r10
 	movq	%r10, %r11
 	addq	$1, %r11
 	movq	%r11, (%rdx)
-	jmp	_cond7350
+	jmp	_cond7322
 	.text
-_cond7350:
+_cond7322:
 	movq	(%rdx), %r10
 	movq	(%rdi), %r11
 	cmpq	%r11, %r10
 	setl	-24(%rbp)
 	andq	$1, -24(%rbp)
 	cmpq	$0, -24(%rbp)
-	jne	_body7349
-	jmp	_post7348
+	jne	_body7321
+	jmp	_post7320
 	.text
-_post7348:
+_post7320:
 	movq	%r8 , (%rsi)
 	movq	(%rsi), %rdx
 	movq	%rdx, %rax

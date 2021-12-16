@@ -1,80 +1,38 @@
-	.data
-	.globl	c
-c:
-	.quad	_global_struct7166
-	.data
-	.globl	_global_struct7166
-_global_struct7166:
-	.quad	10
-	.quad	20
-	.quad	30
-	.quad	rot
 	.text
-	.globl	rot
-rot:
+	.globl	add
+add:
 	pushq	%rbp
 	movq	%rsp, %rbp
 	subq	$8, %rsp
 	movq	%rsp, %rdx
 	subq	$8, %rsp
-	movq	%rsp, %rsi
+	movq	%rsp, %r8 
 	movq	%rdi, (%rdx)
-	pushq	%rsi
-	pushq	%rdx
-	movq	$32, %rdi
-	callq	oat_malloc
-	popq	%rdx
-	popq	%rsi
-	movq	%rax, %rdi
+	movq	%rsi, (%r8 )
+	movq	(%rdx), %rsi
+	movq	(%r8 ), %rdx
+	movq	%rsi, %rdi
+	addq	%rdx, %rdi
 	movq	%rdi, %rax
-	movq	%rax, %r8 
-	movq	(%rdx), %rdi
-	movq	%rdi, %rax
-	addq	$0, %rax
-	addq	$8, %rax
-	movq	%rax, %r9 
-	movq	(%r9 ), %rdi
-	movq	%r8 , %rax
-	addq	$0, %rax
-	addq	$0, %rax
-	movq	%rax, %r9 
-	movq	%rdi, (%r9 )
-	movq	(%rdx), %rdi
-	movq	%rdi, %rax
-	addq	$0, %rax
-	addq	$16, %rax
-	movq	%rax, %r9 
-	movq	(%r9 ), %rdi
-	movq	%r8 , %rax
-	addq	$0, %rax
-	addq	$8, %rax
-	movq	%rax, %r9 
-	movq	%rdi, (%r9 )
-	movq	(%rdx), %rdi
-	movq	%rdi, %rax
-	addq	$0, %rax
-	addq	$0, %rax
-	movq	%rax, %r9 
-	movq	(%r9 ), %rdi
-	movq	%r8 , %rax
-	addq	$0, %rax
-	addq	$16, %rax
-	movq	%rax, %r9 
-	movq	%rdi, (%r9 )
-	movq	(%rdx), %rdi
-	movq	%rdi, %rax
-	addq	$0, %rax
-	addq	$24, %rax
-	movq	%rax, %rdx
-	movq	(%rdx), %rdi
-	movq	%r8 , %rax
-	addq	$0, %rax
-	addq	$24, %rax
-	movq	%rax, %rdx
+	movq	%rbp, %rsp
+	popq	%rbp
+	retq	
+	.text
+	.globl	mul
+mul:
+	pushq	%rbp
+	movq	%rsp, %rbp
+	subq	$8, %rsp
+	movq	%rsp, %rdx
+	subq	$8, %rsp
+	movq	%rsp, %r8 
 	movq	%rdi, (%rdx)
-	movq	%r8 , (%rsi)
-	movq	(%rsi), %rdx
-	movq	%rdx, %rax
+	movq	%rsi, (%r8 )
+	movq	(%rdx), %rsi
+	movq	(%r8 ), %rdx
+	movq	%rsi, %rdi
+	imulq	%rdx, %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -83,33 +41,22 @@ rot:
 program:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	leaq	c(%rip), %rax
-	movq	(%rax), %rax
-	movq	%rax, %rdx
-	movq	%rdx, %rax
-	addq	$0, %rax
-	addq	$24, %rax
-	movq	%rax, %rsi
-	movq	(%rsi), %rdx
-	leaq	c(%rip), %rax
-	movq	(%rax), %rax
-	movq	%rax, %rsi
+	subq	$8, %rsp
+	movq	%rsp, %rdx
+	leaq	mul(%rip), %rax
+	movq	%rdx, %rcx
+	movq	%rax, (%rcx)
+	movq	(%rdx), %rsi
 	pushq	%r15
-	movq	%rdx, %r15
+	movq	%rsi, %r15
 	pushq	%rsi
-	pushq	%rdx
-	movq	%rsi, %rdi
+	movq	$4, %rsi
+	movq	$3, %rdi
 	callq	*%r15
-	popq	%rdx
 	popq	%rsi
 	popq	%r15
-	movq	%rax, %rdi
-	movq	%rdi, %rax
-	addq	$0, %rax
-	addq	$0, %rax
 	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
+	movq	%rdx, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

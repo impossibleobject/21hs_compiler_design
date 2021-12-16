@@ -84,9 +84,6 @@ f:
 program:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	subq	$8, %rsp
-	movq	%rsp, %rdx
-	pushq	%rdx
 	pushq	$-3
 	pushq	$-4
 	movq	$-5, %r9 
@@ -97,15 +94,8 @@ program:
 	movq	$1, %rdi
 	callq	f
 	addq	$16, %rsp
-	popq	%rdx
-	movq	%rax, %rsi
-	movq	%rsi, (%rdx)
-	movq	(%rdx), %rsi
-	pushq	%rsi
-	movq	%rsi, %rdi
-	callq	print_int
-	popq	%rsi
-	movq	$41, %rax
+	movq	%rax, %rdx
+	movq	%rdx, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

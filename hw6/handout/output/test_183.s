@@ -3,33 +3,45 @@
 f:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	subq	$8, %rsp
+	subq	$24, %rsp
 	movq	%rcx, -8(%rbp)
-	subq	$8, %rsp
-	movq	%rsp, %r8 
 	subq	$8, %rsp
 	movq	%rsp, %r9 
 	subq	$8, %rsp
 	movq	%rsp, %r10
 	subq	$8, %rsp
 	movq	%rsp, %r11
-	movq	%rdi, (%r8 )
-	movq	%rsi, (%r9 )
-	movq	%rdx, (%r10)
+	subq	$8, %rsp
+	movq	%rsp, -16(%rbp)
+	subq	$8, %rsp
+	movq	%rsp, -24(%rbp)
+	movq	%rdi, (%r9 )
+	movq	%rsi, (%r10)
+	movq	%rdx, (%r11)
 	movq	-8(%rbp), %rax
-	movq	%r11, %rcx
+	movq	-16(%rbp), %rcx
 	movq	%rax, (%rcx)
-	movq	(%r8 ), %rdx
-	movq	(%r9 ), %rsi
+	movq	%r8 , %rax
+	movq	-24(%rbp), %rcx
+	movq	%rax, (%rcx)
+	movq	(%r9 ), %rdx
+	movq	(%r10), %rsi
 	movq	%rdx, %rdi
 	addq	%rsi, %rdi
-	movq	(%r10), %rdx
+	movq	(%r11), %rdx
 	movq	%rdi, %rsi
 	addq	%rdx, %rsi
-	movq	(%r11), %rdx
+	movq	-16(%rbp), %rax
+	movq	(%rax), %rax
+	movq	%rax, %rdx
 	movq	%rsi, %rdi
 	addq	%rdx, %rdi
-	movq	%rdi, %rax
+	movq	-24(%rbp), %rax
+	movq	(%rax), %rax
+	movq	%rax, %rdx
+	movq	%rdi, %rsi
+	addq	%rdx, %rsi
+	movq	%rsi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

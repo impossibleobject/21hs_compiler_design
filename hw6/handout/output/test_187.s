@@ -1,6 +1,6 @@
 	.data
-	.globl	_str_arr7889
-_str_arr7889:
+	.globl	_str_arr9289
+_str_arr9289:
 	.asciz	"\n"
 	.text
 	.globl	min
@@ -44,9 +44,9 @@ min:
 	movq	$0, %rax
 	movq	%r10, %rcx
 	movq	%rax, (%rcx)
-	jmp	_cond8126
+	jmp	_cond9526
 	.text
-_body8125:
+_body9525:
 	movq	(%rdx), %rsi
 	movq	(%r10), %rdi
 	movq	%rsi, %rax
@@ -82,37 +82,37 @@ _body8125:
 	setl	%r11b
 	andq	$1, %r11
 	cmpq	$0, %r11
-	jne	_then8144
-	jmp	_else8143
+	jne	_then9544
+	jmp	_else9543
 	.text
-_cond8126:
+_cond9526:
 	movq	(%r10), %rsi
 	movq	(%r8 ), %rdi
 	cmpq	%rdi, %rsi
 	setl	%r11b
 	andq	$1, %r11
 	cmpq	$0, %r11
-	jne	_body8125
-	jmp	_post8124
+	jne	_body9525
+	jmp	_post9524
 	.text
-_else8143:
-	jmp	_merge8142
+_else9543:
+	jmp	_merge9542
 	.text
-_merge8142:
+_merge9542:
 	movq	(%r10), %rsi
 	movq	%rsi, %rdi
 	addq	$1, %rdi
 	movq	%rdi, (%r10)
-	jmp	_cond8126
+	jmp	_cond9526
 	.text
-_post8124:
+_post9524:
 	movq	(%r9 ), %rdx
 	movq	%rdx, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
 	.text
-_then8144:
+_then9544:
 	movq	(%rdx), %rsi
 	movq	(%r10), %rdi
 	movq	%rsi, %rax
@@ -144,7 +144,7 @@ _then8144:
 	movq	%rax, %r11
 	movq	(%r11), %rsi
 	movq	%rsi, (%r9 )
-	jmp	_merge8142
+	jmp	_merge9542
 	.text
 	.globl	max
 max:
@@ -187,9 +187,9 @@ max:
 	movq	$0, %rax
 	movq	%r10, %rcx
 	movq	%rax, (%rcx)
-	jmp	_cond8083
+	jmp	_cond9483
 	.text
-_body8082:
+_body9482:
 	movq	(%rdx), %rsi
 	movq	(%r10), %rdi
 	movq	%rsi, %rax
@@ -225,37 +225,37 @@ _body8082:
 	setg	%r11b
 	andq	$1, %r11
 	cmpq	$0, %r11
-	jne	_then8101
-	jmp	_else8100
+	jne	_then9501
+	jmp	_else9500
 	.text
-_cond8083:
+_cond9483:
 	movq	(%r10), %rsi
 	movq	(%r8 ), %rdi
 	cmpq	%rdi, %rsi
 	setl	%r11b
 	andq	$1, %r11
 	cmpq	$0, %r11
-	jne	_body8082
-	jmp	_post8081
+	jne	_body9482
+	jmp	_post9481
 	.text
-_else8100:
-	jmp	_merge8099
+_else9500:
+	jmp	_merge9499
 	.text
-_merge8099:
+_merge9499:
 	movq	(%r10), %rsi
 	movq	%rsi, %rdi
 	addq	$1, %rdi
 	movq	%rdi, (%r10)
-	jmp	_cond8083
+	jmp	_cond9483
 	.text
-_post8081:
+_post9481:
 	movq	(%r9 ), %rdx
 	movq	%rdx, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
 	.text
-_then8101:
+_then9501:
 	movq	(%rdx), %rsi
 	movq	(%r10), %rdi
 	movq	%rsi, %rax
@@ -287,7 +287,7 @@ _then8101:
 	movq	%rax, %r11
 	movq	(%r11), %rsi
 	movq	%rsi, (%r9 )
-	jmp	_merge8099
+	jmp	_merge9499
 	.text
 	.globl	count_sort
 count_sort:
@@ -395,9 +395,9 @@ count_sort:
 	movq	$0, %rax
 	movq	%r11, %rcx
 	movq	%rax, (%rcx)
-	jmp	_cond7931
+	jmp	_cond9331
 	.text
-_body7930:
+_body9330:
 	movq	%rsi, %rax
 	movq	(%rax), %rax
 	movq	%rax, -88(%rbp)
@@ -443,9 +443,9 @@ _body7930:
 	movq	-128(%rbp), %rax
 	movq	%r11, %rcx
 	movq	%rax, (%rcx)
-	jmp	_cond7931
+	jmp	_cond9331
 	.text
-_body7951:
+_body9351:
 	movq	-8(%rbp), %rax
 	movq	(%rax), %rax
 	movq	%rax, %rsi
@@ -593,9 +593,9 @@ _body7951:
 	movq	%rdi, %rax
 	movq	-16(%rbp), %rcx
 	movq	%rax, (%rcx)
-	jmp	_cond7952
+	jmp	_cond9352
 	.text
-_body7999:
+_body9399:
 	movq	%rdx, %rax
 	movq	(%rax), %rax
 	movq	%rax, -200(%rbp)
@@ -637,9 +637,9 @@ _body7999:
 	movq	-240(%rbp), %rax
 	movq	-40(%rbp), %rcx
 	movq	%rax, (%rcx)
-	jmp	_cond8000
+	jmp	_cond9400
 	.text
-_body8018:
+_body9418:
 	movq	-8(%rbp), %rax
 	movq	(%rax), %rax
 	movq	%rax, %rdx
@@ -677,10 +677,10 @@ _body8018:
 	setg	%sil
 	andq	$1, %rsi
 	cmpq	$0, %rsi
-	jne	_then8061
-	jmp	_else8060
+	jne	_then9461
+	jmp	_else9460
 	.text
-_cond7931:
+_cond9331:
 	movq	%r11, %rax
 	movq	(%rax), %rax
 	movq	%rax, -248(%rbp)
@@ -692,10 +692,10 @@ _cond7931:
 	setl	-264(%rbp)
 	andq	$1, -264(%rbp)
 	cmpq	$0, -264(%rbp)
-	jne	_body7930
-	jmp	_post7929
+	jne	_body9330
+	jmp	_post9329
 	.text
-_cond7952:
+_cond9352:
 	movq	-16(%rbp), %rax
 	movq	(%rax), %rax
 	movq	%rax, %rsi
@@ -704,10 +704,10 @@ _cond7952:
 	setl	%r11b
 	andq	$1, %r11
 	cmpq	$0, %r11
-	jne	_body7951
-	jmp	_post7950
+	jne	_body9351
+	jmp	_post9350
 	.text
-_cond8000:
+_cond9400:
 	movq	-40(%rbp), %rax
 	movq	(%rax), %rax
 	movq	%rax, -272(%rbp)
@@ -719,10 +719,10 @@ _cond8000:
 	setl	-288(%rbp)
 	andq	$1, -288(%rbp)
 	cmpq	$0, -288(%rbp)
-	jne	_body7999
-	jmp	_post7998
+	jne	_body9399
+	jmp	_post9398
 	.text
-_cond8019:
+_cond9419:
 	movq	-24(%rbp), %rax
 	movq	(%rax), %rax
 	movq	%rax, %rdx
@@ -731,10 +731,10 @@ _cond8019:
 	setle	%dil
 	andq	$1, %rdi
 	cmpq	$0, %rdi
-	jne	_body8018
-	jmp	_post8017
+	jne	_body9418
+	jmp	_post9417
 	.text
-_else8060:
+_else9460:
 	movq	-24(%rbp), %rax
 	movq	(%rax), %rax
 	movq	%rax, %rdx
@@ -743,21 +743,21 @@ _else8060:
 	movq	%rsi, %rax
 	movq	-24(%rbp), %rcx
 	movq	%rax, (%rcx)
-	jmp	_merge8059
+	jmp	_merge9459
 	.text
-_merge8059:
-	jmp	_cond8019
+_merge9459:
+	jmp	_cond9419
 	.text
-_post7929:
+_post9329:
 	movq	-80(%rbp), %rax
 	movq	-8(%rbp), %rcx
 	movq	%rax, (%rcx)
 	movq	$0, %rax
 	movq	-16(%rbp), %rcx
 	movq	%rax, (%rcx)
-	jmp	_cond7952
+	jmp	_cond9352
 	.text
-_post7950:
+_post9350:
 	movq	(%r9 ), %rdx
 	movq	%rdx, %rax
 	movq	-24(%rbp), %rcx
@@ -786,15 +786,15 @@ _post7950:
 	movq	$0, %rax
 	movq	-40(%rbp), %rcx
 	movq	%rax, (%rcx)
-	jmp	_cond8000
+	jmp	_cond9400
 	.text
-_post7998:
+_post9398:
 	movq	%rdi, %rax
 	movq	-48(%rbp), %rcx
 	movq	%rax, (%rcx)
-	jmp	_cond8019
+	jmp	_cond9419
 	.text
-_post8017:
+_post9417:
 	movq	-48(%rbp), %rax
 	movq	(%rax), %rax
 	movq	%rax, %rdx
@@ -803,7 +803,7 @@ _post8017:
 	popq	%rbp
 	retq	
 	.text
-_then8061:
+_then9461:
 	movq	-48(%rbp), %rax
 	movq	(%rax), %rax
 	movq	%rax, %rdx
@@ -912,7 +912,7 @@ _then8061:
 	movq	%rsi, %rax
 	movq	-32(%rbp), %rcx
 	movq	%rax, (%rcx)
-	jmp	_merge8059
+	jmp	_merge9459
 	.text
 	.globl	program
 program:
@@ -1033,7 +1033,7 @@ program:
 	popq	%rsi
 	popq	%rdi
 	popq	%r9 
-	leaq	_str_arr7889(%rip), %rax
+	leaq	_str_arr9289(%rip), %rax
 	addq	$0, %rax
 	addq	$0, %rax
 	movq	%rax, %r8 

@@ -1,19 +1,13 @@
 	.text
-	.globl	add
-add:
+	.globl	id
+id:
 	pushq	%rbp
 	movq	%rsp, %rbp
 	subq	$8, %rsp
 	movq	%rsp, %rdx
-	subq	$8, %rsp
-	movq	%rsp, %r8 
 	movq	%rdi, (%rdx)
-	movq	%rsi, (%r8 )
 	movq	(%rdx), %rsi
-	movq	(%r8 ), %rdx
-	movq	%rsi, %rdi
-	addq	%rdx, %rdi
-	movq	%rdi, %rax
+	movq	%rsi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -24,24 +18,19 @@ program:
 	movq	%rsp, %rbp
 	subq	$8, %rsp
 	movq	%rsp, %rdx
-	subq	$8, %rsp
-	movq	%rsp, %rsi
-	leaq	add(%rip), %rax
+	leaq	id(%rip), %rax
 	movq	%rdx, %rcx
 	movq	%rax, (%rcx)
-	movq	(%rdx), %rdi
-	movq	%rdi, (%rsi)
-	movq	(%rsi), %rdx
+	movq	(%rdx), %rsi
 	pushq	%r15
-	movq	%rdx, %r15
-	pushq	%rdx
-	movq	$3, %rsi
-	movq	$2, %rdi
+	movq	%rsi, %r15
+	pushq	%rsi
+	movq	$1, %rdi
 	callq	*%r15
-	popq	%rdx
+	popq	%rsi
 	popq	%r15
-	movq	%rax, %rsi
-	movq	%rsi, %rax
+	movq	%rax, %rdx
+	movq	%rdx, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

@@ -24,31 +24,37 @@ open Datastructures
 let dce_block (lb:uid -> Liveness.Fact.t) 
               (ab:uid -> Alias.fact)
               (b:Ll.block) : Ll.block =
-  let dce_ins ((uid, ins): Ll.uid * Ll.insn) : (uid * insn) option =
+  let dce_ins ((ins_uid, ins): Ll.uid * Ll.insn) : (uid * insn) option =
     let is_live u =
-      let live_set = lb uid in
+      let live_set = lb ins_uid in
       UidS.mem u live_set
     in
     begin match ins with
-    | Call _ -> Some (uid,ins)
+    | Call _ -> Some (ins_uid,ins)
     | Store (ty, op1, op2) -> 
-      let get_uid (op:Ll.operand) : Ll.uid = 
+      let get_uid (op:Ll.operand) : Ll.uid * bool = 
         begin match op with
-          | Id uid -> uid
-          | Gid g -> g
+          | Id  l -> l, false
+          | Gid g -> (* if(is_live g) then print_endline("Gid: " ^ g ^ " is live")
+                     else print_endline("Gid: " ^ g ^ " is not live"); *)
+                     g, true
           | _ -> 
             print_endline("operand is: " ^ Llutil.string_of_operand op);
             failwith "get_uid, operand is not pointer"
         end in
+      let op2_uid, op2_isgbl = get_uid op2 in
       let is_alias = 
-        let alias = UidM.find_or Alias.SymPtr.UndefAlias (ab uid) (get_uid op2) in
+        let alias = UidM.find_or Alias.SymPtr.UndefAlias (ab ins_uid) (op2_uid) in
         begin match alias with
         | Alias.SymPtr.MayAlias -> true
         | _ -> false
         end in
-      if (is_alias || is_live (get_uid op2)) then Some (uid,ins)
+      if (op2_isgbl || is_alias || is_live (op2_uid)) then Some (ins_uid,ins)
       else None
-    | _ -> if(is_live uid) then Some (uid,ins) else None
+    (*L: testing if ins_uid in its' own liveset seems to be correct here*)
+    | _ -> if(is_live ins_uid) then Some (ins_uid,ins) else None 
+           
+           
     end
   in
   let opt_ins = List.map dce_ins b.insns in

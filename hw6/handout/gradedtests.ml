@@ -62,16 +62,18 @@ let pass_all = ref true
 let pass_all_executed_ll_file tests =
   List.map (fun (fn, ans) ->
       fn, (fun () ->
-          try  assert_eqf (fun () -> exec_ll_file fn "") ans ()
-          with exn -> pass_all := false; raise exn))
+          let calc_ans = exec_ll_file fn "" in
+          try  assert_eqf (fun () -> calc_ans) ans ()
+          with exn -> pass_all := false; print_endline("got answer: " ^ calc_ans); raise exn))
     tests
 
 let pass_all_executed_oat_file tests =
   List.map (fun (path, args, ans) ->
       (path ^ " args: " ^ args),
       (fun () ->
-         try assert_eqf (fun () -> oat_file_e2e_test path args) ans ()
-         with exn -> pass_all := false; raise exn))
+         let calc_ans = oat_file_e2e_test path args in
+         try assert_eqf (fun () -> calc_ans) ans ()
+         with exn -> pass_all := false; print_endline("got answer: " ^ calc_ans); raise exn))
     tests
 
 let compile_with_config live regalloc ll_ast =
@@ -392,7 +394,8 @@ let hw4_medium_tests = [
   ("oatprograms/lib14.oat", "", "~}|{zyxwvu0");
   ("oatprograms/lib15.oat", "123456789", "456780");
   ("oatprograms/regalloctest.oat", "", "0");
-  ("oatprograms/regalloctest2.oat", "", "137999986200000000")  
+  ("oatprograms/regalloctest2.oat", "", "137999986200000000");
+  ("oatprograms/student_test.oat", "", "2")
 ]
 
 let hw4_hard_tests = [

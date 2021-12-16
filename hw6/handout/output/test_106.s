@@ -1,10 +1,10 @@
 	.data
-	.globl	_str_arr3475
-_str_arr3475:
+	.globl	_str_arr3219
+_str_arr3219:
 	.asciz	" "
 	.data
-	.globl	_str_arr3481
-_str_arr3481:
+	.globl	_str_arr3225
+_str_arr3225:
 	.asciz	" "
 	.text
 	.globl	program
@@ -15,6 +15,9 @@ program:
 	movq	%rsp, %rdx
 	subq	$8, %rsp
 	movq	%rsp, %rsi
+	movq	$0, %rax
+	movq	%rdx, %rcx
+	movq	%rax, (%rcx)
 	pushq	%rsi
 	pushq	%rdx
 	movq	$10, %rdi
@@ -104,11 +107,8 @@ program:
 	movq	$117, %rax
 	movq	%rdi, %rcx
 	movq	%rax, (%rcx)
-	movq	%r8 , (%rdx)
-	movq	$0, %rax
-	movq	%rsi, %rcx
-	movq	%rax, (%rcx)
-	movq	(%rdx), %rdi
+	movq	%r8 , (%rsi)
+	movq	(%rsi), %rdi
 	pushq	%rdi
 	pushq	%rsi
 	pushq	%rdx
@@ -125,7 +125,7 @@ program:
 	popq	%rdx
 	popq	%rsi
 	popq	%r8 
-	movq	(%rdx), %rdi
+	movq	(%rsi), %rdi
 	pushq	%rdi
 	pushq	%rsi
 	pushq	%rdx
@@ -135,7 +135,7 @@ program:
 	popq	%rdx
 	popq	%rsi
 	popq	%rdi
-	leaq	_str_arr3475(%rip), %rax
+	leaq	_str_arr3219(%rip), %rax
 	addq	$0, %rax
 	addq	$0, %rax
 	movq	%rax, %rdi
@@ -146,31 +146,31 @@ program:
 	popq	%rdx
 	popq	%rsi
 	popq	%rdi
-	movq	(%rdx), %rdi
+	movq	(%rsi), %rdi
 	pushq	%rdi
-	pushq	%rsi
+	pushq	%rdx
 	callq	string_of_array
-	popq	%rsi
+	popq	%rdx
 	popq	%rdi
-	movq	%rax, %rdx
+	movq	%rax, %rsi
 	pushq	%rsi
 	pushq	%rdx
-	movq	%rdx, %rdi
+	movq	%rsi, %rdi
 	callq	print_string
 	popq	%rdx
 	popq	%rsi
-	leaq	_str_arr3481(%rip), %rax
+	leaq	_str_arr3225(%rip), %rax
 	addq	$0, %rax
 	addq	$0, %rax
-	movq	%rax, %rdx
+	movq	%rax, %rsi
 	pushq	%rsi
 	pushq	%rdx
-	movq	%rdx, %rdi
+	movq	%rsi, %rdi
 	callq	print_string
 	popq	%rdx
 	popq	%rsi
-	movq	(%rsi), %rdx
-	movq	%rdx, %rax
+	movq	(%rdx), %rsi
+	movq	%rsi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -199,18 +199,18 @@ oat_mergesort:
 	setl	%dil
 	andq	$1, %rdi
 	cmpq	$0, %rdi
-	jne	_then3437
-	jmp	_else3436
+	jne	_then3181
+	jmp	_else3180
 	.text
-_else3436:
-	jmp	_merge3435
+_else3180:
+	jmp	_merge3179
 	.text
-_merge3435:
+_merge3179:
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
 	.text
-_then3437:
+_then3181:
 	movq	(%r9 ), %rdx
 	movq	(%r10), %rsi
 	movq	%rdx, %rdi
@@ -278,7 +278,7 @@ _then3437:
 	popq	%rsi
 	popq	%rdi
 	popq	%r9 
-	jmp	_merge3435
+	jmp	_merge3179
 	.text
 	.globl	merge
 merge:
@@ -343,9 +343,9 @@ merge:
 	movq	$0, %rax
 	movq	-40(%rbp), %rcx
 	movq	%rax, (%rcx)
-	jmp	_cond3248
+	jmp	_cond2992
 	.text
-_body3247:
+_body2991:
 	movq	%rdi, %rax
 	movq	(%rax), %rax
 	movq	%rax, -56(%rbp)
@@ -391,9 +391,9 @@ _body3247:
 	movq	-96(%rbp), %rax
 	movq	-40(%rbp), %rcx
 	movq	%rax, (%rcx)
-	jmp	_cond3248
+	jmp	_cond2992
 	.text
-_body3277:
+_body3021:
 	movq	(%r8 ), %rdx
 	movq	-16(%rbp), %rax
 	movq	(%rax), %rax
@@ -462,10 +462,10 @@ _body3277:
 	setl	%dil
 	andq	$1, %rdi
 	cmpq	$0, %rdi
-	jne	_then3330
-	jmp	_else3329
+	jne	_then3074
+	jmp	_else3073
 	.text
-_body3335:
+_body3079:
 	movq	-48(%rbp), %rax
 	movq	(%rax), %rax
 	movq	%rax, %rdx
@@ -547,9 +547,9 @@ _body3335:
 	movq	%rsi, %rax
 	movq	-16(%rbp), %rcx
 	movq	%rax, (%rcx)
-	jmp	_cond3336
+	jmp	_cond3080
 	.text
-_body3359:
+_body3103:
 	movq	-48(%rbp), %rax
 	movq	(%rax), %rax
 	movq	%rax, %rdx
@@ -627,9 +627,9 @@ _body3359:
 	movq	%rsi, %rax
 	movq	-24(%rbp), %rcx
 	movq	%rax, (%rcx)
-	jmp	_cond3360
+	jmp	_cond3104
 	.text
-_body3385:
+_body3129:
 	movq	(%r8 ), %rdx
 	movq	-16(%rbp), %rax
 	movq	(%rax), %rax
@@ -691,9 +691,9 @@ _body3385:
 	movq	%rsi, %rax
 	movq	-16(%rbp), %rcx
 	movq	%rax, (%rcx)
-	jmp	_cond3386
+	jmp	_cond3130
 	.text
-_cond3248:
+_cond2992:
 	movq	-40(%rbp), %rax
 	movq	(%rax), %rax
 	movq	%rax, -136(%rbp)
@@ -705,10 +705,10 @@ _cond3248:
 	setl	-152(%rbp)
 	andq	$1, -152(%rbp)
 	cmpq	$0, -152(%rbp)
-	jne	_body3247
-	jmp	_post3246
+	jne	_body2991
+	jmp	_post2990
 	.text
-_cond3278:
+_cond3022:
 	movq	-16(%rbp), %rax
 	movq	(%rax), %rax
 	movq	%rax, %rdx
@@ -726,10 +726,10 @@ _cond3278:
 	movq	%rdi, %rdx
 	andq	-160(%rbp), %rdx
 	cmpq	$0, %rdx
-	jne	_body3277
-	jmp	_post3276
+	jne	_body3021
+	jmp	_post3020
 	.text
-_cond3336:
+_cond3080:
 	movq	-16(%rbp), %rax
 	movq	(%rax), %rax
 	movq	%rax, %rdx
@@ -738,10 +738,10 @@ _cond3336:
 	setle	%dil
 	andq	$1, %rdi
 	cmpq	$0, %rdi
-	jne	_body3335
-	jmp	_post3334
+	jne	_body3079
+	jmp	_post3078
 	.text
-_cond3360:
+_cond3104:
 	movq	-24(%rbp), %rax
 	movq	(%rax), %rax
 	movq	%rax, %rdx
@@ -750,10 +750,10 @@ _cond3360:
 	setle	%dil
 	andq	$1, %rdi
 	cmpq	$0, %rdi
-	jne	_body3359
-	jmp	_post3358
+	jne	_body3103
+	jmp	_post3102
 	.text
-_cond3386:
+_cond3130:
 	movq	-16(%rbp), %rax
 	movq	(%rax), %rax
 	movq	%rax, %rdx
@@ -764,10 +764,10 @@ _cond3386:
 	setl	%dil
 	andq	$1, %rdi
 	cmpq	$0, %rdi
-	jne	_body3385
-	jmp	_post3384
+	jne	_body3129
+	jmp	_post3128
 	.text
-_else3329:
+_else3073:
 	movq	-48(%rbp), %rax
 	movq	(%rax), %rax
 	movq	%rax, %rdx
@@ -849,12 +849,12 @@ _else3329:
 	movq	%rsi, %rax
 	movq	-24(%rbp), %rcx
 	movq	%rax, (%rcx)
-	jmp	_merge3328
+	jmp	_merge3072
 	.text
-_merge3328:
-	jmp	_cond3278
+_merge3072:
+	jmp	_cond3022
 	.text
-_post3246:
+_post2990:
 	movq	%rsi, %rax
 	movq	-48(%rbp), %rcx
 	movq	%rax, (%rcx)
@@ -872,27 +872,27 @@ _post3246:
 	movq	%rdx, %rax
 	movq	-32(%rbp), %rcx
 	movq	%rax, (%rcx)
-	jmp	_cond3278
+	jmp	_cond3022
 	.text
-_post3276:
-	jmp	_cond3336
+_post3020:
+	jmp	_cond3080
 	.text
-_post3334:
-	jmp	_cond3360
+_post3078:
+	jmp	_cond3104
 	.text
-_post3358:
+_post3102:
 	movq	(%r9 ), %rdx
 	movq	%rdx, %rax
 	movq	-16(%rbp), %rcx
 	movq	%rax, (%rcx)
-	jmp	_cond3386
+	jmp	_cond3130
 	.text
-_post3384:
+_post3128:
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
 	.text
-_then3330:
+_then3074:
 	movq	-48(%rbp), %rax
 	movq	(%rax), %rax
 	movq	%rax, %rdx
@@ -974,4 +974,4 @@ _then3330:
 	movq	%rsi, %rax
 	movq	-16(%rbp), %rcx
 	movq	%rax, (%rcx)
-	jmp	_merge3328
+	jmp	_merge3072

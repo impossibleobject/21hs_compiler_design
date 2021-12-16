@@ -11,9 +11,14 @@ f:
 	movq	%rsp, %r9 
 	subq	$8, %rsp
 	movq	%rsp, %r10
+	subq	$8, %rsp
+	movq	%rsp, %r11
 	movq	%rdi, (%r8 )
 	movq	%rsi, (%r9 )
 	movq	%rdx, (%r10)
+	movq	-8(%rbp), %rax
+	movq	%r11, %rcx
+	movq	%rax, (%rcx)
 	movq	(%r8 ), %rdx
 	movq	(%r9 ), %rsi
 	movq	%rdx, %rdi
@@ -21,7 +26,10 @@ f:
 	movq	(%r10), %rdx
 	movq	%rdi, %rsi
 	addq	%rdx, %rsi
-	movq	%rsi, %rax
+	movq	(%r11), %rdx
+	movq	%rsi, %rdi
+	addq	%rdx, %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

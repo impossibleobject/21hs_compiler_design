@@ -28,9 +28,9 @@ program:
 	movq	$0, %rax
 	movq	%rdx, %rcx
 	movq	%rax, (%rcx)
-	jmp	_cond7312
+	jmp	_cond7287
 	.text
-_body7311:
+_body7286:
 	movq	(%r9 ), %r10
 	movq	(%rdx), %r11
 	movq	%r10, %rax
@@ -60,43 +60,30 @@ _body7311:
 	imulq	$8, %rax
 	addq	%rcx, %rax
 	movq	%rax, -16(%rbp)
-	movq	(%rdx), %r10
-	movq	%r10, %r11
-	addq	$1, %r11
-	movq	%r11, %rax
+	movq	$0, %rax
 	movq	-16(%rbp), %rcx
 	movq	%rax, (%rcx)
 	movq	(%rdx), %r10
 	movq	%r10, %r11
 	addq	$1, %r11
 	movq	%r11, (%rdx)
-	jmp	_cond7312
+	jmp	_cond7287
 	.text
-_cond7312:
+_cond7287:
 	movq	(%rdx), %r10
 	movq	(%rdi), %r11
 	cmpq	%r11, %r10
 	setl	-24(%rbp)
 	andq	$1, -24(%rbp)
 	cmpq	$0, -24(%rbp)
-	jne	_body7311
-	jmp	_post7310
+	jne	_body7286
+	jmp	_post7285
 	.text
-_post7310:
+_post7285:
 	movq	%r8 , (%rsi)
 	movq	(%rsi), %rdx
 	movq	%rdx, %rax
-	movq	%rax, %rsi
-	pushq	%rsi
-	pushq	%rdx
-	movq	%rsi, %rdi
-	movq	$0, %rsi
-	callq	oat_assert_array_length
-	popq	%rdx
-	popq	%rsi
-	movq	%rdx, %rax
 	addq	$0, %rax
-	addq	$8, %rax
 	addq	$0, %rax
 	movq	%rax, %rsi
 	movq	(%rsi), %rdx

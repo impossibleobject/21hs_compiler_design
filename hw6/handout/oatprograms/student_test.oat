@@ -1,0 +1,7 @@
+global a = 1;
+
+
+int program (int argc, string[] argv) {
+  a = a + 1;
+  return a;
+}

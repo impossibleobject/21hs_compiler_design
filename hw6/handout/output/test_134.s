@@ -1,6 +1,6 @@
 	.data
-	.globl	plus
-plus:
+	.globl	x
+x:
 	.quad	add
 	.text
 	.globl	add
@@ -26,14 +26,14 @@ add:
 program:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	leaq	plus(%rip), %rax
+	leaq	x(%rip), %rax
 	movq	(%rax), %rax
 	movq	%rax, %rdx
 	pushq	%r15
 	movq	%rdx, %r15
 	pushq	%rdx
-	movq	$1, %rsi
-	movq	$1, %rdi
+	movq	$4, %rsi
+	movq	$3, %rdi
 	callq	*%r15
 	popq	%rdx
 	popq	%r15
