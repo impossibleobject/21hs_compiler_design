@@ -1,52 +1,40 @@
-	.data
-	.globl	_str_arr2201
-_str_arr2201:
-	.asciz	"hello"
 	.text
 	.globl	program
 program:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	subq	$8, %rsp
-	movq	%rsp, %rdx
-	subq	$8, %rsp
-	movq	%rsp, %rsi
+	subq	$24, %rsp
 	subq	$8, %rsp
 	movq	%rsp, %rdi
 	subq	$8, %rsp
-	movq	%rsp, %r8 
-	leaq	_str_arr2201(%rip), %rax
-	addq	$0, %rax
-	addq	$0, %rax
-	movq	%rax, %r9 
-	movq	%r9 , (%rdx)
-	movq	(%rdx), %r9 
-	pushq	%r9 
-	pushq	%r8 
+	movq	%rsp, %rsi
 	pushq	%rdi
 	pushq	%rsi
-	movq	%r9 , %rdi
-	callq	array_of_string
+	movq	$3, %rdi
+	callq	oat_alloc_array
 	popq	%rsi
 	popq	%rdi
-	popq	%r8 
-	popq	%r9 
 	movq	%rax, %rdx
-	movq	%rdx, (%rsi)
+	movq	%rdx, %rax
+	movq	%rax, %r9 
+	subq	$8, %rsp
+	movq	%rsp, %rdx
+	movq	$3, %rax
+	movq	%rdx, %rcx
+	movq	%rax, (%rcx)
+	subq	$8, %rsp
+	movq	%rsp, %r8 
+	movq	%r9 , (%r8 )
 	movq	$0, %rax
 	movq	%rdi, %rcx
 	movq	%rax, (%rcx)
-	movq	$0, %rax
-	movq	%r8 , %rcx
-	movq	%rax, (%rcx)
-	jmp	_cond2217
+	jmp	_cond7322
 	.text
-_body2216:
-	movq	(%rdi), %r10
-	movq	(%rsi), %r11
-	movq	(%r8 ), %rdx
-	movq	%r11, %rax
-	movq	%rax, %r9 
+_body7321:
+	movq	(%r8 ), %r10
+	movq	(%rdi), %r11
+	movq	%r10, %rax
+	movq	%rax, -8(%rbp)
 	pushq	%r11
 	pushq	%r10
 	pushq	%r9 
@@ -54,8 +42,8 @@ _body2216:
 	pushq	%rdi
 	pushq	%rsi
 	pushq	%rdx
-	movq	%rdx, %rsi
-	movq	%r9 , %rdi
+	movq	%r11, %rsi
+	movq	-8(%rbp), %rdi
 	callq	oat_assert_array_length
 	popq	%rdx
 	popq	%rsi
@@ -64,36 +52,55 @@ _body2216:
 	popq	%r9 
 	popq	%r10
 	popq	%r11
-	movq	%r11, %rax
+	movq	%r10, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	movq	%rax, %rcx
-	movq	%rdx, %rax
+	movq	%r11, %rax
 	imulq	$8, %rax
 	addq	%rcx, %rax
-	movq	%rax, %r9 
-	movq	(%r9 ), %r11
-	movq	%r10, %rdx
-	addq	%r11, %rdx
-	movq	%rdx, (%rdi)
-	movq	(%r8 ), %r10
+	movq	%rax, -16(%rbp)
+	movq	(%rdi), %r10
 	movq	%r10, %r11
 	addq	$1, %r11
-	movq	%r11, (%r8 )
-	jmp	_cond2217
+	movq	%r11, %rax
+	movq	-16(%rbp), %rcx
+	movq	%rax, (%rcx)
+	movq	(%rdi), %r10
+	movq	%r10, %r11
+	addq	$1, %r11
+	movq	%r11, (%rdi)
+	jmp	_cond7322
 	.text
-_cond2217:
-	movq	(%r8 ), %r10
-	cmpq	$5, %r10
-	setl	%dl
-	andq	$1, %rdx
-	cmpq	$0, %rdx
-	jne	_body2216
-	jmp	_post2215
+_cond7322:
+	movq	(%rdi), %r10
+	movq	(%rdx), %r11
+	cmpq	%r11, %r10
+	setl	-24(%rbp)
+	andq	$1, -24(%rbp)
+	cmpq	$0, -24(%rbp)
+	jne	_body7321
+	jmp	_post7320
 	.text
-_post2215:
-	movq	(%rdi), %rsi
-	movq	%rsi, %rax
+_post7320:
+	movq	%r9 , (%rsi)
+	movq	(%rsi), %rdi
+	movq	%rdi, %rax
+	movq	%rax, %rsi
+	pushq	%rdi
+	pushq	%rsi
+	movq	%rsi, %rdi
+	movq	$0, %rsi
+	callq	oat_assert_array_length
+	popq	%rsi
+	popq	%rdi
+	movq	%rdi, %rax
+	addq	$0, %rax
+	addq	$8, %rax
+	addq	$0, %rax
+	movq	%rax, %rsi
+	movq	(%rsi), %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

@@ -17,8 +17,8 @@ main:
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$16, %rax
-	movq	%rax, %rdx
-	movq	(%rdx), %rsi
+	movq	%rax, %rdi
+	movq	(%rdi), %rsi
 	movq	%rsi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
