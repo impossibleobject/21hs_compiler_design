@@ -14,11 +14,10 @@ program:
 	addq	$0, %rax
 	movq	%rax, %rsi
 	movq	%rsi, (%rdx)
-	movq	(%rdx), %rsi
-	pushq	%rsi
-	movq	%rsi, %rdi
+	movq	(%rdx), %rdi
+	pushq	%rdi
 	callq	print_string
-	popq	%rsi
+	popq	%rdi
 	movq	$0, %rax
 	movq	%rbp, %rsp
 	popq	%rbp

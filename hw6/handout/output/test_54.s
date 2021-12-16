@@ -26,14 +26,14 @@ main:
 	movq	%rsi, %rax
 	addq	$0, %rax
 	addq	$8, %rax
-	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
+	movq	%rax, %rdi
+	movq	(%rdi), %r8 
+	movq	%r8 , %rax
 	addq	$0, %rax
 	addq	$0, %rax
-	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
+	movq	%rax, %r9 
+	movq	(%r9 ), %rdx
+	movq	%rdx, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

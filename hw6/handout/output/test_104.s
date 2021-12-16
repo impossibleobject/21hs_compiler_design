@@ -20,27 +20,27 @@ f:
 	jmp	_else2801
 	.text
 _else2801:
-	movq	(%rdx), %rdi
-	movq	(%rdx), %r8 
-	movq	%r8 , %rdx
+	movq	(%rdx), %r9 
+	movq	(%rdx), %r10
+	movq	%r10, %rdx
 	subq	$1, %rdx
-	pushq	%rdi
+	pushq	%r9 
 	pushq	%rsi
 	pushq	%rdx
 	movq	%rdx, %rdi
 	callq	f
 	popq	%rdx
 	popq	%rsi
-	popq	%rdi
-	movq	%rax, %r8 
-	movq	%rdi, %rdx
-	imulq	%r8 , %rdx
-	movq	%rdx, (%rsi)
+	popq	%r9 
+	movq	%rax, %rdi
+	movq	%r9 , %r8 
+	imulq	%rdi, %r8 
+	movq	%r8 , (%rsi)
 	jmp	_merge2800
 	.text
 _merge2800:
-	movq	(%rsi), %rdx
-	movq	%rdx, %rax
+	movq	(%rsi), %r9 
+	movq	%r9 , %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

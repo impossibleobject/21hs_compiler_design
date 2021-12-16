@@ -14,10 +14,10 @@ add:
 	movq	%rdi, (%rdx)
 	movq	%rsi, (%r8 )
 	movq	(%rdx), %rsi
-	movq	(%r8 ), %rdx
-	movq	%rsi, %rdi
-	addq	%rdx, %rdi
-	movq	%rdi, %rax
+	movq	(%r8 ), %rdi
+	movq	%rsi, %r9 
+	addq	%rdi, %r9 
+	movq	%r9 , %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

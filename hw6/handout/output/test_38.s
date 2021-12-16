@@ -23,8 +23,8 @@ main:
 	imulq	$8, %rax
 	addq	%rcx, %rax
 	movq	%rax, %rsi
-	movq	(%rsi), %rdx
-	movq	%rdx, %rax
+	movq	(%rsi), %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

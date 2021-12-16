@@ -25,21 +25,20 @@ g:
 	movq	%rdi, (%rdx)
 	movq	(%rdx), %rsi
 	movq	%rsi, %rax
-	movq	%rax, %rdx
+	movq	%rax, %rdi
+	pushq	%rdi
 	pushq	%rsi
-	pushq	%rdx
 	movq	$2, %rsi
-	movq	%rdx, %rdi
 	callq	oat_assert_array_length
-	popq	%rdx
 	popq	%rsi
+	popq	%rdi
 	movq	%rsi, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$16, %rax
-	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
+	movq	%rax, %r8 
+	movq	(%r8 ), %r9 
+	movq	%r9 , %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -118,31 +117,31 @@ program:
 	popq	%rdi
 	popq	%r8 
 	popq	%r10
-	movq	%rax, %r9 
-	movq	%r9 , %rax
 	movq	%rax, %r11
 	movq	%r11, %rax
+	movq	%rax, %r9 
+	movq	%r9 , %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
-	movq	%rax, %r9 
+	movq	%rax, %r11
 	movq	$3, %rax
-	movq	%r9 , %rcx
+	movq	%r11, %rcx
 	movq	%rax, (%rcx)
-	movq	%r11, %rax
+	movq	%r9 , %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$8, %rax
-	movq	%rax, %r9 
+	movq	%rax, %r11
 	movq	$4, %rax
-	movq	%r9 , %rcx
+	movq	%r11, %rcx
 	movq	%rax, (%rcx)
 	movq	%r10, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$8, %rax
-	movq	%rax, %r9 
-	movq	%r11, (%r9 )
+	movq	%rax, %r11
+	movq	%r9 , (%r11)
 	movq	%r10, (%rdx)
 	pushq	%r8 
 	pushq	%rdi
@@ -154,42 +153,42 @@ program:
 	popq	%rsi
 	popq	%rdi
 	popq	%r8 
-	movq	%rax, %r9 
-	movq	%r9 , %rax
 	movq	%rax, %r10
 	movq	%r10, %rax
+	movq	%rax, %r9 
+	movq	%r9 , %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
-	movq	%rax, %r9 
+	movq	%rax, %r10
 	movq	$1, %rax
-	movq	%r9 , %rcx
+	movq	%r10, %rcx
 	movq	%rax, (%rcx)
-	movq	%r10, %rax
+	movq	%r9 , %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$8, %rax
-	movq	%rax, %r9 
+	movq	%rax, %r10
 	movq	$2, %rax
-	movq	%r9 , %rcx
+	movq	%r10, %rcx
 	movq	%rax, (%rcx)
-	movq	%r10, %rax
+	movq	%r9 , %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$16, %rax
-	movq	%rax, %r9 
+	movq	%rax, %r10
 	movq	$3, %rax
-	movq	%r9 , %rcx
+	movq	%r10, %rcx
 	movq	%rax, (%rcx)
-	movq	%r10, %rax
+	movq	%r9 , %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$24, %rax
-	movq	%rax, %r9 
+	movq	%rax, %r10
 	movq	$4, %rax
-	movq	%r9 , %rcx
+	movq	%r10, %rcx
 	movq	%rax, (%rcx)
-	movq	%r10, (%rsi)
+	movq	%r9 , (%rsi)
 	movq	$0, %rax
 	movq	%rdi, %rcx
 	movq	%rax, (%rcx)
@@ -199,14 +198,14 @@ program:
 	jmp	_cond848
 	.text
 _body847:
-	movq	(%rdi), %r9 
-	movq	%r9 , %r10
-	addq	$1, %r10
-	movq	%r10, (%rdi)
-	movq	(%r8 ), %r9 
-	movq	%r9 , %r10
-	addq	$1, %r10
-	movq	%r10, (%r8 )
+	movq	(%rdi), %r11
+	movq	%r11, %r9 
+	addq	$1, %r9 
+	movq	%r9 , (%rdi)
+	movq	(%r8 ), %r10
+	movq	%r10, %r11
+	addq	$1, %r11
+	movq	%r11, (%r8 )
 	jmp	_cond848
 	.text
 _cond848:
@@ -230,11 +229,11 @@ _post846:
 	popq	%rsi
 	popq	%rdi
 	popq	%r8 
-	movq	%rax, %r9 
+	movq	%rax, %r11
 	leaq	i(%rip), %rax
 	movq	(%rax), %rax
 	movq	%rax, %r8 
-	pushq	%r9 
+	pushq	%r11
 	pushq	%r8 
 	pushq	%rdi
 	pushq	%rsi
@@ -245,14 +244,14 @@ _post846:
 	popq	%rsi
 	popq	%rdi
 	popq	%r8 
-	popq	%r9 
-	movq	%rax, %r10
-	movq	%r9 , %r8 
-	addq	%r10, %r8 
-	movq	(%rsi), %r9 
-	movq	%r9 , %rax
+	popq	%r11
+	movq	%rax, %r9 
+	movq	%r11, %r8 
+	addq	%r9 , %r8 
+	movq	(%rsi), %r10
+	movq	%r10, %rax
 	movq	%rax, %rsi
-	pushq	%r9 
+	pushq	%r10
 	pushq	%r8 
 	pushq	%rdi
 	pushq	%rsi
@@ -264,23 +263,23 @@ _post846:
 	popq	%rsi
 	popq	%rdi
 	popq	%r8 
-	popq	%r9 
-	movq	%r9 , %rax
+	popq	%r10
+	movq	%r10, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$24, %rax
 	movq	%rax, %rsi
-	movq	(%rsi), %r9 
-	pushq	%r9 
+	movq	(%rsi), %r11
+	pushq	%r11
 	pushq	%r8 
 	pushq	%rdi
 	pushq	%rdx
-	movq	%r9 , %rdi
+	movq	%r11, %rdi
 	callq	f
 	popq	%rdx
 	popq	%rdi
 	popq	%r8 
-	popq	%r9 
+	popq	%r11
 	movq	%rax, %rsi
 	movq	%r8 , %r9 
 	addq	%rsi, %r9 
@@ -303,21 +302,21 @@ _post846:
 	addq	$8, %rax
 	addq	$8, %rax
 	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
+	movq	(%rdx), %r8 
+	movq	%r8 , %rax
 	movq	%rax, %rdx
 	pushq	%r9 
+	pushq	%r8 
 	pushq	%rdi
-	pushq	%rsi
 	pushq	%rdx
 	movq	$1, %rsi
 	movq	%rdx, %rdi
 	callq	oat_assert_array_length
 	popq	%rdx
-	popq	%rsi
 	popq	%rdi
+	popq	%r8 
 	popq	%r9 
-	movq	%rsi, %rax
+	movq	%r8 , %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$8, %rax
@@ -332,19 +331,19 @@ _post846:
 	popq	%rdi
 	popq	%r9 
 	movq	%rax, %rdx
-	movq	%r9 , %rsi
-	addq	%rdx, %rsi
+	movq	%r9 , %r8 
+	addq	%rdx, %r8 
 	movq	(%rdi), %rdx
-	pushq	%rsi
+	pushq	%r8 
 	pushq	%rdx
 	movq	%rdx, %rdi
 	callq	f
 	popq	%rdx
-	popq	%rsi
+	popq	%r8 
 	movq	%rax, %rdi
-	movq	%rsi, %rdx
-	addq	%rdi, %rdx
-	movq	%rdx, %rax
+	movq	%r8 , %rsi
+	addq	%rdi, %rsi
+	movq	%rsi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

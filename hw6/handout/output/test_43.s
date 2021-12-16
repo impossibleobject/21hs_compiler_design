@@ -38,39 +38,38 @@ else:
 	movq	%rdi, %rax
 	addq	$0, %rax
 	addq	$16, %rax
-	movq	%rax, %rdx
-	movq	(%rdx), %rsi
+	movq	%rax, %rsi
+	movq	(%rsi), %r8 
 	movq	%rdi, %rax
 	addq	$0, %rax
 	addq	$8, %rax
-	movq	%rax, %rdx
-	movq	(%rdx), %r8 
+	movq	%rax, %r9 
+	movq	(%r9 ), %r10
+	pushq	%r10
 	pushq	%r8 
 	pushq	%rdi
-	pushq	%rsi
-	movq	%r8 , %rdi
+	movq	%r10, %rdi
 	callq	sum_tree
-	popq	%rsi
 	popq	%rdi
 	popq	%r8 
-	movq	%rax, %rdx
-	movq	%rsi, %r8 
-	addq	%rdx, %r8 
-	movq	%rdi, %rax
-	addq	$0, %rax
-	addq	$0, %rax
-	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	pushq	%r8 
-	pushq	%rsi
-	movq	%rsi, %rdi
-	callq	sum_tree
-	popq	%rsi
-	popq	%r8 
+	popq	%r10
 	movq	%rax, %rdx
 	movq	%r8 , %rsi
 	addq	%rdx, %rsi
-	movq	%rsi, %rax
+	movq	%rdi, %rax
+	addq	$0, %rax
+	addq	$0, %rax
+	movq	%rax, %r8 
+	movq	(%r8 ), %rdi
+	pushq	%rdi
+	pushq	%rsi
+	callq	sum_tree
+	popq	%rsi
+	popq	%rdi
+	movq	%rax, %r9 
+	movq	%rsi, %rdi
+	addq	%r9 , %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

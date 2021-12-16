@@ -21,7 +21,7 @@ continue_loop:
 	movq	(%rax), %rax
 	movq	%rax, -8(%rbp)
 	movq	-8(%rbp), %rax
-	cmpq	%rdi, %rax
+	cmpq	%r9 , %rax
 	setg	-16(%rbp)
 	andq	$1, -16(%rbp)
 	cmpq	$0, -16(%rbp)
@@ -29,7 +29,7 @@ continue_loop:
 	jmp	else
 	.text
 else:
-	movq	%rdi, %rax
+	movq	%r9 , %rax
 	subq	-8(%rbp), %rax
 	movq	%rax, -24(%rbp)
 	movq	-24(%rbp), %rax
@@ -49,7 +49,7 @@ gcd:
 	.text
 if:
 	movq	-8(%rbp), %rax
-	subq	%rdi, %rax
+	subq	%r9 , %rax
 	movq	%rax, -32(%rbp)
 	movq	-32(%rbp), %rax
 	movq	%rdx, %rcx
@@ -57,12 +57,12 @@ if:
 	jmp	loop
 	.text
 loop:
-	movq	(%rsi), %rdi
+	movq	(%rsi), %r9 
 	movq	$0, %rax
-	cmpq	%rdi, %rax
-	sete	%r8b
-	andq	$1, %r8 
-	cmpq	$0, %r8 
+	cmpq	%r9 , %rax
+	sete	%dil
+	andq	$1, %rdi
+	cmpq	$0, %rdi
 	jne	ret_a
 	jmp	continue_loop
 	.text

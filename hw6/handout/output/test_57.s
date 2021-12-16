@@ -11,18 +11,18 @@ factorial:
 	jmp	recurse
 	.text
 recurse:
-	movq	%rdi, %rdx
-	subq	$1, %rdx
+	movq	%rdi, %rsi
+	subq	$1, %rsi
 	pushq	%rdi
-	pushq	%rdx
-	movq	%rdx, %rdi
+	pushq	%rsi
+	movq	%rsi, %rdi
 	callq	factorial
-	popq	%rdx
+	popq	%rsi
 	popq	%rdi
-	movq	%rax, %rsi
-	movq	%rdi, %rdx
-	imulq	%rsi, %rdx
-	movq	%rdx, %rax
+	movq	%rax, %r8 
+	movq	%rdi, %r9 
+	imulq	%r8 , %r9 
+	movq	%r9 , %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

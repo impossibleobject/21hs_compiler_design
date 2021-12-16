@@ -12,10 +12,10 @@ naive_mod:
 	.text
 final:
 	movq	(%rdx), %r8 
-	movq	%r8 , %rdx
-	subq	%rsi, %rdx
+	movq	%r8 , %r9 
+	subq	%rsi, %r9 
 	movq	%rdi, %rsi
-	subq	%rdx, %rsi
+	subq	%r9 , %rsi
 	movq	%rsi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
@@ -27,9 +27,9 @@ start:
 	addq	%r8 , %r9 
 	movq	%r9 , (%rdx)
 	cmpq	%rdi, %r9 
-	setg	%r8b
-	andq	$1, %r8 
-	cmpq	$0, %r8 
+	setg	%r10b
+	andq	$1, %r10
+	cmpq	$0, %r10
 	jne	final
 	jmp	start
 	.text
@@ -62,7 +62,7 @@ inc:
 	movq	(%rax), %rax
 	movq	%rax, -8(%rbp)
 	movq	$1, %rax
-	addq	%rsi, %rax
+	addq	%r9 , %rax
 	movq	%rax, -16(%rbp)
 	movq	-16(%rbp), %rax
 	movq	%rdx, %rcx
@@ -83,13 +83,13 @@ inc:
 	jmp	loop
 	.text
 loop:
-	movq	(%rdx), %rsi
-	movq	%rsi, %r8 
-	imulq	%rsi, %r8 
-	cmpq	%rdi, %r8 
-	setg	%r9b
-	andq	$1, %r9 
-	cmpq	$0, %r9 
+	movq	(%rdx), %r9 
+	movq	%r9 , %r10
+	imulq	%r9 , %r10
+	cmpq	%rdi, %r10
+	setg	%sil
+	andq	$1, %rsi
+	cmpq	$0, %rsi
 	jne	final_true
 	jmp	inc
 	.text

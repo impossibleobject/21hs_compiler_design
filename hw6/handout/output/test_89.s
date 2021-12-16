@@ -23,20 +23,20 @@ program:
 	callq	oat_alloc_array
 	popq	%rdx
 	popq	%rdi
+	movq	%rax, %r8 
+	movq	%r8 , %rax
+	movq	%rax, %r9 
+	pushq	%r9 
+	pushq	%rdi
+	pushq	%rdx
+	movq	$1, %rdi
+	callq	oat_alloc_array
+	popq	%rdx
+	popq	%rdi
+	popq	%r9 
 	movq	%rax, %rsi
 	movq	%rsi, %rax
 	movq	%rax, %r8 
-	pushq	%r8 
-	pushq	%rdi
-	pushq	%rdx
-	movq	$1, %rdi
-	callq	oat_alloc_array
-	popq	%rdx
-	popq	%rdi
-	popq	%r8 
-	movq	%rax, %rsi
-	movq	%rsi, %rax
-	movq	%rax, %r9 
 	pushq	%r9 
 	pushq	%r8 
 	pushq	%rdi
@@ -47,24 +47,24 @@ program:
 	popq	%rdi
 	popq	%r8 
 	popq	%r9 
+	movq	%rax, %r10
+	movq	%r10, %rax
+	movq	%rax, %r11
+	pushq	%r11
+	pushq	%r9 
+	pushq	%r8 
+	pushq	%rdi
+	pushq	%rdx
+	movq	$1, %rdi
+	callq	oat_alloc_array
+	popq	%rdx
+	popq	%rdi
+	popq	%r8 
+	popq	%r9 
+	popq	%r11
 	movq	%rax, %rsi
 	movq	%rsi, %rax
 	movq	%rax, %r10
-	pushq	%r10
-	pushq	%r9 
-	pushq	%r8 
-	pushq	%rdi
-	pushq	%rdx
-	movq	$1, %rdi
-	callq	oat_alloc_array
-	popq	%rdx
-	popq	%rdi
-	popq	%r8 
-	popq	%r9 
-	popq	%r10
-	movq	%rax, %rsi
-	movq	%rsi, %rax
-	movq	%rax, %r11
 	pushq	%r11
 	pushq	%r10
 	pushq	%r9 
@@ -694,7 +694,7 @@ program:
 	movq	-16(%rbp), %rax
 	movq	%rsi, %rcx
 	movq	%rax, (%rcx)
-	movq	%r11, %rax
+	movq	%r10, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
@@ -702,13 +702,7 @@ program:
 	movq	-8(%rbp), %rax
 	movq	%rsi, %rcx
 	movq	%rax, (%rcx)
-	movq	%r10, %rax
-	addq	$0, %rax
-	addq	$8, %rax
-	addq	$0, %rax
-	movq	%rax, %rsi
-	movq	%r11, (%rsi)
-	movq	%r9 , %rax
+	movq	%r11, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
@@ -718,470 +712,473 @@ program:
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
-	movq	%rax, %rsi
-	movq	%r9 , (%rsi)
+	movq	%rax, %r10
+	movq	%r11, (%r10)
+	movq	%r9 , %rax
+	addq	$0, %rax
+	addq	$8, %rax
+	addq	$0, %rax
+	movq	%rax, %r11
+	movq	%r8 , (%r11)
 	movq	%rdi, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
-	movq	%rax, %rsi
-	movq	%r8 , (%rsi)
+	movq	%rax, %r8 
+	movq	%r9 , (%r8 )
 	movq	%rdi, (%rdx)
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
+	movq	(%rdx), %rdi
+	movq	%rdi, %rax
 	movq	%rax, %rdx
-	pushq	%rsi
+	pushq	%rdi
 	pushq	%rdx
 	movq	$0, %rsi
 	movq	%rdx, %rdi
 	callq	oat_assert_array_length
 	popq	%rdx
-	popq	%rsi
-	movq	%rsi, %rax
+	popq	%rdi
+	movq	%rdi, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
-	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
-	movq	%rax, %rdx
-	pushq	%rsi
+	movq	%rax, %r9 
+	movq	(%r9 ), %rdx
+	movq	%rdx, %rax
+	movq	%rax, %rdi
+	pushq	%rdi
 	pushq	%rdx
 	movq	$0, %rsi
-	movq	%rdx, %rdi
 	callq	oat_assert_array_length
 	popq	%rdx
-	popq	%rsi
-	movq	%rsi, %rax
+	popq	%rdi
+	movq	%rdx, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
-	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
-	movq	%rax, %rdx
-	pushq	%rsi
+	movq	%rax, %r9 
+	movq	(%r9 ), %rdx
+	movq	%rdx, %rax
+	movq	%rax, %rdi
+	pushq	%rdi
 	pushq	%rdx
 	movq	$0, %rsi
-	movq	%rdx, %rdi
 	callq	oat_assert_array_length
 	popq	%rdx
-	popq	%rsi
-	movq	%rsi, %rax
+	popq	%rdi
+	movq	%rdx, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
-	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
-	movq	%rax, %rdx
-	pushq	%rsi
-	pushq	%rdx
+	movq	%rax, %r8 
+	movq	(%r8 ), %r9 
+	movq	%r9 , %rax
+	movq	%rax, %r11
+	pushq	%r11
+	pushq	%r9 
 	movq	$0, %rsi
-	movq	%rdx, %rdi
+	movq	%r11, %rdi
 	callq	oat_assert_array_length
-	popq	%rdx
-	popq	%rsi
-	movq	%rsi, %rax
+	popq	%r9 
+	popq	%r11
+	movq	%r9 , %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
 	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
-	movq	%rax, %rdx
-	pushq	%rsi
-	pushq	%rdx
+	movq	(%rdx), %rdi
+	movq	%rdi, %rax
+	movq	%rax, %r8 
+	pushq	%r8 
+	pushq	%rdi
 	movq	$0, %rsi
-	movq	%rdx, %rdi
+	movq	%r8 , %rdi
 	callq	oat_assert_array_length
-	popq	%rdx
-	popq	%rsi
-	movq	%rsi, %rax
+	popq	%rdi
+	popq	%r8 
+	movq	%rdi, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
-	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
-	movq	%rax, %rdx
-	pushq	%rsi
-	pushq	%rdx
+	movq	%rax, %r9 
+	movq	(%r9 ), %r10
+	movq	%r10, %rax
+	movq	%rax, %r11
+	pushq	%r11
+	pushq	%r10
 	movq	$0, %rsi
-	movq	%rdx, %rdi
+	movq	%r11, %rdi
 	callq	oat_assert_array_length
-	popq	%rdx
-	popq	%rsi
-	movq	%rsi, %rax
+	popq	%r10
+	popq	%r11
+	movq	%r10, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
 	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
-	movq	%rax, %rdx
-	pushq	%rsi
-	pushq	%rdx
+	movq	(%rdx), %rdi
+	movq	%rdi, %rax
+	movq	%rax, %r8 
+	pushq	%r8 
+	pushq	%rdi
 	movq	$0, %rsi
-	movq	%rdx, %rdi
+	movq	%r8 , %rdi
 	callq	oat_assert_array_length
-	popq	%rdx
-	popq	%rsi
-	movq	%rsi, %rax
+	popq	%rdi
+	popq	%r8 
+	movq	%rdi, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
-	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
-	movq	%rax, %rdx
-	pushq	%rsi
-	pushq	%rdx
+	movq	%rax, %r9 
+	movq	(%r9 ), %r10
+	movq	%r10, %rax
+	movq	%rax, %r11
+	pushq	%r11
+	pushq	%r10
 	movq	$0, %rsi
-	movq	%rdx, %rdi
+	movq	%r11, %rdi
 	callq	oat_assert_array_length
-	popq	%rdx
-	popq	%rsi
-	movq	%rsi, %rax
+	popq	%r10
+	popq	%r11
+	movq	%r10, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
 	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
-	movq	%rax, %rdx
-	pushq	%rsi
-	pushq	%rdx
+	movq	(%rdx), %rdi
+	movq	%rdi, %rax
+	movq	%rax, %r8 
+	pushq	%r8 
+	pushq	%rdi
 	movq	$0, %rsi
-	movq	%rdx, %rdi
+	movq	%r8 , %rdi
 	callq	oat_assert_array_length
-	popq	%rdx
-	popq	%rsi
-	movq	%rsi, %rax
+	popq	%rdi
+	popq	%r8 
+	movq	%rdi, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
-	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
-	movq	%rax, %rdx
-	pushq	%rsi
-	pushq	%rdx
+	movq	%rax, %r9 
+	movq	(%r9 ), %r10
+	movq	%r10, %rax
+	movq	%rax, %r11
+	pushq	%r11
+	pushq	%r10
 	movq	$0, %rsi
-	movq	%rdx, %rdi
+	movq	%r11, %rdi
 	callq	oat_assert_array_length
-	popq	%rdx
-	popq	%rsi
-	movq	%rsi, %rax
+	popq	%r10
+	popq	%r11
+	movq	%r10, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
 	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
-	movq	%rax, %rdx
-	pushq	%rsi
-	pushq	%rdx
+	movq	(%rdx), %rdi
+	movq	%rdi, %rax
+	movq	%rax, %r8 
+	pushq	%r8 
+	pushq	%rdi
 	movq	$0, %rsi
-	movq	%rdx, %rdi
+	movq	%r8 , %rdi
 	callq	oat_assert_array_length
-	popq	%rdx
-	popq	%rsi
-	movq	%rsi, %rax
+	popq	%rdi
+	popq	%r8 
+	movq	%rdi, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
-	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
-	movq	%rax, %rdx
-	pushq	%rsi
-	pushq	%rdx
+	movq	%rax, %r9 
+	movq	(%r9 ), %r10
+	movq	%r10, %rax
+	movq	%rax, %r11
+	pushq	%r11
+	pushq	%r10
 	movq	$0, %rsi
-	movq	%rdx, %rdi
+	movq	%r11, %rdi
 	callq	oat_assert_array_length
-	popq	%rdx
-	popq	%rsi
-	movq	%rsi, %rax
+	popq	%r10
+	popq	%r11
+	movq	%r10, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
 	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
-	movq	%rax, %rdx
-	pushq	%rsi
-	pushq	%rdx
+	movq	(%rdx), %rdi
+	movq	%rdi, %rax
+	movq	%rax, %r8 
+	pushq	%r8 
+	pushq	%rdi
 	movq	$0, %rsi
-	movq	%rdx, %rdi
+	movq	%r8 , %rdi
 	callq	oat_assert_array_length
-	popq	%rdx
-	popq	%rsi
-	movq	%rsi, %rax
+	popq	%rdi
+	popq	%r8 
+	movq	%rdi, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
-	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
-	movq	%rax, %rdx
-	pushq	%rsi
-	pushq	%rdx
+	movq	%rax, %r9 
+	movq	(%r9 ), %r10
+	movq	%r10, %rax
+	movq	%rax, %r11
+	pushq	%r11
+	pushq	%r10
 	movq	$0, %rsi
-	movq	%rdx, %rdi
+	movq	%r11, %rdi
 	callq	oat_assert_array_length
-	popq	%rdx
-	popq	%rsi
-	movq	%rsi, %rax
+	popq	%r10
+	popq	%r11
+	movq	%r10, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
 	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
-	movq	%rax, %rdx
-	pushq	%rsi
-	pushq	%rdx
+	movq	(%rdx), %rdi
+	movq	%rdi, %rax
+	movq	%rax, %r8 
+	pushq	%r8 
+	pushq	%rdi
 	movq	$0, %rsi
-	movq	%rdx, %rdi
+	movq	%r8 , %rdi
 	callq	oat_assert_array_length
-	popq	%rdx
-	popq	%rsi
-	movq	%rsi, %rax
+	popq	%rdi
+	popq	%r8 
+	movq	%rdi, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
-	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
-	movq	%rax, %rdx
-	pushq	%rsi
-	pushq	%rdx
+	movq	%rax, %r9 
+	movq	(%r9 ), %r10
+	movq	%r10, %rax
+	movq	%rax, %r11
+	pushq	%r11
+	pushq	%r10
 	movq	$0, %rsi
-	movq	%rdx, %rdi
+	movq	%r11, %rdi
 	callq	oat_assert_array_length
-	popq	%rdx
-	popq	%rsi
-	movq	%rsi, %rax
+	popq	%r10
+	popq	%r11
+	movq	%r10, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
 	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
-	movq	%rax, %rdx
-	pushq	%rsi
-	pushq	%rdx
+	movq	(%rdx), %rdi
+	movq	%rdi, %rax
+	movq	%rax, %r8 
+	pushq	%r8 
+	pushq	%rdi
 	movq	$0, %rsi
-	movq	%rdx, %rdi
+	movq	%r8 , %rdi
 	callq	oat_assert_array_length
-	popq	%rdx
-	popq	%rsi
-	movq	%rsi, %rax
+	popq	%rdi
+	popq	%r8 
+	movq	%rdi, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
-	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
-	movq	%rax, %rdx
-	pushq	%rsi
-	pushq	%rdx
+	movq	%rax, %r9 
+	movq	(%r9 ), %r10
+	movq	%r10, %rax
+	movq	%rax, %r11
+	pushq	%r11
+	pushq	%r10
 	movq	$0, %rsi
-	movq	%rdx, %rdi
+	movq	%r11, %rdi
 	callq	oat_assert_array_length
-	popq	%rdx
-	popq	%rsi
-	movq	%rsi, %rax
+	popq	%r10
+	popq	%r11
+	movq	%r10, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
 	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
-	movq	%rax, %rdx
-	pushq	%rsi
-	pushq	%rdx
+	movq	(%rdx), %rdi
+	movq	%rdi, %rax
+	movq	%rax, %r8 
+	pushq	%r8 
+	pushq	%rdi
 	movq	$0, %rsi
-	movq	%rdx, %rdi
+	movq	%r8 , %rdi
 	callq	oat_assert_array_length
-	popq	%rdx
-	popq	%rsi
-	movq	%rsi, %rax
+	popq	%rdi
+	popq	%r8 
+	movq	%rdi, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
-	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
-	movq	%rax, %rdx
-	pushq	%rsi
-	pushq	%rdx
+	movq	%rax, %r9 
+	movq	(%r9 ), %r10
+	movq	%r10, %rax
+	movq	%rax, %r11
+	pushq	%r11
+	pushq	%r10
 	movq	$0, %rsi
-	movq	%rdx, %rdi
+	movq	%r11, %rdi
 	callq	oat_assert_array_length
-	popq	%rdx
-	popq	%rsi
-	movq	%rsi, %rax
+	popq	%r10
+	popq	%r11
+	movq	%r10, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
 	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
-	movq	%rax, %rdx
-	pushq	%rsi
-	pushq	%rdx
+	movq	(%rdx), %rdi
+	movq	%rdi, %rax
+	movq	%rax, %r8 
+	pushq	%r8 
+	pushq	%rdi
 	movq	$0, %rsi
-	movq	%rdx, %rdi
+	movq	%r8 , %rdi
 	callq	oat_assert_array_length
-	popq	%rdx
-	popq	%rsi
-	movq	%rsi, %rax
+	popq	%rdi
+	popq	%r8 
+	movq	%rdi, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
-	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
-	movq	%rax, %rdx
-	pushq	%rsi
-	pushq	%rdx
+	movq	%rax, %r9 
+	movq	(%r9 ), %r10
+	movq	%r10, %rax
+	movq	%rax, %r11
+	pushq	%r11
+	pushq	%r10
 	movq	$0, %rsi
-	movq	%rdx, %rdi
+	movq	%r11, %rdi
 	callq	oat_assert_array_length
-	popq	%rdx
-	popq	%rsi
-	movq	%rsi, %rax
+	popq	%r10
+	popq	%r11
+	movq	%r10, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
 	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
-	movq	%rax, %rdx
-	pushq	%rsi
-	pushq	%rdx
+	movq	(%rdx), %rdi
+	movq	%rdi, %rax
+	movq	%rax, %r8 
+	pushq	%r8 
+	pushq	%rdi
 	movq	$0, %rsi
-	movq	%rdx, %rdi
+	movq	%r8 , %rdi
 	callq	oat_assert_array_length
-	popq	%rdx
-	popq	%rsi
-	movq	%rsi, %rax
+	popq	%rdi
+	popq	%r8 
+	movq	%rdi, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
-	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
-	movq	%rax, %rdx
-	pushq	%rsi
-	pushq	%rdx
+	movq	%rax, %r9 
+	movq	(%r9 ), %r10
+	movq	%r10, %rax
+	movq	%rax, %r11
+	pushq	%r11
+	pushq	%r10
 	movq	$0, %rsi
-	movq	%rdx, %rdi
+	movq	%r11, %rdi
 	callq	oat_assert_array_length
-	popq	%rdx
-	popq	%rsi
-	movq	%rsi, %rax
+	popq	%r10
+	popq	%r11
+	movq	%r10, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
 	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
-	movq	%rax, %rdx
-	pushq	%rsi
-	pushq	%rdx
+	movq	(%rdx), %rdi
+	movq	%rdi, %rax
+	movq	%rax, %r8 
+	pushq	%r8 
+	pushq	%rdi
 	movq	$0, %rsi
-	movq	%rdx, %rdi
+	movq	%r8 , %rdi
 	callq	oat_assert_array_length
-	popq	%rdx
-	popq	%rsi
-	movq	%rsi, %rax
+	popq	%rdi
+	popq	%r8 
+	movq	%rdi, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
-	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
-	movq	%rax, %rdx
-	pushq	%rsi
-	pushq	%rdx
+	movq	%rax, %r9 
+	movq	(%r9 ), %r10
+	movq	%r10, %rax
+	movq	%rax, %r11
+	pushq	%r11
+	pushq	%r10
 	movq	$0, %rsi
-	movq	%rdx, %rdi
+	movq	%r11, %rdi
 	callq	oat_assert_array_length
-	popq	%rdx
-	popq	%rsi
-	movq	%rsi, %rax
+	popq	%r10
+	popq	%r11
+	movq	%r10, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
 	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
-	movq	%rax, %rdx
-	pushq	%rsi
-	pushq	%rdx
+	movq	(%rdx), %rdi
+	movq	%rdi, %rax
+	movq	%rax, %r8 
+	pushq	%r8 
+	pushq	%rdi
 	movq	$0, %rsi
-	movq	%rdx, %rdi
+	movq	%r8 , %rdi
 	callq	oat_assert_array_length
-	popq	%rdx
-	popq	%rsi
-	movq	%rsi, %rax
+	popq	%rdi
+	popq	%r8 
+	movq	%rdi, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
-	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
-	movq	%rax, %rdx
-	pushq	%rsi
-	pushq	%rdx
+	movq	%rax, %r9 
+	movq	(%r9 ), %r10
+	movq	%r10, %rax
+	movq	%rax, %r11
+	pushq	%r11
+	pushq	%r10
 	movq	$0, %rsi
-	movq	%rdx, %rdi
+	movq	%r11, %rdi
 	callq	oat_assert_array_length
-	popq	%rdx
-	popq	%rsi
-	movq	%rsi, %rax
+	popq	%r10
+	popq	%r11
+	movq	%r10, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
 	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
-	movq	%rax, %rdx
-	pushq	%rsi
-	pushq	%rdx
+	movq	(%rdx), %rdi
+	movq	%rdi, %rax
+	movq	%rax, %r8 
+	pushq	%r8 
+	pushq	%rdi
 	movq	$0, %rsi
-	movq	%rdx, %rdi
+	movq	%r8 , %rdi
 	callq	oat_assert_array_length
-	popq	%rdx
-	popq	%rsi
-	movq	%rsi, %rax
+	popq	%rdi
+	popq	%r8 
+	movq	%rdi, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
-	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
-	movq	%rax, %rdx
-	pushq	%rsi
-	pushq	%rdx
+	movq	%rax, %r9 
+	movq	(%r9 ), %r10
+	movq	%r10, %rax
+	movq	%rax, %r11
+	pushq	%r11
+	pushq	%r10
 	movq	$0, %rsi
-	movq	%rdx, %rdi
+	movq	%r11, %rdi
 	callq	oat_assert_array_length
-	popq	%rdx
-	popq	%rsi
-	movq	%rsi, %rax
+	popq	%r10
+	popq	%r11
+	movq	%r10, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
 	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	pushq	%rsi
-	movq	%rsi, %rdi
+	movq	(%rdx), %rdi
+	pushq	%rdi
 	callq	print_string
-	popq	%rsi
+	popq	%rdi
 	movq	$0, %rax
 	movq	%rbp, %rsp
 	popq	%rbp

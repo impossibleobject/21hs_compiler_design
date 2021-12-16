@@ -25,9 +25,9 @@ program:
 	jmp	_else8233
 	.text
 _else8233:
-	movq	(%rdx), %rdi
+	movq	(%rdx), %r8 
 	movq	(%rsi), %rdx
-	movq	%rdi, %rsi
+	movq	%r8 , %rsi
 	subq	%rdx, %rsi
 	movq	%rsi, %rax
 	movq	%rbp, %rsp
@@ -41,13 +41,13 @@ _merge8232:
 	retq	
 	.text
 _then8234:
-	movq	(%rdx), %rdi
-	movq	$0, %rdx
-	subq	%rdi, %rdx
-	movq	(%rsi), %rdi
-	movq	%rdx, %rsi
-	subq	%rdi, %rsi
-	movq	%rsi, %rax
+	movq	(%rdx), %r9 
+	movq	$0, %r10
+	subq	%r9 , %r10
+	movq	(%rsi), %r11
+	movq	%r10, %rdx
+	subq	%r11, %rdx
+	movq	%rdx, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

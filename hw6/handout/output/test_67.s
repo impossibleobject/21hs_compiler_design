@@ -47,10 +47,10 @@ program:
 	addq	%rsi, %rdi
 	leaq	i(%rip), %rax
 	movq	(%rax), %rax
-	movq	%rax, %rdx
-	movq	%rdi, %rsi
-	addq	%rdx, %rsi
-	movq	%rsi, %rax
+	movq	%rax, %r8 
+	movq	%rdi, %r9 
+	addq	%r8 , %r9 
+	movq	%r9 , %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

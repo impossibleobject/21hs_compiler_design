@@ -51,10 +51,10 @@ body:
 	callq	mateq
 	popq	%rdx
 	movq	%rax, %rsi
-	movq	(%rdx), %rsi
-	movq	%rsi, %rdi
-	subq	$1, %rdi
-	movq	%rdi, (%rdx)
+	movq	(%rdx), %rdi
+	movq	%rdi, %r8 
+	subq	$1, %r8 
+	movq	%r8 , (%rdx)
 	jmp	loop
 	.text
 exit:
@@ -64,11 +64,11 @@ exit:
 	retq	
 	.text
 loop:
-	movq	(%rdx), %rsi
+	movq	(%rdx), %r9 
+	cmpq	$0, %r9 
+	sete	%sil
+	andq	$1, %rsi
 	cmpq	$0, %rsi
-	sete	%dil
-	andq	$1, %rdi
-	cmpq	$0, %rdi
 	jne	exit
 	jmp	body
 	.text

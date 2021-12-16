@@ -31,9 +31,9 @@ program:
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$16, %rax
-	movq	%rax, %rsi
-	movq	(%rsi), %rdx
-	movq	%rdx, %rax
+	movq	%rax, %rdi
+	movq	(%rdi), %r8 
+	movq	%r8 , %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

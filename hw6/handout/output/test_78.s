@@ -35,29 +35,30 @@ _else929:
 	jmp	_merge928
 	.text
 _merge928:
-	movq	(%r9 ), %rdx
-	movq	%rdx, %rax
+	movq	(%r9 ), %r8 
+	movq	%r8 , %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
 	.text
 _then930:
-	movq	(%r8 ), %rsi
-	movq	(%rdx), %rdi
-	movq	%rdi, %rdx
+	movq	(%r8 ), %r10
+	movq	(%rdx), %r11
+	movq	%r11, %rdx
 	subq	$1, %rdx
+	pushq	%r10
 	pushq	%r9 
-	pushq	%rsi
 	pushq	%rdx
+	movq	%r10, %rsi
 	movq	%rdx, %rdi
 	callq	f
 	popq	%rdx
-	popq	%rsi
 	popq	%r9 
-	movq	%rax, %rdi
-	movq	$1, %rdx
-	addq	%rdi, %rdx
-	movq	%rdx, (%r9 )
+	popq	%r10
+	movq	%rax, %rsi
+	movq	$1, %rdi
+	addq	%rsi, %rdi
+	movq	%rdi, (%r9 )
 	jmp	_merge928
 	.text
 	.globl	program
@@ -75,22 +76,21 @@ program:
 	movq	%rsi, %rcx
 	movq	%rax, (%rcx)
 	movq	(%rsi), %rdi
-	movq	(%rdx), %rsi
+	movq	(%rdx), %r8 
+	pushq	%r8 
 	pushq	%rdi
-	pushq	%rsi
-	pushq	%rdi
-	movq	%rsi, %rdi
-	popq	%rsi
+	movq	%rdi, %rsi
+	movq	%r8 , %rdi
 	callq	f
-	popq	%rsi
 	popq	%rdi
-	movq	%rax, %rdx
+	popq	%r8 
+	movq	%rax, %r9 
 	leaq	i(%rip), %rax
 	movq	(%rax), %rax
-	movq	%rax, %rsi
-	movq	%rdx, %rdi
-	addq	%rsi, %rdi
-	movq	%rdi, %rax
+	movq	%rax, %rdx
+	movq	%r9 , %rsi
+	addq	%rdx, %rsi
+	movq	%rsi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

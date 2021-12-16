@@ -16,17 +16,17 @@ program:
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
-	movq	%rax, %rsi
+	movq	%rax, %r8 
 	movq	$1, %rax
-	movq	%rsi, %rcx
+	movq	%r8 , %rcx
 	movq	%rax, (%rcx)
 	movq	%rdi, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$8, %rax
-	movq	%rax, %rsi
+	movq	%rax, %r9 
 	movq	$2, %rax
-	movq	%rsi, %rcx
+	movq	%r9 , %rcx
 	movq	%rax, (%rcx)
 	movq	%rdi, (%rdx)
 	movq	(%rdx), %rsi
@@ -43,9 +43,9 @@ program:
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$8, %rax
-	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
+	movq	%rax, %rdi
+	movq	(%rdi), %r8 
+	movq	%r8 , %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

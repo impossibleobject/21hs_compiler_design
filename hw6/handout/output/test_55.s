@@ -33,9 +33,9 @@ main:
 	movq	%rax, (%rcx)
 	movq	(%rsi), %rdi
 	cmpq	$0, %rdi
-	setne	%sil
-	andq	$1, %rsi
-	cmpq	$0, %rsi
+	setne	%r8b
+	andq	$1, %r8 
+	cmpq	$0, %r8 
 	jne	then
 	jmp	else
 	.text
@@ -43,8 +43,8 @@ else:
 	pushq	%rdx
 	callq	bar
 	popq	%rdx
-	movq	%rax, %rsi
-	movq	%rsi, (%rdx)
+	movq	%rax, %r9 
+	movq	%r9 , (%rdx)
 	jmp	end
 	.text
 end:
@@ -58,6 +58,6 @@ then:
 	pushq	%rdx
 	callq	foo
 	popq	%rdx
-	movq	%rax, %rsi
-	movq	%rsi, (%rdx)
+	movq	%rax, %rdi
+	movq	%rdi, (%rdx)
 	jmp	end

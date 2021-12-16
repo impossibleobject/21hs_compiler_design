@@ -11,9 +11,9 @@ main:
 	subq	$8, %rsp
 	movq	%rsp, %rsi
 	movq	%rdx, (%rsi)
-	movq	(%rsi), %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
+	movq	(%rsi), %rdi
+	movq	(%rdi), %r8 
+	movq	%r8 , %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

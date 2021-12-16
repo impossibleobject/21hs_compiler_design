@@ -457,21 +457,21 @@ _body4813:
 	movq	(%rdi), %rdx
 	movq	(%r9 ), %rsi
 	movq	%rdx, %rax
-	movq	%rax, %r10
-	pushq	%r10
+	movq	%rax, %r11
+	pushq	%r11
 	pushq	%r9 
 	pushq	%r8 
 	pushq	%rdi
 	pushq	%rsi
 	pushq	%rdx
-	movq	%r10, %rdi
+	movq	%r11, %rdi
 	callq	oat_assert_array_length
 	popq	%rdx
 	popq	%rsi
 	popq	%rdi
 	popq	%r8 
 	popq	%r9 
-	popq	%r10
+	popq	%r11
 	movq	%rdx, %rax
 	addq	$0, %rax
 	addq	$8, %rax
@@ -492,11 +492,11 @@ _body4813:
 	popq	%rdi
 	popq	%r8 
 	popq	%r9 
-	movq	(%r8 ), %rdx
-	movq	(%rdi), %rsi
-	movq	(%r9 ), %r10
-	movq	%rsi, %rax
-	movq	%rax, %r11
+	movq	(%r8 ), %rsi
+	movq	(%rdi), %rdx
+	movq	(%r9 ), %r11
+	movq	%rdx, %rax
+	movq	%rax, %r10
 	pushq	%r11
 	pushq	%r10
 	pushq	%r9 
@@ -504,8 +504,8 @@ _body4813:
 	pushq	%rdi
 	pushq	%rsi
 	pushq	%rdx
-	movq	%r10, %rsi
-	movq	%r11, %rdi
+	movq	%r11, %rsi
+	movq	%r10, %rdi
 	callq	oat_assert_array_length
 	popq	%rdx
 	popq	%rsi
@@ -514,18 +514,18 @@ _body4813:
 	popq	%r9 
 	popq	%r10
 	popq	%r11
-	movq	%rsi, %rax
+	movq	%rdx, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	movq	%rax, %rcx
-	movq	%r10, %rax
+	movq	%r11, %rax
 	imulq	$8, %rax
 	addq	%rcx, %rax
-	movq	%rax, %r11
-	movq	(%r11), %rsi
-	movq	(%r9 ), %r10
-	movq	%rsi, %rax
-	movq	%rax, %r11
+	movq	%rax, %r10
+	movq	(%r10), %rdx
+	movq	(%r9 ), %r11
+	movq	%rdx, %rax
+	movq	%rax, %r10
 	pushq	%r11
 	pushq	%r10
 	pushq	%r9 
@@ -533,8 +533,8 @@ _body4813:
 	pushq	%rdi
 	pushq	%rsi
 	pushq	%rdx
-	movq	%r10, %rsi
-	movq	%r11, %rdi
+	movq	%r11, %rsi
+	movq	%r10, %rdi
 	callq	oat_assert_array_length
 	popq	%rdx
 	popq	%rsi
@@ -543,22 +543,22 @@ _body4813:
 	popq	%r9 
 	popq	%r10
 	popq	%r11
-	movq	%rsi, %rax
+	movq	%rdx, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	movq	%rax, %rcx
-	movq	%r10, %rax
+	movq	%r11, %rax
 	imulq	$8, %rax
 	addq	%rcx, %rax
-	movq	%rax, %r11
-	movq	(%r11), %rsi
-	movq	%rdx, %r10
-	addq	%rsi, %r10
-	movq	%r10, (%r8 )
-	movq	(%r9 ), %rdx
-	movq	%rdx, %rsi
-	addq	$1, %rsi
-	movq	%rsi, (%r9 )
+	movq	%rax, %r10
+	movq	(%r10), %rdx
+	movq	%rsi, %r11
+	addq	%rdx, %r11
+	movq	%r11, (%r8 )
+	movq	(%r9 ), %rsi
+	movq	%rsi, %rdx
+	addq	$1, %rdx
+	movq	%rdx, (%r9 )
 	jmp	_cond4814
 	.text
 _cond4765:
@@ -592,11 +592,11 @@ _cond4782:
 	jmp	_post4780
 	.text
 _cond4814:
-	movq	(%r9 ), %rdx
-	cmpq	$10, %rdx
-	setl	%sil
-	andq	$1, %rsi
-	cmpq	$0, %rsi
+	movq	(%r9 ), %rsi
+	cmpq	$10, %rsi
+	setl	%r11b
+	andq	$1, %r11
+	cmpq	$0, %r11
 	jne	_body4813
 	jmp	_post4812
 	.text
@@ -638,11 +638,11 @@ _post4780:
 	jmp	_cond4765
 	.text
 _post4812:
-	movq	(%r8 ), %rdx
-	cmpq	$405, %rdx
-	sete	%sil
-	andq	$1, %rsi
-	cmpq	$0, %rsi
+	movq	(%r8 ), %rdi
+	cmpq	$405, %rdi
+	sete	%r8b
+	andq	$1, %r8 
+	cmpq	$0, %r8 
 	jne	_then4843
 	jmp	_else4842
 	.text

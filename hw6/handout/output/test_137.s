@@ -29,8 +29,8 @@ program:
 	callq	*%r15
 	popq	%rsi
 	popq	%r15
-	movq	%rax, %rdx
-	movq	%rdx, %rax
+	movq	%rax, %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

@@ -10,10 +10,10 @@ add:
 	movq	%rdi, (%rdx)
 	movq	%rsi, (%r8 )
 	movq	(%rdx), %rsi
-	movq	(%r8 ), %rdx
-	movq	%rsi, %rdi
-	addq	%rdx, %rdi
-	movq	%rdi, %rax
+	movq	(%r8 ), %rdi
+	movq	%rsi, %r9 
+	addq	%rdi, %r9 
+	movq	%r9 , %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -29,10 +29,10 @@ sub:
 	movq	%rdi, (%rdx)
 	movq	%rsi, (%r8 )
 	movq	(%rdx), %rsi
-	movq	(%r8 ), %rdx
-	movq	%rsi, %rdi
-	subq	%rdx, %rdi
-	movq	%rdi, %rax
+	movq	(%r8 ), %rdi
+	movq	%rsi, %r9 
+	subq	%rdi, %r9 
+	movq	%r9 , %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -54,17 +54,17 @@ program:
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
-	movq	%rax, %rsi
+	movq	%rax, %r8 
 	leaq	add(%rip), %rax
-	movq	%rsi, %rcx
+	movq	%r8 , %rcx
 	movq	%rax, (%rcx)
 	movq	%rdi, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$8, %rax
-	movq	%rax, %rsi
+	movq	%rax, %r9 
 	leaq	sub(%rip), %rax
-	movq	%rsi, %rcx
+	movq	%r9 , %rcx
 	movq	%rax, (%rcx)
 	movq	%rdi, (%rdx)
 	movq	(%rdx), %rsi
@@ -81,18 +81,18 @@ program:
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
-	movq	%rax, %rdx
-	movq	(%rdx), %rsi
+	movq	%rax, %rdi
+	movq	(%rdi), %r8 
 	pushq	%r15
-	movq	%rsi, %r15
-	pushq	%rsi
+	movq	%r8 , %r15
+	pushq	%r8 
 	movq	$1, %rsi
 	movq	$1, %rdi
 	callq	*%r15
-	popq	%rsi
+	popq	%r8 
 	popq	%r15
-	movq	%rax, %rdx
-	movq	%rdx, %rax
+	movq	%rax, %r9 
+	movq	%r9 , %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

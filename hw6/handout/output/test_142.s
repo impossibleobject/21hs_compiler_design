@@ -119,8 +119,8 @@ _post7243:
 	movq	%rax, (%rcx)
 	movq	(%rdx), %rsi
 	cmpq	$0, %rsi
-	sete	%dl
-	andq	$1, %rdx
-	cmpq	$0, %rdx
+	sete	%r9b
+	andq	$1, %r9 
+	cmpq	$0, %r9 
 	jne	_null7267
 	jmp	_notnull7266

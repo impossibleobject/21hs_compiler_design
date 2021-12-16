@@ -40,8 +40,8 @@ f:
 	jmp	_else152
 	.text
 _else152:
-	movq	(%r9 ), %rdx
-	movq	%rdx, %rax
+	movq	(%r9 ), %rsi
+	movq	%rsi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -53,8 +53,8 @@ _merge151:
 	retq	
 	.text
 _then153:
-	movq	(%r8 ), %rdx
-	movq	%rdx, %rax
+	movq	(%r8 ), %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -79,21 +79,21 @@ program:
 	popq	%rsi
 	movq	%rax, %rdi
 	movq	%rdi, %rax
-	movq	%rax, %rdx
+	movq	%rax, %r8 
+	pushq	%r8 
 	pushq	%rdi
-	pushq	%rdx
 	movq	$0, %rsi
-	movq	%rdx, %rdi
+	movq	%r8 , %rdi
 	callq	oat_assert_array_length
-	popq	%rdx
 	popq	%rdi
+	popq	%r8 
 	movq	%rdi, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
-	movq	%rax, %rdx
+	movq	%rax, %r9 
 	movq	$17, %rax
-	movq	%rdx, %rcx
+	movq	%r9 , %rcx
 	movq	%rax, (%rcx)
 	leaq	x(%rip), %rax
 	movq	(%rax), %rax
@@ -111,9 +111,9 @@ program:
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
-	movq	%rax, %rsi
-	movq	(%rsi), %rdx
-	movq	%rdx, %rax
+	movq	%rax, %rdi
+	movq	(%rdi), %r8 
+	movq	%r8 , %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

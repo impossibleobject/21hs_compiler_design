@@ -40,8 +40,8 @@ f:
 	jmp	_else7425
 	.text
 _else7425:
-	movq	(%r9 ), %rdx
-	movq	%rdx, %rax
+	movq	(%r9 ), %rsi
+	movq	%rsi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -53,8 +53,8 @@ _merge7424:
 	retq	
 	.text
 _then7426:
-	movq	(%r8 ), %rdx
-	movq	%rdx, %rax
+	movq	(%r8 ), %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -81,16 +81,16 @@ program:
 	popq	%rdi
 	movq	%rax, %r8 
 	movq	%r8 , %rax
-	movq	%rax, %rsi
+	movq	%rax, %r9 
+	pushq	%r9 
 	pushq	%r8 
-	pushq	%rsi
 	pushq	%rdx
-	movq	%rsi, %rdi
 	movq	$0, %rsi
+	movq	%r9 , %rdi
 	callq	oat_assert_array_length
 	popq	%rdx
-	popq	%rsi
 	popq	%r8 
+	popq	%r9 
 	movq	%r8 , %rax
 	addq	$0, %rax
 	addq	$8, %rax
@@ -101,39 +101,41 @@ program:
 	movq	%rax, (%rcx)
 	leaq	y(%rip), %rax
 	movq	(%rax), %rax
-	movq	%rax, %rsi
+	movq	%rax, %rdi
 	leaq	x(%rip), %rax
 	movq	(%rax), %rax
-	movq	%rax, %rdi
+	movq	%rax, %r8 
+	pushq	%r8 
 	pushq	%rdi
-	pushq	%rsi
 	pushq	%rdx
 	movq	$1, %rdx
+	movq	%rdi, %rsi
+	movq	%r8 , %rdi
 	callq	f
 	popq	%rdx
-	popq	%rsi
 	popq	%rdi
-	movq	%rax, %r8 
-	movq	%r8 , %rax
-	movq	%rax, %rsi
-	pushq	%r8 
-	pushq	%rsi
+	popq	%r8 
+	movq	%rax, %r9 
+	movq	%r9 , %rax
+	movq	%rax, %r10
+	pushq	%r10
+	pushq	%r9 
 	pushq	%rdx
-	movq	%rsi, %rdi
 	movq	$0, %rsi
+	movq	%r10, %rdi
 	callq	oat_assert_array_length
 	popq	%rdx
-	popq	%rsi
-	popq	%r8 
-	movq	%r8 , %rax
+	popq	%r9 
+	popq	%r10
+	movq	%r9 , %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
-	movq	%rax, %rsi
-	movq	(%rsi), %rdi
+	movq	%rax, %r11
+	movq	(%r11), %rsi
 	leaq	x(%rip), %rax
 	movq	(%rax), %rax
-	movq	%rax, %rsi
+	movq	%rax, %rdi
 	leaq	y(%rip), %rax
 	movq	(%rax), %rax
 	movq	%rax, %r8 
@@ -142,6 +144,7 @@ program:
 	pushq	%rsi
 	pushq	%rdx
 	movq	$0, %rdx
+	movq	%rdi, %rsi
 	movq	%r8 , %rdi
 	callq	f
 	popq	%rdx
@@ -150,27 +153,27 @@ program:
 	popq	%r8 
 	movq	%rax, %r9 
 	movq	%r9 , %rax
-	movq	%rax, %rsi
+	movq	%rax, %r10
+	pushq	%r10
 	pushq	%r9 
-	pushq	%rdi
 	pushq	%rsi
 	pushq	%rdx
-	movq	%rsi, %rdi
 	movq	$0, %rsi
+	movq	%r10, %rdi
 	callq	oat_assert_array_length
 	popq	%rdx
 	popq	%rsi
-	popq	%rdi
 	popq	%r9 
+	popq	%r10
 	movq	%r9 , %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
-	movq	%rax, %rsi
-	movq	(%rsi), %r8 
-	movq	%rdi, %rsi
-	addq	%r8 , %rsi
-	movq	%rsi, (%rdx)
+	movq	%rax, %r11
+	movq	(%r11), %rdi
+	movq	%rsi, %r8 
+	addq	%rdi, %r8 
+	movq	%r8 , (%rdx)
 	movq	(%rdx), %rsi
 	movq	%rsi, %rax
 	movq	%rbp, %rsp

@@ -32,17 +32,17 @@ program:
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$8, %rax
-	movq	%rax, %r8 
+	movq	%rax, %r10
 	movq	$2, %rax
-	movq	%r8 , %rcx
+	movq	%r10, %rcx
 	movq	%rax, (%rcx)
 	movq	%r9 , %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$16, %rax
-	movq	%rax, %r8 
+	movq	%rax, %r11
 	movq	$3, %rax
-	movq	%r8 , %rcx
+	movq	%r11, %rcx
 	movq	%rax, (%rcx)
 	movq	%r9 , %rax
 	addq	$0, %rax
@@ -62,34 +62,6 @@ program:
 	jmp	_cond74
 	.text
 _body73:
-	movq	(%rdx), %r8 
-	movq	(%rdi), %r9 
-	movq	%r8 , %rax
-	movq	%rax, %r10
-	pushq	%r10
-	pushq	%r9 
-	pushq	%r8 
-	pushq	%rdi
-	pushq	%rsi
-	pushq	%rdx
-	movq	%r9 , %rsi
-	movq	%r10, %rdi
-	callq	oat_assert_array_length
-	popq	%rdx
-	popq	%rsi
-	popq	%rdi
-	popq	%r8 
-	popq	%r9 
-	popq	%r10
-	movq	%r8 , %rax
-	addq	$0, %rax
-	addq	$8, %rax
-	movq	%rax, %rcx
-	movq	%r9 , %rax
-	imulq	$8, %rax
-	addq	%rcx, %rax
-	movq	%rax, %r10
-	movq	(%r10), %r8 
 	movq	(%rdx), %r9 
 	movq	(%rdi), %r10
 	movq	%r9 , %rax
@@ -97,7 +69,6 @@ _body73:
 	pushq	%r11
 	pushq	%r10
 	pushq	%r9 
-	pushq	%r8 
 	pushq	%rdi
 	pushq	%rsi
 	pushq	%rdx
@@ -107,7 +78,6 @@ _body73:
 	popq	%rdx
 	popq	%rsi
 	popq	%rdi
-	popq	%r8 
 	popq	%r9 
 	popq	%r10
 	popq	%r11
@@ -118,25 +88,55 @@ _body73:
 	movq	%r10, %rax
 	imulq	$8, %rax
 	addq	%rcx, %rax
-	movq	%rax, %r11
-	movq	(%r11), %r9 
+	movq	%rax, %r8 
+	movq	(%r8 ), %r9 
+	movq	(%rdx), %r10
+	movq	(%rdi), %r11
+	movq	%r10, %rax
+	movq	%rax, %r8 
+	pushq	%r11
+	pushq	%r10
+	pushq	%r9 
+	pushq	%r8 
+	pushq	%rdi
+	pushq	%rsi
+	pushq	%rdx
+	movq	%r11, %rsi
+	movq	%r8 , %rdi
+	callq	oat_assert_array_length
+	popq	%rdx
+	popq	%rsi
+	popq	%rdi
+	popq	%r8 
+	popq	%r9 
+	popq	%r10
+	popq	%r11
+	movq	%r10, %rax
+	addq	$0, %rax
+	addq	$8, %rax
+	movq	%rax, %rcx
+	movq	%r11, %rax
+	imulq	$8, %rax
+	addq	%rcx, %rax
+	movq	%rax, %r8 
+	movq	(%r8 ), %r10
+	movq	%r10, %r11
+	xorq	$-1, %r11
 	movq	%r9 , %r10
-	xorq	$-1, %r10
-	movq	%r8 , %r9 
-	imulq	%r10, %r9 
-	movq	%r9 , (%rsi)
-	movq	(%rdi), %r8 
-	movq	%r8 , %r9 
-	addq	$1, %r9 
-	movq	%r9 , (%rdi)
+	imulq	%r11, %r10
+	movq	%r10, (%rsi)
+	movq	(%rdi), %r9 
+	movq	%r9 , %r11
+	addq	$1, %r11
+	movq	%r11, (%rdi)
 	jmp	_cond74
 	.text
 _cond74:
-	movq	(%rdi), %r8 
-	cmpq	$4, %r8 
-	setl	%r9b
-	andq	$1, %r9 
-	cmpq	$0, %r9 
+	movq	(%rdi), %r9 
+	cmpq	$4, %r9 
+	setl	%r8b
+	andq	$1, %r8 
+	cmpq	$0, %r8 
 	jne	_body73
 	jmp	_post72
 	.text

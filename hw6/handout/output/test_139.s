@@ -10,10 +10,10 @@ add:
 	movq	%rdi, (%rdx)
 	movq	%rsi, (%r8 )
 	movq	(%rdx), %rsi
-	movq	(%r8 ), %rdx
-	movq	%rsi, %rdi
-	addq	%rdx, %rdi
-	movq	%rdi, %rax
+	movq	(%r8 ), %rdi
+	movq	%rsi, %r9 
+	addq	%rdi, %r9 
+	movq	%r9 , %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -29,10 +29,10 @@ mul:
 	movq	%rdi, (%rdx)
 	movq	%rsi, (%r8 )
 	movq	(%rdx), %rsi
-	movq	(%r8 ), %rdx
-	movq	%rsi, %rdi
-	imulq	%rdx, %rdi
-	movq	%rdi, %rax
+	movq	(%r8 ), %rdi
+	movq	%rsi, %r9 
+	imulq	%rdi, %r9 
+	movq	%r9 , %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -55,8 +55,8 @@ program:
 	callq	*%r15
 	popq	%rsi
 	popq	%r15
-	movq	%rax, %rdx
-	movq	%rdx, %rax
+	movq	%rax, %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

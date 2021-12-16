@@ -18,20 +18,20 @@ program:
 	movq	%rdi, %rax
 	movq	%rax, %r8 
 	subq	$8, %rsp
-	movq	%rsp, %rdi
+	movq	%rsp, %r9 
 	movq	$3, %rax
-	movq	%rdi, %rcx
+	movq	%r9 , %rcx
 	movq	%rax, (%rcx)
 	subq	$8, %rsp
-	movq	%rsp, %r9 
-	movq	%r8 , (%r9 )
+	movq	%rsp, %rdi
+	movq	%r8 , (%rdi)
 	movq	$0, %rax
 	movq	%rdx, %rcx
 	movq	%rax, (%rcx)
 	jmp	_cond7287
 	.text
 _body7286:
-	movq	(%r9 ), %r10
+	movq	(%rdi), %r10
 	movq	(%rdx), %r11
 	movq	%r10, %rax
 	movq	%rax, -8(%rbp)
@@ -71,7 +71,7 @@ _body7286:
 	.text
 _cond7287:
 	movq	(%rdx), %r10
-	movq	(%rdi), %r11
+	movq	(%r9 ), %r11
 	cmpq	%r11, %r10
 	setl	-24(%rbp)
 	andq	$1, -24(%rbp)
@@ -86,8 +86,8 @@ _post7285:
 	addq	$0, %rax
 	addq	$0, %rax
 	movq	%rax, %rsi
-	movq	(%rsi), %rdx
-	movq	%rdx, %rax
+	movq	(%rsi), %r8 
+	movq	%r8 , %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

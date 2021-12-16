@@ -14,31 +14,31 @@ factorial:
 	jmp	start
 	.text
 end:
-	movq	(%rsi), %rdx
-	movq	%rdx, %rax
+	movq	(%rsi), %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
 	.text
 start:
-	movq	(%rdx), %rdi
-	cmpq	$0, %rdi
-	setg	%r8b
-	andq	$1, %r8 
+	movq	(%rdx), %r8 
 	cmpq	$0, %r8 
+	setg	%r9b
+	andq	$1, %r9 
+	cmpq	$0, %r9 
 	jne	then
 	jmp	end
 	.text
 then:
-	movq	(%rsi), %rdi
-	movq	(%rdx), %r8 
-	movq	%rdi, %r9 
-	imulq	%r8 , %r9 
-	movq	%r9 , (%rsi)
+	movq	(%rsi), %r10
 	movq	(%rdx), %rdi
-	movq	%rdi, %r8 
-	subq	$1, %r8 
-	movq	%r8 , (%rdx)
+	movq	%r10, %r8 
+	imulq	%rdi, %r8 
+	movq	%r8 , (%rsi)
+	movq	(%rdx), %r9 
+	movq	%r9 , %r10
+	subq	$1, %r10
+	movq	%r10, (%rdx)
 	jmp	start
 	.text
 	.globl	main

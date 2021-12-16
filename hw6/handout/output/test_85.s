@@ -212,38 +212,37 @@ _post1647:
 	movq	%r11, (%r8 )
 	movq	(%r8 ), %rdx
 	movq	%rdx, (%r9 )
-	movq	(%r9 ), %rdx
-	movq	%rdx, %rax
-	movq	%rax, %rsi
+	movq	(%r9 ), %rsi
+	movq	%rsi, %rax
+	movq	%rax, %rdi
+	pushq	%rdi
 	pushq	%rsi
-	pushq	%rdx
-	movq	%rsi, %rdi
 	movq	$2, %rsi
 	callq	oat_assert_array_length
-	popq	%rdx
 	popq	%rsi
-	movq	%rdx, %rax
+	popq	%rdi
+	movq	%rsi, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$16, %rax
-	movq	%rax, %rsi
-	movq	(%rsi), %rdx
-	movq	%rdx, %rax
-	movq	%rax, %rsi
-	pushq	%rsi
+	movq	%rax, %r8 
+	movq	(%r8 ), %r9 
+	movq	%r9 , %rax
+	movq	%rax, %rdx
+	pushq	%r9 
 	pushq	%rdx
-	movq	%rsi, %rdi
 	movq	$1, %rsi
+	movq	%rdx, %rdi
 	callq	oat_assert_array_length
 	popq	%rdx
-	popq	%rsi
-	movq	%rdx, %rax
+	popq	%r9 
+	movq	%r9 , %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$8, %rax
 	movq	%rax, %rsi
-	movq	(%rsi), %rdx
-	movq	%rdx, %rax
+	movq	(%rsi), %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

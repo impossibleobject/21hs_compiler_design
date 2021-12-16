@@ -20,9 +20,9 @@ program:
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
-	movq	%rax, %rdi
+	movq	%rax, %r9 
 	movq	$1, %rax
-	movq	%rdi, %rcx
+	movq	%r9 , %rcx
 	movq	%rax, (%rcx)
 	movq	%r8 , %rax
 	addq	$0, %rax
@@ -36,10 +36,10 @@ program:
 	movq	$0, %rax
 	movq	%rsi, %rcx
 	movq	%rax, (%rcx)
-	movq	(%rdx), %rdi
-	movq	%rdi, %rax
+	movq	(%rdx), %r8 
+	movq	%r8 , %rax
 	movq	%rax, %rdx
-	pushq	%rdi
+	pushq	%r8 
 	pushq	%rsi
 	pushq	%rdx
 	movq	$0, %rsi
@@ -47,14 +47,14 @@ program:
 	callq	oat_assert_array_length
 	popq	%rdx
 	popq	%rsi
-	popq	%rdi
-	movq	%rdi, %rax
+	popq	%r8 
+	movq	%r8 , %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
-	movq	%rax, %rdx
-	movq	(%rdx), %rdi
-	cmpq	$0, %rdi
+	movq	%rax, %r9 
+	movq	(%r9 ), %r10
+	cmpq	$0, %r10
 	jne	_then351
 	jmp	_else350
 	.text
@@ -62,8 +62,8 @@ _else350:
 	jmp	_merge349
 	.text
 _merge349:
-	movq	(%rsi), %rdx
-	movq	%rdx, %rax
+	movq	(%rsi), %r11
+	movq	%r11, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

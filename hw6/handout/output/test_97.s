@@ -43,8 +43,8 @@ _body2357:
 	movq	%rdi, %rax
 	imulq	$8, %rax
 	addq	%rcx, %rax
-	movq	%rax, %r10
-	movq	(%r10), %rsi
+	movq	%rax, %r11
+	movq	(%r11), %rsi
 	pushq	%r9 
 	pushq	%r8 
 	pushq	%rsi
@@ -55,25 +55,25 @@ _body2357:
 	popq	%rsi
 	popq	%r8 
 	popq	%r9 
-	movq	(%r9 ), %rsi
-	movq	%rsi, %rdi
-	addq	$1, %rdi
-	movq	%rdi, (%r9 )
+	movq	(%r9 ), %rdi
+	movq	%rdi, %rsi
+	addq	$1, %rsi
+	movq	%rsi, (%r9 )
 	jmp	_cond2358
 	.text
 _cond2358:
-	movq	(%r9 ), %rsi
-	movq	(%rdx), %rdi
-	cmpq	%rdi, %rsi
-	setl	%r10b
-	andq	$1, %r10
-	cmpq	$0, %r10
+	movq	(%r9 ), %rdi
+	movq	(%rdx), %r10
+	cmpq	%r10, %rdi
+	setl	%r11b
+	andq	$1, %r11
+	cmpq	$0, %r11
 	jne	_body2357
 	jmp	_post2356
 	.text
 _post2356:
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
+	movq	(%rdx), %r8 
+	movq	%r8 , %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

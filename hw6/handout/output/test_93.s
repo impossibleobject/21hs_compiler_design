@@ -42,11 +42,11 @@ program:
 	jmp	_cond2217
 	.text
 _body2216:
-	movq	(%rdi), %rdx
-	movq	(%rsi), %r9 
-	movq	(%r8 ), %r10
-	movq	%r9 , %rax
-	movq	%rax, %r11
+	movq	(%rdi), %r10
+	movq	(%rsi), %r11
+	movq	(%r8 ), %rdx
+	movq	%r11, %rax
+	movq	%rax, %r9 
 	pushq	%r11
 	pushq	%r10
 	pushq	%r9 
@@ -54,8 +54,8 @@ _body2216:
 	pushq	%rdi
 	pushq	%rsi
 	pushq	%rdx
-	movq	%r10, %rsi
-	movq	%r11, %rdi
+	movq	%rdx, %rsi
+	movq	%r9 , %rdi
 	callq	oat_assert_array_length
 	popq	%rdx
 	popq	%rsi
@@ -64,36 +64,36 @@ _body2216:
 	popq	%r9 
 	popq	%r10
 	popq	%r11
-	movq	%r9 , %rax
+	movq	%r11, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	movq	%rax, %rcx
-	movq	%r10, %rax
+	movq	%rdx, %rax
 	imulq	$8, %rax
 	addq	%rcx, %rax
-	movq	%rax, %r11
-	movq	(%r11), %r9 
-	movq	%rdx, %r10
-	addq	%r9 , %r10
-	movq	%r10, (%rdi)
-	movq	(%r8 ), %rdx
-	movq	%rdx, %r9 
-	addq	$1, %r9 
-	movq	%r9 , (%r8 )
+	movq	%rax, %r9 
+	movq	(%r9 ), %r11
+	movq	%r10, %rdx
+	addq	%r11, %rdx
+	movq	%rdx, (%rdi)
+	movq	(%r8 ), %r10
+	movq	%r10, %r11
+	addq	$1, %r11
+	movq	%r11, (%r8 )
 	jmp	_cond2217
 	.text
 _cond2217:
-	movq	(%r8 ), %rdx
-	cmpq	$5, %rdx
-	setl	%r9b
-	andq	$1, %r9 
-	cmpq	$0, %r9 
+	movq	(%r8 ), %r10
+	cmpq	$5, %r10
+	setl	%dl
+	andq	$1, %rdx
+	cmpq	$0, %rdx
 	jne	_body2216
 	jmp	_post2215
 	.text
 _post2215:
-	movq	(%rdi), %rdx
-	movq	%rdx, %rax
+	movq	(%rdi), %rsi
+	movq	%rsi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

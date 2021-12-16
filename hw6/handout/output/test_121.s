@@ -16,13 +16,16 @@ gcd:
 _body6238:
 	movq	(%r8 ), %rsi
 	movq	%rsi, (%r9 )
-	movq	(%r8 ), %rsi
-	movq	(%rdx), %rdi
+	movq	(%r8 ), %rdi
+	movq	(%rdx), %rsi
 	pushq	%r9 
 	pushq	%r8 
 	pushq	%rdi
 	pushq	%rsi
 	pushq	%rdx
+	pushq	%rdi
+	movq	%rsi, %rdi
+	popq	%rsi
 	callq	mod
 	popq	%rdx
 	popq	%rsi
@@ -31,22 +34,22 @@ _body6238:
 	popq	%r9 
 	movq	%rax, %r10
 	movq	%r10, (%r8 )
-	movq	(%r9 ), %rsi
-	movq	%rsi, (%rdx)
+	movq	(%r9 ), %rdi
+	movq	%rdi, (%rdx)
 	jmp	_cond6239
 	.text
 _cond6239:
-	movq	(%r8 ), %rsi
+	movq	(%r8 ), %r11
+	cmpq	$0, %r11
+	setne	%sil
+	andq	$1, %rsi
 	cmpq	$0, %rsi
-	setne	%dil
-	andq	$1, %rdi
-	cmpq	$0, %rdi
 	jne	_body6238
 	jmp	_post6237
 	.text
 _post6237:
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
+	movq	(%rdx), %r8 
+	movq	%r8 , %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -68,19 +71,19 @@ mod:
 	jmp	_cond6223
 	.text
 _body6222:
-	movq	(%r9 ), %rdx
-	movq	(%r8 ), %rsi
-	movq	%rdx, %rdi
-	subq	%rsi, %rdi
-	movq	%rdi, (%r9 )
+	movq	(%r9 ), %rdi
+	movq	(%r8 ), %rdx
+	movq	%rdi, %rsi
+	subq	%rdx, %rsi
+	movq	%rsi, (%r9 )
 	jmp	_cond6223
 	.text
 _cond6223:
-	movq	(%r9 ), %rdx
-	movq	(%r8 ), %rsi
-	movq	%rdx, %rdi
-	subq	%rsi, %rdi
-	cmpq	$0, %rdi
+	movq	(%r9 ), %rdi
+	movq	(%r8 ), %r10
+	movq	%rdi, %r11
+	subq	%r10, %r11
+	cmpq	$0, %r11
 	setge	%dl
 	andq	$1, %rdx
 	cmpq	$0, %rdx
@@ -88,8 +91,8 @@ _cond6223:
 	jmp	_post6221
 	.text
 _post6221:
-	movq	(%r9 ), %rdx
-	movq	%rdx, %rax
+	movq	(%r9 ), %r8 
+	movq	%r8 , %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -109,17 +112,16 @@ program:
 	movq	%rsi, %rcx
 	movq	%rax, (%rcx)
 	movq	(%rsi), %rdi
-	movq	(%rdx), %rsi
+	movq	(%rdx), %r8 
+	pushq	%r8 
 	pushq	%rdi
-	pushq	%rsi
-	pushq	%rdi
-	movq	%rsi, %rdi
-	popq	%rsi
+	movq	%rdi, %rsi
+	movq	%r8 , %rdi
 	callq	gcd
-	popq	%rsi
 	popq	%rdi
-	movq	%rax, %rdx
-	movq	%rdx, %rax
+	popq	%r8 
+	movq	%rax, %r9 
+	movq	%r9 , %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

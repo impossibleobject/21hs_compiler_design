@@ -148,8 +148,8 @@ _merge5359:
 	jmp	_cond5344
 	.text
 _post5342:
-	movq	(%r11), %rdx
-	movq	%rdx, %rax
+	movq	(%r11), %r8 
+	movq	%r8 , %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -185,9 +185,9 @@ program:
 	popq	%rdi
 	movq	%rax, %r8 
 	cmpq	$1, %r8 
-	sete	%sil
-	andq	$1, %rsi
-	cmpq	$0, %rsi
+	sete	%r9b
+	andq	$1, %r9 
+	cmpq	$0, %r9 
 	jne	_then5324
 	jmp	_else5323
 	.text

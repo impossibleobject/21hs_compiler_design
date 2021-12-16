@@ -36,8 +36,8 @@ main:
 	callq	foo
 	popq	%rdx
 	popq	%rsi
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
+	movq	(%rdx), %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

@@ -17,8 +17,8 @@ program:
 	movq	%rax, (%rcx)
 	leaq	a(%rip), %rax
 	movq	(%rax), %rax
-	movq	%rax, %rdx
-	movq	%rdx, %rax
+	movq	%rax, %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

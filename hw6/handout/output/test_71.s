@@ -11,8 +11,8 @@ f1:
 	movq	%rsi, %rdi
 	callq	f2
 	popq	%rsi
-	movq	%rax, %rdx
-	movq	%rdx, %rax
+	movq	%rax, %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -29,8 +29,8 @@ f2:
 	movq	%rsi, %rdi
 	callq	f3
 	popq	%rsi
-	movq	%rax, %rdx
-	movq	%rdx, %rax
+	movq	%rax, %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -47,8 +47,8 @@ f3:
 	movq	%rsi, %rdi
 	callq	f4
 	popq	%rsi
-	movq	%rax, %rdx
-	movq	%rdx, %rax
+	movq	%rax, %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -65,8 +65,8 @@ f4:
 	movq	%rsi, %rdi
 	callq	f5
 	popq	%rsi
-	movq	%rax, %rdx
-	movq	%rdx, %rax
+	movq	%rax, %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -83,8 +83,8 @@ f5:
 	movq	%rsi, %rdi
 	callq	f6
 	popq	%rsi
-	movq	%rax, %rdx
-	movq	%rdx, %rax
+	movq	%rax, %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -101,8 +101,8 @@ f6:
 	movq	%rsi, %rdi
 	callq	f7
 	popq	%rsi
-	movq	%rax, %rdx
-	movq	%rdx, %rax
+	movq	%rax, %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -119,8 +119,8 @@ f7:
 	movq	%rsi, %rdi
 	callq	f8
 	popq	%rsi
-	movq	%rax, %rdx
-	movq	%rdx, %rax
+	movq	%rax, %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -137,8 +137,8 @@ f8:
 	movq	%rsi, %rdi
 	callq	f9
 	popq	%rsi
-	movq	%rax, %rdx
-	movq	%rdx, %rax
+	movq	%rax, %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -168,8 +168,8 @@ program:
 	movq	%rsi, %rdi
 	callq	f1
 	popq	%rsi
-	movq	%rax, %rdx
-	movq	%rdx, %rax
+	movq	%rax, %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

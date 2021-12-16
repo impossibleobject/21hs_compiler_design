@@ -25,25 +25,25 @@ min_heapify:
 	movq	%rdx, %rsi
 	imulq	$2, %rsi
 	movq	%rsi, (%r11)
-	movq	(%r9 ), %rdx
-	movq	%rdx, %rsi
-	addq	$1, %rsi
-	movq	%rsi, %rax
+	movq	(%r9 ), %rdi
+	movq	%rdi, %rdx
+	addq	$1, %rdx
+	movq	%rdx, %rax
 	movq	-8(%rbp), %rcx
 	movq	%rax, (%rcx)
 	movq	$0, %rax
 	movq	-16(%rbp), %rcx
 	movq	%rax, (%rcx)
-	movq	(%r9 ), %rdx
-	movq	%rdx, %rax
+	movq	(%r9 ), %rsi
+	movq	%rsi, %rax
 	movq	-24(%rbp), %rcx
 	movq	%rax, (%rcx)
-	movq	(%r11), %rdx
-	movq	(%r10), %rsi
-	cmpq	%rsi, %rdx
-	setl	%dil
-	andq	$1, %rdi
-	cmpq	$0, %rdi
+	movq	(%r11), %rdi
+	movq	(%r10), %rdx
+	cmpq	%rdx, %rdi
+	setl	%sil
+	andq	$1, %rsi
+	cmpq	$0, %rsi
 	jne	_then8544
 	jmp	_else8543
 	.text
@@ -68,12 +68,12 @@ _merge8539:
 _merge8542:
 	movq	-8(%rbp), %rax
 	movq	(%rax), %rax
-	movq	%rax, %rdx
-	movq	(%r10), %rsi
-	cmpq	%rsi, %rdx
-	setl	%dil
-	andq	$1, %rdi
-	cmpq	$0, %rdi
+	movq	%rax, %rdi
+	movq	(%r10), %r11
+	cmpq	%r11, %rdi
+	setl	%dl
+	andq	$1, %rdx
+	cmpq	$0, %rdx
 	jne	_then8568
 	jmp	_else8567
 	.text
@@ -83,12 +83,12 @@ _merge8563:
 _merge8566:
 	movq	-24(%rbp), %rax
 	movq	(%rax), %rax
-	movq	%rax, %rdx
-	movq	(%r9 ), %rsi
-	cmpq	%rsi, %rdx
-	setne	%dil
-	andq	$1, %rdi
-	cmpq	$0, %rdi
+	movq	%rax, %rsi
+	movq	(%r9 ), %rdi
+	cmpq	%rdi, %rsi
+	setne	%r11b
+	andq	$1, %r11
+	cmpq	$0, %r11
 	jne	_then8604
 	jmp	_else8603
 	.text
@@ -105,40 +105,10 @@ _then8541:
 	jmp	_merge8539
 	.text
 _then8544:
-	movq	(%r8 ), %rdx
-	movq	(%r11), %rsi
-	movq	%rdx, %rax
-	movq	%rax, %rdi
-	pushq	%r11
-	pushq	%r10
-	pushq	%r9 
-	pushq	%r8 
-	pushq	%rdi
-	pushq	%rsi
-	pushq	%rdx
-	callq	oat_assert_array_length
-	popq	%rdx
-	popq	%rsi
-	popq	%rdi
-	popq	%r8 
-	popq	%r9 
-	popq	%r10
-	popq	%r11
-	movq	%rdx, %rax
-	addq	$0, %rax
-	addq	$8, %rax
-	movq	%rax, %rcx
-	movq	%rsi, %rax
-	imulq	$8, %rax
-	addq	%rcx, %rax
-	movq	%rax, %rdi
-	movq	(%rdi), %rdx
 	movq	(%r8 ), %rsi
-	movq	-24(%rbp), %rax
-	movq	(%rax), %rax
-	movq	%rax, %rdi
+	movq	(%r11), %rdi
 	movq	%rsi, %rax
-	movq	%rax, -32(%rbp)
+	movq	%rax, %rdx
 	pushq	%r11
 	pushq	%r10
 	pushq	%r9 
@@ -147,6 +117,38 @@ _then8544:
 	pushq	%rsi
 	pushq	%rdx
 	movq	%rdi, %rsi
+	movq	%rdx, %rdi
+	callq	oat_assert_array_length
+	popq	%rdx
+	popq	%rsi
+	popq	%rdi
+	popq	%r8 
+	popq	%r9 
+	popq	%r10
+	popq	%r11
+	movq	%rsi, %rax
+	addq	$0, %rax
+	addq	$8, %rax
+	movq	%rax, %rcx
+	movq	%rdi, %rax
+	imulq	$8, %rax
+	addq	%rcx, %rax
+	movq	%rax, %rdx
+	movq	(%rdx), %rsi
+	movq	(%r8 ), %rdi
+	movq	-24(%rbp), %rax
+	movq	(%rax), %rax
+	movq	%rax, %rdx
+	movq	%rdi, %rax
+	movq	%rax, -32(%rbp)
+	pushq	%r11
+	pushq	%r10
+	pushq	%r9 
+	pushq	%r8 
+	pushq	%rdi
+	pushq	%rsi
+	pushq	%rdx
+	movq	%rdx, %rsi
 	movq	-32(%rbp), %rdi
 	callq	oat_assert_array_length
 	popq	%rdx
@@ -156,54 +158,54 @@ _then8544:
 	popq	%r9 
 	popq	%r10
 	popq	%r11
-	movq	%rsi, %rax
+	movq	%rdi, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	movq	%rax, %rcx
-	movq	%rdi, %rax
+	movq	%rdx, %rax
 	imulq	$8, %rax
 	addq	%rcx, %rax
 	movq	%rax, -40(%rbp)
 	movq	-40(%rbp), %rax
 	movq	(%rax), %rax
-	movq	%rax, %rsi
-	cmpq	%rsi, %rdx
-	setg	%dil
-	andq	$1, %rdi
-	cmpq	$0, %rdi
+	movq	%rax, %rdi
+	cmpq	%rdi, %rsi
+	setg	%dl
+	andq	$1, %rdx
+	cmpq	$0, %rdx
 	jne	_then8541
 	jmp	_else8540
 	.text
 _then8565:
 	movq	-8(%rbp), %rax
 	movq	(%rax), %rax
-	movq	%rax, %rdx
-	movq	%rdx, %rax
+	movq	%rax, %r11
+	movq	%r11, %rax
 	movq	-24(%rbp), %rcx
 	movq	%rax, (%rcx)
 	jmp	_merge8563
 	.text
 _then8568:
-	movq	(%r8 ), %rdx
+	movq	(%r8 ), %r11
 	movq	-8(%rbp), %rax
 	movq	(%rax), %rax
 	movq	%rax, %rsi
-	movq	%rdx, %rax
+	movq	%r11, %rax
 	movq	%rax, %rdi
+	pushq	%r11
 	pushq	%r10
 	pushq	%r9 
 	pushq	%r8 
 	pushq	%rdi
 	pushq	%rsi
-	pushq	%rdx
 	callq	oat_assert_array_length
-	popq	%rdx
 	popq	%rsi
 	popq	%rdi
 	popq	%r8 
 	popq	%r9 
 	popq	%r10
-	movq	%rdx, %rax
+	popq	%r11
+	movq	%r11, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	movq	%rax, %rcx
@@ -211,13 +213,13 @@ _then8568:
 	imulq	$8, %rax
 	addq	%rcx, %rax
 	movq	%rax, %rdi
-	movq	(%rdi), %rdx
+	movq	(%rdi), %r11
 	movq	(%r8 ), %rsi
 	movq	-24(%rbp), %rax
 	movq	(%rax), %rax
-	movq	%rax, %rdi
+	movq	%rax, %rdx
 	movq	%rsi, %rax
-	movq	%rax, %r11
+	movq	%rax, %rdi
 	pushq	%r11
 	pushq	%r10
 	pushq	%r9 
@@ -225,8 +227,7 @@ _then8568:
 	pushq	%rdi
 	pushq	%rsi
 	pushq	%rdx
-	movq	%rdi, %rsi
-	movq	%r11, %rdi
+	movq	%rdx, %rsi
 	callq	oat_assert_array_length
 	popq	%rdx
 	popq	%rsi
@@ -239,37 +240,38 @@ _then8568:
 	addq	$0, %rax
 	addq	$8, %rax
 	movq	%rax, %rcx
-	movq	%rdi, %rax
+	movq	%rdx, %rax
 	imulq	$8, %rax
 	addq	%rcx, %rax
-	movq	%rax, %r11
-	movq	(%r11), %rsi
-	cmpq	%rsi, %rdx
-	setg	%dil
-	andq	$1, %rdi
-	cmpq	$0, %rdi
+	movq	%rax, %rdi
+	movq	(%rdi), %rsi
+	cmpq	%rsi, %r11
+	setg	%dl
+	andq	$1, %rdx
+	cmpq	$0, %rdx
 	jne	_then8565
 	jmp	_else8564
 	.text
 _then8604:
-	movq	(%r8 ), %rdx
+	movq	(%r8 ), %r11
 	movq	(%r9 ), %rsi
-	movq	%rdx, %rax
-	movq	%rax, %rdi
+	movq	%r11, %rax
+	movq	%rax, %rdx
+	pushq	%r11
 	pushq	%r10
 	pushq	%r9 
 	pushq	%r8 
-	pushq	%rdi
 	pushq	%rsi
 	pushq	%rdx
+	movq	%rdx, %rdi
 	callq	oat_assert_array_length
 	popq	%rdx
 	popq	%rsi
-	popq	%rdi
 	popq	%r8 
 	popq	%r9 
 	popq	%r10
-	movq	%rdx, %rax
+	popq	%r11
+	movq	%r11, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	movq	%rax, %rcx
@@ -277,54 +279,27 @@ _then8604:
 	imulq	$8, %rax
 	addq	%rcx, %rax
 	movq	%rax, %rdi
-	movq	(%rdi), %rdx
-	movq	%rdx, %rax
+	movq	(%rdi), %r11
+	movq	%r11, %rax
 	movq	-16(%rbp), %rcx
 	movq	%rax, (%rcx)
-	movq	(%r8 ), %rdx
+	movq	(%r8 ), %r11
 	movq	(%r9 ), %rsi
-	movq	%rdx, %rax
-	movq	%rax, %rdi
-	pushq	%r10
-	pushq	%r8 
-	pushq	%rdi
-	pushq	%rsi
-	pushq	%rdx
-	callq	oat_assert_array_length
-	popq	%rdx
-	popq	%rsi
-	popq	%rdi
-	popq	%r8 
-	popq	%r10
-	movq	%rdx, %rax
-	addq	$0, %rax
-	addq	$8, %rax
-	movq	%rax, %rcx
-	movq	%rsi, %rax
-	imulq	$8, %rax
-	addq	%rcx, %rax
-	movq	%rax, %rdi
-	movq	(%r8 ), %rdx
-	movq	-24(%rbp), %rax
-	movq	(%rax), %rax
-	movq	%rax, %rsi
-	movq	%rdx, %rax
+	movq	%r11, %rax
 	movq	%rax, %r9 
+	pushq	%r11
 	pushq	%r10
 	pushq	%r9 
 	pushq	%r8 
-	pushq	%rdi
 	pushq	%rsi
-	pushq	%rdx
 	movq	%r9 , %rdi
 	callq	oat_assert_array_length
-	popq	%rdx
 	popq	%rsi
-	popq	%rdi
 	popq	%r8 
 	popq	%r9 
 	popq	%r10
-	movq	%rdx, %rax
+	popq	%r11
+	movq	%r11, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	movq	%rax, %rcx
@@ -332,26 +307,27 @@ _then8604:
 	imulq	$8, %rax
 	addq	%rcx, %rax
 	movq	%rax, %r9 
-	movq	(%r9 ), %rdx
-	movq	%rdx, (%rdi)
-	movq	(%r8 ), %rdx
+	movq	(%r8 ), %r11
 	movq	-24(%rbp), %rax
 	movq	(%rax), %rax
 	movq	%rax, %rsi
-	movq	%rdx, %rax
-	movq	%rax, %rdi
+	movq	%r11, %rax
+	movq	%rax, %rdx
+	pushq	%r11
 	pushq	%r10
+	pushq	%r9 
 	pushq	%r8 
-	pushq	%rdi
 	pushq	%rsi
 	pushq	%rdx
+	movq	%rdx, %rdi
 	callq	oat_assert_array_length
 	popq	%rdx
 	popq	%rsi
-	popq	%rdi
 	popq	%r8 
+	popq	%r9 
 	popq	%r10
-	movq	%rdx, %rax
+	popq	%r11
+	movq	%r11, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	movq	%rax, %rcx
@@ -359,22 +335,53 @@ _then8604:
 	imulq	$8, %rax
 	addq	%rcx, %rax
 	movq	%rax, %rdi
-	movq	-16(%rbp), %rax
-	movq	(%rax), %rax
-	movq	%rax, %rdx
-	movq	%rdx, (%rdi)
-	movq	(%r10), %rdx
+	movq	(%rdi), %r11
+	movq	%r11, (%r9 )
+	movq	(%r8 ), %r9 
 	movq	-24(%rbp), %rax
 	movq	(%rax), %rax
 	movq	%rax, %rsi
-	movq	(%r8 ), %rdi
-	pushq	%rdi
+	movq	%r9 , %rax
+	movq	%rax, %r11
+	pushq	%r11
+	pushq	%r10
+	pushq	%r9 
+	pushq	%r8 
 	pushq	%rsi
-	pushq	%rdx
-	callq	min_heapify
-	popq	%rdx
+	movq	%r11, %rdi
+	callq	oat_assert_array_length
 	popq	%rsi
-	popq	%rdi
+	popq	%r8 
+	popq	%r9 
+	popq	%r10
+	popq	%r11
+	movq	%r9 , %rax
+	addq	$0, %rax
+	addq	$8, %rax
+	movq	%rax, %rcx
+	movq	%rsi, %rax
+	imulq	$8, %rax
+	addq	%rcx, %rax
+	movq	%rax, %rdx
+	movq	-16(%rbp), %rax
+	movq	(%rax), %rax
+	movq	%rax, %r9 
+	movq	%r9 , (%rdx)
+	movq	(%r10), %r9 
+	movq	-24(%rbp), %rax
+	movq	(%rax), %rax
+	movq	%rax, %r10
+	movq	(%r8 ), %rsi
+	pushq	%r10
+	pushq	%r9 
+	pushq	%rsi
+	movq	%r9 , %rdx
+	movq	%rsi, %rdi
+	movq	%r10, %rsi
+	callq	min_heapify
+	popq	%rsi
+	popq	%r9 
+	popq	%r10
 	jmp	_merge8602
 	.text
 	.globl	make_min_heap
@@ -394,8 +401,8 @@ make_min_heap:
 	jmp	_cond8491
 	.text
 _body8490:
-	movq	(%r8 ), %rsi
-	movq	(%r9 ), %rdi
+	movq	(%r8 ), %rdi
+	movq	(%r9 ), %rsi
 	movq	(%rdx), %r10
 	pushq	%r10
 	pushq	%r9 
@@ -403,8 +410,7 @@ _body8490:
 	pushq	%rdi
 	pushq	%rsi
 	pushq	%rdx
-	movq	%rsi, %rdx
-	movq	%rdi, %rsi
+	movq	%rdi, %rdx
 	movq	%r10, %rdi
 	callq	min_heapify
 	popq	%rdx
@@ -413,10 +419,10 @@ _body8490:
 	popq	%r8 
 	popq	%r9 
 	popq	%r10
-	movq	(%r9 ), %rsi
-	movq	%rsi, %rdi
-	subq	$1, %rdi
-	movq	%rdi, (%r9 )
+	movq	(%r9 ), %rdi
+	movq	%rdi, %r11
+	subq	$1, %r11
+	movq	%r11, (%r9 )
 	jmp	_cond8491
 	.text
 _cond8491:
@@ -471,9 +477,9 @@ program:
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$8, %rax
-	movq	%rax, %r9 
+	movq	%rax, %r11
 	movq	$9, %rax
-	movq	%r9 , %rcx
+	movq	%r11, %rcx
 	movq	%rax, (%rcx)
 	movq	%r10, %rax
 	addq	$0, %rax
@@ -487,9 +493,9 @@ program:
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$24, %rax
-	movq	%rax, %r9 
+	movq	%rax, %r11
 	movq	$2, %rax
-	movq	%r9 , %rcx
+	movq	%r11, %rcx
 	movq	%rax, (%rcx)
 	movq	%r10, %rax
 	addq	$0, %rax
@@ -503,9 +509,9 @@ program:
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$40, %rax
-	movq	%rax, %r9 
+	movq	%rax, %r11
 	movq	$10, %rax
-	movq	%r9 , %rcx
+	movq	%r11, %rcx
 	movq	%rax, (%rcx)
 	movq	%r10, %rax
 	addq	$0, %rax
@@ -519,9 +525,9 @@ program:
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$56, %rax
-	movq	%rax, %r9 
+	movq	%rax, %r11
 	movq	$3, %rax
-	movq	%r9 , %rcx
+	movq	%r11, %rcx
 	movq	%rax, (%rcx)
 	movq	%r10, %rax
 	addq	$0, %rax
@@ -535,9 +541,9 @@ program:
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$72, %rax
-	movq	%rax, %r9 
+	movq	%rax, %r11
 	movq	$4, %rax
-	movq	%r9 , %rcx
+	movq	%r11, %rcx
 	movq	%rax, (%rcx)
 	movq	%r10, %rax
 	addq	$0, %rax
@@ -558,42 +564,42 @@ program:
 	popq	%rsi
 	popq	%rdi
 	popq	%r8 
-	movq	%rax, %r9 
-	movq	%r9 , %rax
 	movq	%rax, %r10
 	movq	%r10, %rax
+	movq	%rax, %r11
+	movq	%r11, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
-	movq	%rax, %r9 
+	movq	%rax, %r10
 	movq	$0, %rax
-	movq	%r9 , %rcx
+	movq	%r10, %rcx
 	movq	%rax, (%rcx)
-	movq	%r10, %rax
+	movq	%r11, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$8, %rax
-	movq	%rax, %r9 
+	movq	%rax, %r10
 	movq	$1, %rax
-	movq	%r9 , %rcx
+	movq	%r10, %rcx
 	movq	%rax, (%rcx)
-	movq	%r10, %rax
+	movq	%r11, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$16, %rax
-	movq	%rax, %r9 
+	movq	%rax, %r10
 	movq	$4, %rax
-	movq	%r9 , %rcx
+	movq	%r10, %rcx
 	movq	%rax, (%rcx)
-	movq	%r10, %rax
+	movq	%r11, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$24, %rax
-	movq	%rax, %r9 
+	movq	%rax, %r10
 	movq	$2, %rax
-	movq	%r9 , %rcx
+	movq	%r10, %rcx
 	movq	%rax, (%rcx)
-	movq	%r10, %rax
+	movq	%r11, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$32, %rax
@@ -601,15 +607,15 @@ program:
 	movq	$8, %rax
 	movq	%r9 , %rcx
 	movq	%rax, (%rcx)
-	movq	%r10, %rax
+	movq	%r11, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$40, %rax
-	movq	%rax, %r9 
+	movq	%rax, %r10
 	movq	$5, %rax
-	movq	%r9 , %rcx
+	movq	%r10, %rcx
 	movq	%rax, (%rcx)
-	movq	%r10, %rax
+	movq	%r11, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$48, %rax
@@ -617,15 +623,15 @@ program:
 	movq	$7, %rax
 	movq	%r9 , %rcx
 	movq	%rax, (%rcx)
-	movq	%r10, %rax
+	movq	%r11, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$56, %rax
-	movq	%rax, %r9 
+	movq	%rax, %r10
 	movq	$3, %rax
-	movq	%r9 , %rcx
+	movq	%r10, %rcx
 	movq	%rax, (%rcx)
-	movq	%r10, %rax
+	movq	%r11, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$64, %rax
@@ -633,15 +639,15 @@ program:
 	movq	$6, %rax
 	movq	%r9 , %rcx
 	movq	%rax, (%rcx)
-	movq	%r10, %rax
+	movq	%r11, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$72, %rax
-	movq	%rax, %r9 
+	movq	%rax, %r10
 	movq	$9, %rax
-	movq	%r9 , %rcx
+	movq	%r10, %rcx
 	movq	%rax, (%rcx)
-	movq	%r10, %rax
+	movq	%r11, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$80, %rax
@@ -649,21 +655,21 @@ program:
 	movq	$10, %rax
 	movq	%r9 , %rcx
 	movq	%rax, (%rcx)
-	movq	%r10, (%rsi)
-	movq	(%rdx), %r9 
-	pushq	%r9 
+	movq	%r11, (%rsi)
+	movq	(%rdx), %r11
+	pushq	%r11
 	pushq	%r8 
 	pushq	%rdi
 	pushq	%rsi
 	pushq	%rdx
 	movq	$10, %rsi
-	movq	%r9 , %rdi
+	movq	%r11, %rdi
 	callq	make_min_heap
 	popq	%rdx
 	popq	%rsi
 	popq	%rdi
 	popq	%r8 
-	popq	%r9 
+	popq	%r11
 	movq	$0, %rax
 	movq	%rdi, %rcx
 	movq	%rax, (%rcx)
@@ -673,10 +679,10 @@ program:
 	jmp	_cond8456
 	.text
 _body8455:
-	movq	(%rdx), %r9 
+	movq	(%rdx), %r11
 	movq	(%r8 ), %r10
-	movq	%r9 , %rax
-	movq	%rax, %r11
+	movq	%r11, %rax
+	movq	%rax, %r9 
 	pushq	%r11
 	pushq	%r10
 	pushq	%r9 
@@ -685,7 +691,7 @@ _body8455:
 	pushq	%rsi
 	pushq	%rdx
 	movq	%r10, %rsi
-	movq	%r11, %rdi
+	movq	%r9 , %rdi
 	callq	oat_assert_array_length
 	popq	%rdx
 	popq	%rsi
@@ -694,17 +700,17 @@ _body8455:
 	popq	%r9 
 	popq	%r10
 	popq	%r11
-	movq	%r9 , %rax
+	movq	%r11, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	movq	%rax, %rcx
 	movq	%r10, %rax
 	imulq	$8, %rax
 	addq	%rcx, %rax
-	movq	%rax, %r11
-	movq	(%r11), %r9 
+	movq	%rax, %r9 
+	movq	(%r9 ), %r11
 	movq	(%rsi), %r10
-	movq	(%r8 ), %r11
+	movq	(%r8 ), %r9 
 	movq	%r10, %rax
 	movq	%rax, -8(%rbp)
 	pushq	%r11
@@ -714,7 +720,7 @@ _body8455:
 	pushq	%rdi
 	pushq	%rsi
 	pushq	%rdx
-	movq	%r11, %rsi
+	movq	%r9 , %rsi
 	movq	-8(%rbp), %rdi
 	callq	oat_assert_array_length
 	popq	%rdx
@@ -728,23 +734,23 @@ _body8455:
 	addq	$0, %rax
 	addq	$8, %rax
 	movq	%rax, %rcx
-	movq	%r11, %rax
+	movq	%r9 , %rax
 	imulq	$8, %rax
 	addq	%rcx, %rax
 	movq	%rax, -16(%rbp)
 	movq	-16(%rbp), %rax
 	movq	(%rax), %rax
 	movq	%rax, %r10
-	cmpq	%r10, %r9 
-	setne	%r11b
-	andq	$1, %r11
-	cmpq	$0, %r11
+	cmpq	%r10, %r11
+	setne	%r9b
+	andq	$1, %r9 
+	cmpq	$0, %r9 
 	jne	_then8473
 	jmp	_else8472
 	.text
 _cond8456:
-	movq	(%r8 ), %r9 
-	cmpq	$11, %r9 
+	movq	(%r8 ), %r11
+	cmpq	$11, %r11
 	setl	%r10b
 	andq	$1, %r10
 	cmpq	$0, %r10
@@ -755,8 +761,8 @@ _else8472:
 	jmp	_merge8471
 	.text
 _merge8471:
-	movq	(%r8 ), %r9 
-	movq	%r9 , %r10
+	movq	(%r8 ), %r11
+	movq	%r11, %r10
 	addq	$1, %r10
 	movq	%r10, (%r8 )
 	jmp	_cond8456

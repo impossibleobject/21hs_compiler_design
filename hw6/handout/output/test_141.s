@@ -27,16 +27,16 @@ run2:
 	popq	%rdi
 	popq	%r8 
 	popq	%r15
-	movq	(%rdx), %rsi
+	movq	(%rdx), %r9 
 	movq	(%r8 ), %rdx
 	pushq	%r15
-	movq	%rsi, %r15
-	pushq	%rsi
+	movq	%r9 , %r15
+	pushq	%r9 
 	pushq	%rdx
 	movq	%rdx, %rdi
 	callq	*%r15
 	popq	%rdx
-	popq	%rsi
+	popq	%r9 
 	popq	%r15
 	movq	%rbp, %rsp
 	popq	%rbp

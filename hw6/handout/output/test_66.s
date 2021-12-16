@@ -20,11 +20,11 @@ program:
 	movq	(%rdx), %r9 
 	movq	%r8 , %rdx
 	imulq	%r9 , %rdx
-	movq	%rdi, %r8 
-	addq	%rdx, %r8 
-	movq	(%rsi), %rdx
-	movq	%r8 , %rsi
-	subq	%rdx, %rsi
+	movq	%rdi, %r10
+	addq	%rdx, %r10
+	movq	(%rsi), %r11
+	movq	%r10, %rsi
+	subq	%r11, %rsi
 	movq	%rsi, %rax
 	movq	$2, %rcx
 	shrq	%cl, %rax
@@ -36,8 +36,8 @@ program:
 	movq	%rsi, %rax
 	movq	$2, %rcx
 	sarq	%cl, %rax
-	movq	%rax, %rdx
-	movq	%rdx, %rax
+	movq	%rax, %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

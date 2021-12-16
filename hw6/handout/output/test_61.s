@@ -14,10 +14,10 @@ program:
 	movq	%rsi, %rcx
 	movq	%rax, (%rcx)
 	movq	(%rdx), %rdi
-	movq	(%rsi), %rdx
-	movq	%rdi, %rsi
-	addq	%rdx, %rsi
-	movq	%rsi, %rax
+	movq	(%rsi), %r8 
+	movq	%rdi, %r9 
+	addq	%r8 , %r9 
+	movq	%r9 , %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

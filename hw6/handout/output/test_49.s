@@ -13,23 +13,23 @@ one_iteration:
 	movq	$2, %rcx
 	shlq	%cl, %rax
 	movq	%rax, %rdi
-	movq	%rsi, %rdx
-	xorq	%rdi, %rdx
+	movq	%rsi, %r8 
+	xorq	%rdi, %r8 
 	movq	%rdi, %rax
 	movq	$1, %rcx
 	shlq	%cl, %rax
-	movq	%rax, %rsi
-	movq	%rdx, %rdi
-	xorq	%rsi, %rdi
-	movq	%rdi, %rax
+	movq	%rax, %r9 
+	movq	%r8 , %r10
+	xorq	%r9 , %r10
+	movq	%r10, %rax
 	movq	$63, %rcx
 	shrq	%cl, %rax
 	movq	%rax, %rdx
 	movq	%rdx, %rsi
 	andq	$1, %rsi
-	movq	%rdi, %rdx
-	orq	%rsi, %rdx
-	movq	%rdx, %rax
+	movq	%r10, %rdi
+	orq	%rsi, %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -66,8 +66,8 @@ loop:
 	popq	%rdi
 	movq	%rax, %r8 
 	cmpq	$5, %rdi
-	sete	%sil
-	andq	$1, %rsi
-	cmpq	$0, %rsi
+	sete	%r9b
+	andq	$1, %r9 
+	cmpq	$0, %r9 
 	jne	end
 	jmp	loop

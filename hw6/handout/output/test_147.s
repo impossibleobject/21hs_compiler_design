@@ -47,34 +47,34 @@ f:
 	addq	%rsi, %rdi
 	movq	-16(%rbp), %rax
 	movq	(%rax), %rax
-	movq	%rax, %rdx
-	movq	%rdi, %rsi
-	addq	%rdx, %rsi
+	movq	%rax, %r8 
+	movq	%rdi, %r9 
+	addq	%r8 , %r9 
 	movq	-24(%rbp), %rax
 	movq	(%rax), %rax
 	movq	%rax, %rdx
-	movq	%rsi, %rdi
-	addq	%rdx, %rdi
+	movq	%r9 , %rsi
+	addq	%rdx, %rsi
 	movq	-32(%rbp), %rax
 	movq	(%rax), %rax
-	movq	%rax, %rdx
-	movq	%rdi, %rsi
-	addq	%rdx, %rsi
+	movq	%rax, %rdi
+	movq	%rsi, %r8 
+	addq	%rdi, %r8 
 	movq	-40(%rbp), %rax
 	movq	(%rax), %rax
-	movq	%rax, %rdx
-	movq	%rsi, %rdi
-	addq	%rdx, %rdi
+	movq	%rax, %r9 
+	movq	%r8 , %r10
+	addq	%r9 , %r10
 	movq	-48(%rbp), %rax
 	movq	(%rax), %rax
-	movq	%rax, %rdx
-	movq	%rdi, %rsi
-	addq	%rdx, %rsi
+	movq	%rax, %r11
+	movq	%r10, %rdx
+	addq	%r11, %rdx
 	movq	-56(%rbp), %rax
 	movq	(%rax), %rax
-	movq	%rax, %rdx
-	movq	%rsi, %rdi
-	addq	%rdx, %rdi
+	movq	%rax, %rsi
+	movq	%rdx, %rdi
+	addq	%rsi, %rdi
 	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp

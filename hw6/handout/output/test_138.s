@@ -10,10 +10,10 @@ add:
 	movq	%rdi, (%rdx)
 	movq	%rsi, (%r8 )
 	movq	(%rdx), %rsi
-	movq	(%r8 ), %rdx
-	movq	%rsi, %rdi
-	addq	%rdx, %rdi
-	movq	%rdi, %rax
+	movq	(%r8 ), %rdi
+	movq	%rsi, %r9 
+	addq	%rdi, %r9 
+	movq	%r9 , %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -31,17 +31,17 @@ program:
 	movq	%rax, (%rcx)
 	movq	(%rdx), %rdi
 	movq	%rdi, (%rsi)
-	movq	(%rsi), %rdx
+	movq	(%rsi), %r8 
 	pushq	%r15
-	movq	%rdx, %r15
-	pushq	%rdx
+	movq	%r8 , %r15
+	pushq	%r8 
 	movq	$3, %rsi
 	movq	$2, %rdi
 	callq	*%r15
-	popq	%rdx
+	popq	%r8 
 	popq	%r15
-	movq	%rax, %rsi
-	movq	%rsi, %rax
+	movq	%rax, %r9 
+	movq	%r9 , %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

@@ -11,15 +11,15 @@ baz:
 	addq	%rdx, %rsi
 	movq	%rsi, %rdx
 	addq	-8(%rbp), %rdx
-	movq	%rdx, %rsi
-	addq	%r8 , %rsi
-	movq	%rsi, %rdx
-	addq	%r9 , %rdx
-	movq	%rdx, %rsi
-	addq	16(%rbp), %rsi
-	movq	%rsi, %rdx
-	addq	24(%rbp), %rdx
-	movq	%rdx, %rax
+	movq	%rdx, %rdi
+	addq	%r8 , %rdi
+	movq	%rdi, %r8 
+	addq	%r9 , %r8 
+	movq	%r8 , %r9 
+	addq	16(%rbp), %r9 
+	movq	%r9 , %r11
+	addq	24(%rbp), %r11
+	movq	%r11, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -57,11 +57,11 @@ bar:
 	popq	%r9 
 	popq	%r10
 	movq	%rax, %r11
-	movq	%rdi, %rdx
-	addq	%r9 , %rdx
-	movq	%rdx, %rsi
-	addq	16(%rbp), %rsi
-	movq	%rsi, %rdx
+	movq	%rdi, %r8 
+	addq	%r9 , %r8 
+	movq	%r8 , %r9 
+	addq	16(%rbp), %r9 
+	movq	%r9 , %rdx
 	addq	24(%rbp), %rdx
 	movq	%rdx, %rsi
 	addq	%r11, %rsi

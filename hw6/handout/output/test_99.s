@@ -16,17 +16,17 @@ program:
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
-	movq	%rax, %rsi
+	movq	%rax, %r8 
 	movq	$126, %rax
-	movq	%rsi, %rcx
+	movq	%r8 , %rcx
 	movq	%rax, (%rcx)
 	movq	%rdi, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$8, %rax
-	movq	%rax, %rsi
+	movq	%rax, %r9 
 	movq	$125, %rax
-	movq	%rsi, %rcx
+	movq	%r9 , %rcx
 	movq	%rax, (%rcx)
 	movq	%rdi, %rax
 	addq	$0, %rax
@@ -40,33 +40,33 @@ program:
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$24, %rax
-	movq	%rax, %rsi
+	movq	%rax, %r8 
 	movq	$123, %rax
-	movq	%rsi, %rcx
+	movq	%r8 , %rcx
 	movq	%rax, (%rcx)
 	movq	%rdi, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$32, %rax
-	movq	%rax, %rsi
+	movq	%rax, %r9 
 	movq	$122, %rax
-	movq	%rsi, %rcx
+	movq	%r9 , %rcx
 	movq	%rax, (%rcx)
 	movq	%rdi, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$40, %rax
-	movq	%rax, %rsi
+	movq	%rax, %r10
 	movq	$121, %rax
-	movq	%rsi, %rcx
+	movq	%r10, %rcx
 	movq	%rax, (%rcx)
 	movq	%rdi, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$48, %rax
-	movq	%rax, %rsi
+	movq	%rax, %r11
 	movq	$120, %rax
-	movq	%rsi, %rcx
+	movq	%r11, %rcx
 	movq	%rax, (%rcx)
 	movq	%rdi, %rax
 	addq	$0, %rax
@@ -80,24 +80,23 @@ program:
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$64, %rax
-	movq	%rax, %rsi
+	movq	%rax, %r8 
 	movq	$118, %rax
-	movq	%rsi, %rcx
+	movq	%r8 , %rcx
 	movq	%rax, (%rcx)
 	movq	%rdi, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$72, %rax
-	movq	%rax, %rsi
+	movq	%rax, %r9 
 	movq	$117, %rax
-	movq	%rsi, %rcx
+	movq	%r9 , %rcx
 	movq	%rax, (%rcx)
 	movq	%rdi, (%rdx)
-	movq	(%rdx), %rsi
-	pushq	%rsi
-	movq	%rsi, %rdi
+	movq	(%rdx), %rdi
+	pushq	%rdi
 	callq	string_of_array
-	popq	%rsi
+	popq	%rdi
 	movq	%rax, %rdx
 	pushq	%rdx
 	movq	%rdx, %rdi

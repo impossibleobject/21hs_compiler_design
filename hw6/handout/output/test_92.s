@@ -84,9 +84,9 @@ _body2177:
 _cond2178:
 	movq	(%rdi), %r8 
 	cmpq	$5, %r8 
-	setl	%r9b
-	andq	$1, %r9 
-	cmpq	$0, %r9 
+	setl	%r10b
+	andq	$1, %r10
+	cmpq	$0, %r10
 	jne	_body2177
 	jmp	_post2176
 	.text
@@ -98,8 +98,8 @@ _post2176:
 	callq	print_int
 	popq	%rdx
 	popq	%rsi
-	movq	(%rsi), %rdx
-	movq	%rdx, %rax
+	movq	(%rsi), %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

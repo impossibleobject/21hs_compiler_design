@@ -28,53 +28,53 @@ rot:
 	movq	%rax, %rdi
 	movq	%rdi, %rax
 	movq	%rax, %r8 
-	movq	(%rdx), %rdi
-	movq	%rdi, %rax
+	movq	(%rdx), %r9 
+	movq	%r9 , %rax
+	addq	$0, %rax
+	addq	$8, %rax
+	movq	%rax, %r10
+	movq	(%r10), %rdi
+	movq	%r8 , %rax
+	addq	$0, %rax
+	addq	$0, %rax
+	movq	%rax, %r9 
+	movq	%rdi, (%r9 )
+	movq	(%rdx), %r10
+	movq	%r10, %rax
+	addq	$0, %rax
+	addq	$16, %rax
+	movq	%rax, %r11
+	movq	(%r11), %rdi
+	movq	%r8 , %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	movq	%rax, %r9 
-	movq	(%r9 ), %rdi
-	movq	%r8 , %rax
-	addq	$0, %rax
-	addq	$0, %rax
-	movq	%rax, %r9 
 	movq	%rdi, (%r9 )
-	movq	(%rdx), %rdi
-	movq	%rdi, %rax
-	addq	$0, %rax
-	addq	$16, %rax
-	movq	%rax, %r9 
-	movq	(%r9 ), %rdi
-	movq	%r8 , %rax
-	addq	$0, %rax
-	addq	$8, %rax
-	movq	%rax, %r9 
-	movq	%rdi, (%r9 )
-	movq	(%rdx), %rdi
-	movq	%rdi, %rax
+	movq	(%rdx), %r10
+	movq	%r10, %rax
 	addq	$0, %rax
 	addq	$0, %rax
-	movq	%rax, %r9 
-	movq	(%r9 ), %rdi
+	movq	%rax, %r11
+	movq	(%r11), %rdi
 	movq	%r8 , %rax
 	addq	$0, %rax
 	addq	$16, %rax
 	movq	%rax, %r9 
 	movq	%rdi, (%r9 )
-	movq	(%rdx), %rdi
-	movq	%rdi, %rax
+	movq	(%rdx), %r10
+	movq	%r10, %rax
 	addq	$0, %rax
 	addq	$24, %rax
 	movq	%rax, %rdx
-	movq	(%rdx), %rdi
+	movq	(%rdx), %r11
 	movq	%r8 , %rax
 	addq	$0, %rax
 	addq	$24, %rax
 	movq	%rax, %rdx
-	movq	%rdi, (%rdx)
+	movq	%r11, (%rdx)
 	movq	%r8 , (%rsi)
-	movq	(%rsi), %rdx
-	movq	%rdx, %rax
+	movq	(%rsi), %r8 
+	movq	%r8 , %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -90,21 +90,21 @@ program:
 	addq	$0, %rax
 	addq	$24, %rax
 	movq	%rax, %rsi
-	movq	(%rsi), %rdx
+	movq	(%rsi), %rdi
 	leaq	c(%rip), %rax
 	movq	(%rax), %rax
-	movq	%rax, %rsi
+	movq	%rax, %r8 
 	pushq	%r15
-	movq	%rdx, %r15
-	pushq	%rsi
-	pushq	%rdx
-	movq	%rsi, %rdi
+	movq	%rdi, %r15
+	pushq	%r8 
+	pushq	%rdi
+	movq	%r8 , %rdi
 	callq	*%r15
-	popq	%rdx
-	popq	%rsi
+	popq	%rdi
+	popq	%r8 
 	popq	%r15
-	movq	%rax, %rdi
-	movq	%rdi, %rax
+	movq	%rax, %r9 
+	movq	%r9 , %rax
 	addq	$0, %rax
 	addq	$0, %rax
 	movq	%rax, %rdx

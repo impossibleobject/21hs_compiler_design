@@ -10,18 +10,17 @@ call:
 	movq	%rdi, (%rdx)
 	movq	%rsi, (%r8 )
 	movq	(%rdx), %rsi
-	movq	(%r8 ), %rdx
+	movq	(%r8 ), %rdi
 	pushq	%r15
 	movq	%rsi, %r15
+	pushq	%rdi
 	pushq	%rsi
-	pushq	%rdx
-	movq	%rdx, %rdi
 	callq	*%r15
-	popq	%rdx
 	popq	%rsi
+	popq	%rdi
 	popq	%r15
-	movq	%rax, %rdi
-	movq	%rdi, %rax
+	movq	%rax, %r9 
+	movq	%r9 , %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -34,9 +33,9 @@ inc:
 	movq	%rsp, %rdx
 	movq	%rdi, (%rdx)
 	movq	(%rdx), %rsi
-	movq	%rsi, %rdx
-	addq	$1, %rdx
-	movq	%rdx, %rax
+	movq	%rsi, %rdi
+	addq	$1, %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

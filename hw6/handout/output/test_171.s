@@ -13,8 +13,8 @@ program:
 	movq	(%rax), %rax
 	movq	%rax, %rsi
 	movq	%rsi, (%rdx)
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
+	movq	(%rdx), %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

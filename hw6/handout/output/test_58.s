@@ -24,18 +24,18 @@ _body14:
 	movq	%r9 , %r8 
 	imulq	%rdi, %r8 
 	movq	%r8 , (%rdx)
-	movq	(%rsi), %rdi
-	movq	%rdi, %r8 
-	addq	$1, %r8 
-	movq	%r8 , (%rsi)
+	movq	(%rsi), %r9 
+	movq	%r9 , %r10
+	addq	$1, %r10
+	movq	%r10, (%rsi)
 	jmp	_cond15
 	.text
 _cond15:
-	movq	(%rsi), %rdi
-	cmpq	$10, %rdi
-	setl	%r8b
-	andq	$1, %r8 
-	cmpq	$0, %r8 
+	movq	(%rsi), %r11
+	cmpq	$10, %r11
+	setl	%dil
+	andq	$1, %rdi
+	cmpq	$0, %rdi
 	jne	_body14
 	jmp	_post13
 	.text

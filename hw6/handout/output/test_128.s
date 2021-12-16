@@ -18,18 +18,18 @@ create_pair:
 	movq	%rax, %rsi
 	movq	%rsi, %rax
 	movq	%rax, %rdi
-	movq	(%rdx), %rsi
+	movq	(%rdx), %r9 
 	movq	%rdi, %rax
 	addq	$0, %rax
 	addq	$0, %rax
 	movq	%rax, %rdx
-	movq	%rsi, (%rdx)
-	movq	(%r8 ), %rdx
+	movq	%r9 , (%rdx)
+	movq	(%r8 ), %rsi
 	movq	%rdi, %rax
 	addq	$0, %rax
 	addq	$8, %rax
-	movq	%rax, %rsi
-	movq	%rdx, (%rsi)
+	movq	%rax, %r8 
+	movq	%rsi, (%r8 )
 	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
@@ -48,21 +48,21 @@ program:
 	popq	%rdx
 	movq	%rax, %rsi
 	movq	%rsi, (%rdx)
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
-	addq	$0, %rax
-	addq	$0, %rax
-	movq	%rax, %rdi
-	movq	(%rdi), %rsi
 	movq	(%rdx), %rdi
 	movq	%rdi, %rax
+	addq	$0, %rax
+	addq	$0, %rax
+	movq	%rax, %r8 
+	movq	(%r8 ), %r9 
+	movq	(%rdx), %rsi
+	movq	%rsi, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	movq	%rax, %rdx
 	movq	(%rdx), %rdi
-	movq	%rsi, %rdx
-	andq	%rdi, %rdx
-	cmpq	$0, %rdx
+	movq	%r9 , %r8 
+	andq	%rdi, %r8 
+	cmpq	$0, %r8 
 	jne	_then6812
 	jmp	_else6811
 	.text

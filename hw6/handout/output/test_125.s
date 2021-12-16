@@ -15,16 +15,16 @@ program:
 	movq	%rdi, %rax
 	addq	$0, %rax
 	addq	$0, %rax
-	movq	%rax, %rsi
+	movq	%rax, %r8 
 	movq	$3, %rax
-	movq	%rsi, %rcx
+	movq	%r8 , %rcx
 	movq	%rax, (%rcx)
 	movq	%rdi, %rax
 	addq	$0, %rax
 	addq	$8, %rax
-	movq	%rax, %rsi
+	movq	%rax, %r9 
 	movq	$4, %rax
-	movq	%rsi, %rcx
+	movq	%r9 , %rcx
 	movq	%rax, (%rcx)
 	movq	%rdi, %rax
 	addq	$0, %rax
@@ -34,20 +34,20 @@ program:
 	movq	%rsi, %rcx
 	movq	%rax, (%rcx)
 	movq	%rdi, (%rdx)
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
-	addq	$0, %rax
-	addq	$0, %rax
-	movq	%rax, %rdi
-	movq	(%rdi), %rsi
 	movq	(%rdx), %rdi
 	movq	%rdi, %rax
 	addq	$0, %rax
+	addq	$0, %rax
+	movq	%rax, %r8 
+	movq	(%r8 ), %r9 
+	movq	(%rdx), %r10
+	movq	%r10, %rax
+	addq	$0, %rax
 	addq	$8, %rax
 	movq	%rax, %rdx
-	movq	(%rdx), %rdi
-	movq	%rsi, %rdx
-	addq	%rdi, %rdx
+	movq	(%rdx), %r11
+	movq	%r9 , %rdx
+	addq	%r11, %rdx
 	movq	%rdx, %rax
 	movq	%rbp, %rsp
 	popq	%rbp

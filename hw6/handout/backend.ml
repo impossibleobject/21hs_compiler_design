@@ -742,7 +742,6 @@ let greedy_layout (f:Ll.fdecl) (live:liveness) : layout =
 module UidMap = Datastructures.UidM
 
 
-
 let better_layout (f:Ll.fdecl) (live:liveness) : layout =
   (* print_endline("entering better_layout"); *)
   (*L: copied initial things from greedy layout*)
@@ -769,35 +768,10 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
                     |> remove (Alloc.LReg Rcx)
                    )
   in
-  let allocate lo uid =
-    let loc =
-    try
-      let used_locs =
-        UidSet.fold (fun y -> LocSet.add (List.assoc y lo)) (live.live_in uid) LocSet.empty
-      in
-      let available_locs = LocSet.diff pal used_locs in
-      LocSet.choose available_locs
-    with
-    | Not_found -> spill ()
-    in
-    Platform.verb @@ Printf.sprintf "allocated: %s <- %s\n" (Alloc.str_loc loc) uid; loc
-  in
-
-  let lo =
-    fold_fdecl
-      (fun lo (x, _) -> (x, alloc_arg())::lo)
-      (fun lo l -> (l, Alloc.LLbl (Platform.mangle l))::lo)
-      (fun lo (x, i) ->
-        if insn_assigns i 
-        then (x, allocate lo x)::lo
-        else (x, Alloc.LVoid)::lo)
-      (fun lo _ -> lo)
-      [] f in
-  { uid_loc = (fun x -> List.assoc x lo)
-  ; spill_bytes = 8 * !n_spill
-  }
-  (* (* module RegSet = MakeSet (X86.reg) in *)
-  let regs = List.map (fun x -> Some x) [ Rdi; Rsi; Rdx; R09; R08; R10; R11 ] in
+  let regs = [ Rdi; Rsi; Rdx; R08; R09; R10; R11 ] in
+  (* (*L: our approach from here till 50 lines down*)
+  (* module RegSet = MakeSet (X86.reg) in *)
+  let regs = List.map (fun x -> Some x) [ Rdi; Rsi; Rdx; R08; R09; R10; R11 ] in
   (* print_endline("start making uid list"); *)
   let uids =
     let uids_from_block (b:Ll.block) : Ll.uid list =
@@ -807,8 +781,8 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
 
   let fold_func (map:(Ll.uid * X86.reg option) list) (uid:Ll.uid) : (Ll.uid * X86.reg option) list =
     let live_in = live.live_in uid in 
-    let req_regs = UidSet.cardinal live_in in
-    if (req_regs > 7) then (uid, None) :: map
+    let used_regs = UidSet.cardinal live_in in
+    if (used_regs > 7) then (uid, None) :: map
     else
       let map_func x =
         try
@@ -843,28 +817,92 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
       | None -> spill ()
     end in
     Platform.verb @@ Printf.sprintf "allocated: %s <- %s\n" (Alloc.str_loc loc) uid; loc
+  in *)
+
+  (*L: helper take, stupid it's not in list library*)
+  let rec take (i:int) (ls: 'a list) : 'a list = 
+    begin match i with
+      | 0 -> []
+      | i -> begin match ls with
+              | [] -> []
+              | h::tl -> h :: take (i-1) tl
+            end
+    end in
+
+  (*L: helper to drop from list if list empty just returns empty*)
+  let rec drop (i:int) (ls:'a list) : 'a list = 
+  begin match i with
+    | 0 -> ls
+    | _ -> 
+      begin match ls with
+        | []    -> []
+        | h::tl -> drop (i-1) tl
+      end
+  end in
+
+  let sort_func (x,y) (a,b) : int =
+    if (y<b) then -1 
+    else 
+      if (y>b) then 1
+      else 0
+    in
+
+  
+  let reg_usage =
+    let init_reg_usage =
+      List.fold_left (fun acc x -> (x,0)::acc) [] regs in 
+    let param_len = List.length f.f_param in
+    let incr = fun (x,c) -> (x,c+1) in
+    List.map incr (take param_len init_reg_usage) @ (drop param_len init_reg_usage)
+    in
+
+  let allocate (lo,reg_u) uid  =
+    let loc =
+    try
+      let used_locs =
+        UidSet.fold (fun y -> LocSet.add (List.assoc y lo)) (live.live_in uid) LocSet.empty
+      in
+      let available_locs = LocSet.diff pal used_locs in
+      let unpacked_locs = 
+        List.map (fun x -> 
+          begin match x with
+          | Alloc.LReg reg -> reg
+          | _ -> failwith "impossible"
+          end ) (LocSet.elements available_locs) in 
+      let mapped_regs = List.map (fun x -> x, List.assoc x reg_u) unpacked_locs in
+      let sorted_regs = List.sort sort_func mapped_regs in
+      let the_chosen1, _ = List.hd sorted_regs in
+      let new_reg_u = List.map (fun (x,c) -> if(x=the_chosen1) then (x,c+1) else (x,c)) reg_u in
+      Alloc.LReg the_chosen1, new_reg_u
+    with
+    | _ -> spill (), reg_u
+    in
+    Platform.verb @@ Printf.sprintf "allocated: %s <- %s\n" (Alloc.str_loc (fst loc)) uid; loc
   in
+
 
   let lo =
     fold_fdecl
-      (fun lo (x, _) -> (x, alloc_arg())::lo)
-      (fun lo l -> (l, Alloc.LLbl (Platform.mangle l))::lo)
-      (fun lo (x, i) ->
+      (fun (lo, ru) (x, _) -> (x, alloc_arg())::lo, ru) (*F: params*)
+      (fun (lo, ru) l -> (l, Alloc.LLbl (Platform.mangle l))::lo, ru) (*F: lbl*)
+      (fun (lo, ru) (x, i) -> (*F: insn*)
         if insn_assigns i 
-        then (x, allocate lo x)::lo
-        else (x, Alloc.LVoid)::lo)
-      (fun lo _ -> lo)
-      [] f in
+        then 
+          let xloc, reg_u = allocate (lo,ru) x in
+          ((x, xloc)::lo), reg_u
+        else ((x, Alloc.LVoid)::lo, ru))
+      (fun lo _ -> lo) (*F: term*)
+      ([], reg_usage) f in
   (*L: replacement for (fun x -> List.assoc x lo)*)
   let map_loc x =
     try 
-      List.assoc x lo
+      List.assoc x (fst lo)
     with
-      |Not_found -> failwith "their dumbass function failed"
+      | Not_found -> failwith "their dumbass function failed"
   in
   { uid_loc = map_loc
   ; spill_bytes = 8 * !n_spill
-  } *)
+  }
 
 
 

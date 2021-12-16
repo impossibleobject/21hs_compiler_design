@@ -101,11 +101,11 @@ _post1786:
 	popq	%rdi
 	movq	%rax, %rsi
 	movq	%rsi, (%rdi)
-	movq	(%rdi), %rdx
-	pushq	%rdx
-	movq	%rdx, %rdi
+	movq	(%rdi), %r9 
+	pushq	%r9 
+	movq	%r9 , %rdi
 	callq	print_string
-	popq	%rdx
+	popq	%r9 
 	movq	$0, %rax
 	movq	%rbp, %rsp
 	popq	%rbp

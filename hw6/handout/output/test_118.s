@@ -318,17 +318,17 @@ program:
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$8, %rax
-	movq	%rax, %r8 
+	movq	%rax, %r10
 	movq	$200, %rax
-	movq	%r8 , %rcx
+	movq	%r10, %rcx
 	movq	%rax, (%rcx)
 	movq	%r9 , %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$16, %rax
-	movq	%rax, %r8 
+	movq	%rax, %r11
 	movq	$1, %rax
-	movq	%r8 , %rcx
+	movq	%r11, %rcx
 	movq	%rax, (%rcx)
 	movq	%r9 , %rax
 	addq	$0, %rax
@@ -342,17 +342,17 @@ program:
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$32, %rax
-	movq	%rax, %r8 
+	movq	%rax, %r10
 	movq	$30, %rax
-	movq	%r8 , %rcx
+	movq	%r10, %rcx
 	movq	%rax, (%rcx)
 	movq	%r9 , %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$40, %rax
-	movq	%rax, %r8 
+	movq	%rax, %r11
 	movq	$99, %rax
-	movq	%r8 , %rcx
+	movq	%r11, %rcx
 	movq	%rax, (%rcx)
 	movq	%r9 , %rax
 	addq	$0, %rax
@@ -366,27 +366,27 @@ program:
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$56, %rax
-	movq	%rax, %r8 
+	movq	%rax, %r10
 	movq	$0, %rax
-	movq	%r8 , %rcx
+	movq	%r10, %rcx
 	movq	%rax, (%rcx)
 	movq	%r9 , (%rdx)
 	movq	$8, %rax
 	movq	%rsi, %rcx
 	movq	%rax, (%rcx)
-	movq	(%rsi), %r8 
+	movq	(%rsi), %r9 
 	movq	(%rdx), %rsi
-	pushq	%r8 
+	pushq	%r9 
 	pushq	%rdi
 	pushq	%rsi
 	pushq	%rdx
 	movq	%rsi, %rdi
-	movq	%r8 , %rsi
+	movq	%r9 , %rsi
 	callq	gnomeSort
 	popq	%rdx
 	popq	%rsi
 	popq	%rdi
-	popq	%r8 
+	popq	%r9 
 	movq	$0, %rax
 	movq	%rdi, %rcx
 	movq	%rax, (%rcx)
@@ -394,31 +394,31 @@ program:
 	.text
 _body5217:
 	movq	(%rdx), %rsi
-	movq	(%rdi), %r8 
+	movq	(%rdi), %r9 
 	movq	%rsi, %rax
-	movq	%rax, %r9 
+	movq	%rax, %r11
+	pushq	%r11
 	pushq	%r9 
-	pushq	%r8 
 	pushq	%rdi
 	pushq	%rsi
 	pushq	%rdx
-	movq	%r8 , %rsi
-	movq	%r9 , %rdi
+	movq	%r9 , %rsi
+	movq	%r11, %rdi
 	callq	oat_assert_array_length
 	popq	%rdx
 	popq	%rsi
 	popq	%rdi
-	popq	%r8 
 	popq	%r9 
+	popq	%r11
 	movq	%rsi, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	movq	%rax, %rcx
-	movq	%r8 , %rax
+	movq	%r9 , %rax
 	imulq	$8, %rax
 	addq	%rcx, %rax
-	movq	%rax, %r9 
-	movq	(%r9 ), %rsi
+	movq	%rax, %r8 
+	movq	(%r8 ), %rsi
 	pushq	%rdi
 	pushq	%rsi
 	pushq	%rdx
@@ -427,18 +427,18 @@ _body5217:
 	popq	%rdx
 	popq	%rsi
 	popq	%rdi
-	movq	(%rdi), %rsi
-	movq	%rsi, %r8 
-	addq	$1, %r8 
-	movq	%r8 , (%rdi)
+	movq	(%rdi), %r9 
+	movq	%r9 , %rsi
+	addq	$1, %rsi
+	movq	%rsi, (%rdi)
 	jmp	_cond5218
 	.text
 _cond5218:
-	movq	(%rdi), %rsi
-	cmpq	$8, %rsi
-	setl	%r8b
-	andq	$1, %r8 
-	cmpq	$0, %r8 
+	movq	(%rdi), %r9 
+	cmpq	$8, %r9 
+	setl	%r10b
+	andq	$1, %r10
+	cmpq	$0, %r10
 	jne	_body5217
 	jmp	_post5216
 	.text

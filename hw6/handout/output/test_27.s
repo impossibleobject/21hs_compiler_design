@@ -77,9 +77,9 @@ main:
 	movq	%rax, %rdi
 	movq	%rdx, %r8 
 	addq	%rsi, %r8 
-	movq	%r8 , %rdx
-	addq	%rdi, %rdx
-	movq	%rdx, %rax
+	movq	%r8 , %r9 
+	addq	%rdi, %r9 
+	movq	%r9 , %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

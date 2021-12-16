@@ -28,20 +28,20 @@ f:
 	movq	(%r10), %rsi
 	movq	%rdx, %rdi
 	addq	%rsi, %rdi
-	movq	(%r11), %rdx
-	movq	%rdi, %rsi
-	addq	%rdx, %rsi
+	movq	(%r11), %r8 
+	movq	%rdi, %rdx
+	addq	%r8 , %rdx
 	movq	-16(%rbp), %rax
 	movq	(%rax), %rax
-	movq	%rax, %rdx
-	movq	%rsi, %rdi
-	addq	%rdx, %rdi
+	movq	%rax, %rsi
+	movq	%rdx, %rdi
+	addq	%rsi, %rdi
 	movq	-24(%rbp), %rax
 	movq	(%rax), %rax
-	movq	%rax, %rdx
-	movq	%rdi, %rsi
-	addq	%rdx, %rsi
-	movq	%rsi, %rax
+	movq	%rax, %r8 
+	movq	%rdi, %r9 
+	addq	%r8 , %r9 
+	movq	%r9 , %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

@@ -11,9 +11,9 @@ main:
 	movq	%rdx, %rax
 	movq	%rax, %rsi
 	movq	%rsi, %rax
-	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
+	movq	%rax, %rdi
+	movq	(%rdi), %r8 
+	movq	%r8 , %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

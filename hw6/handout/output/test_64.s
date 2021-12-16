@@ -18,8 +18,8 @@ f:
 	jmp	_else235
 	.text
 _else235:
-	movq	(%r9 ), %rdx
-	movq	%rdx, %rax
+	movq	(%r9 ), %rsi
+	movq	%rsi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -31,8 +31,8 @@ _merge234:
 	retq	
 	.text
 _then236:
-	movq	(%r8 ), %rdx
-	movq	%rdx, %rax
+	movq	(%r8 ), %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -228,36 +228,36 @@ _post169:
 	.text
 _post194:
 	movq	%r9 , (%r8 )
-	movq	(%r8 ), %rdx
-	movq	(%rsi), %rdi
+	movq	(%r8 ), %rdi
+	movq	(%rsi), %r8 
+	pushq	%r8 
 	pushq	%rdi
 	pushq	%rsi
-	pushq	%rdx
-	movq	%rdx, %rsi
 	movq	$1, %rdx
+	movq	%rdi, %rsi
+	movq	%r8 , %rdi
 	callq	f
-	popq	%rdx
 	popq	%rsi
 	popq	%rdi
-	movq	%rax, %r8 
-	movq	%r8 , %rax
-	movq	%rax, %rdx
-	pushq	%r8 
-	pushq	%rsi
-	pushq	%rdx
-	movq	$0, %rsi
-	movq	%rdx, %rdi
-	callq	oat_assert_array_length
-	popq	%rdx
-	popq	%rsi
 	popq	%r8 
-	movq	%r8 , %rax
+	movq	%rax, %r11
+	movq	%r11, %rax
+	movq	%rax, %rdi
+	pushq	%r11
+	pushq	%rdi
+	pushq	%rsi
+	movq	$0, %rsi
+	callq	oat_assert_array_length
+	popq	%rsi
+	popq	%rdi
+	popq	%r11
+	movq	%r11, %rax
 	addq	$0, %rax
 	addq	$8, %rax
 	addq	$0, %rax
-	movq	%rax, %rdx
+	movq	%rax, %r8 
 	movq	$17, %rax
-	movq	%rdx, %rcx
+	movq	%r8 , %rcx
 	movq	%rax, (%rcx)
 	movq	(%rsi), %rdx
 	movq	%rdx, %rax
@@ -274,8 +274,8 @@ _post194:
 	addq	$8, %rax
 	addq	$0, %rax
 	movq	%rax, %rsi
-	movq	(%rsi), %rdx
-	movq	%rdx, %rax
+	movq	(%rsi), %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

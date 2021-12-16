@@ -19,18 +19,18 @@ _body792:
 	movq	%rdi, %r9 
 	imulq	%r8 , %r9 
 	movq	%r9 , (%rsi)
-	movq	(%rdx), %rdi
-	movq	%rdi, %r8 
-	subq	$1, %r8 
-	movq	%r8 , (%rdx)
+	movq	(%rdx), %r10
+	movq	%r10, %rdi
+	subq	$1, %rdi
+	movq	%rdi, (%rdx)
 	jmp	_cond793
 	.text
 _cond793:
-	movq	(%rdx), %rdi
-	cmpq	$0, %rdi
-	setg	%r8b
-	andq	$1, %r8 
+	movq	(%rdx), %r8 
 	cmpq	$0, %r8 
+	setg	%r9b
+	andq	$1, %r9 
+	cmpq	$0, %r9 
 	jne	_body792
 	jmp	_post791
 	.text

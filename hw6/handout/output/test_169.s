@@ -23,8 +23,8 @@ _else8318:
 	jmp	_merge8317
 	.text
 _merge8317:
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
+	movq	(%rdx), %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

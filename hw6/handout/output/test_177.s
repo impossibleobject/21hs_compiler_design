@@ -15,15 +15,15 @@ program:
 	movq	%rax, (%rcx)
 	movq	(%rdx), %rdi
 	cmpq	$0, %rdi
-	sete	%dl
-	andq	$1, %rdx
-	cmpq	$0, %rdx
+	sete	%r8b
+	andq	$1, %r8 
+	cmpq	$0, %r8 
 	jne	_null8622
 	jmp	_notnull8621
 	.text
 _merge8620:
-	movq	(%rsi), %rdx
-	movq	%rdx, %rax
+	movq	(%rsi), %r9 
+	movq	%r9 , %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

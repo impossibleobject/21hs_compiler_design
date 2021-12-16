@@ -57,9 +57,9 @@ contains:
 	movq	%rax, %rdx
 	movq	(%rdx), %r8 
 	cmpq	%rsi, %r8 
-	sete	%dl
-	andq	$1, %rdx
-	cmpq	$0, %rdx
+	sete	%r9b
+	andq	$1, %r9 
+	cmpq	$0, %r9 
 	jne	equal
 	jmp	notequal
 	.text
@@ -76,9 +76,9 @@ left:
 	movq	%rax, %rdx
 	movq	(%rdx), %rdi
 	cmpq	$0, %rdi
-	sete	%dl
-	andq	$1, %rdx
-	cmpq	$0, %rdx
+	sete	%r8b
+	andq	$1, %r8 
+	cmpq	$0, %r8 
 	jne	none
 	jmp	left_next
 	.text
@@ -88,8 +88,8 @@ left_next:
 	callq	contains
 	popq	%rsi
 	popq	%rdi
-	movq	%rax, %rdx
-	movq	%rdx, %rax
+	movq	%rax, %r9 
+	movq	%r9 , %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -102,9 +102,9 @@ none:
 	.text
 notequal:
 	cmpq	%rsi, %r8 
-	setg	%dl
-	andq	$1, %rdx
-	cmpq	$0, %rdx
+	setg	%r10b
+	andq	$1, %r10
+	cmpq	$0, %r10
 	jne	left
 	jmp	right
 	.text
@@ -112,8 +112,8 @@ right:
 	movq	%rdi, %rax
 	addq	$0, %rax
 	addq	$8, %rax
-	movq	%rax, %rdx
-	movq	(%rdx), %rdi
+	movq	%rax, %r11
+	movq	(%r11), %rdi
 	cmpq	$0, %rdi
 	sete	%dl
 	andq	$1, %rdx
@@ -127,8 +127,8 @@ right_next:
 	callq	contains
 	popq	%rsi
 	popq	%rdi
-	movq	%rax, %rdx
-	movq	%rdx, %rax
+	movq	%rax, %r8 
+	movq	%r8 , %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -279,9 +279,9 @@ main:
 	addq	%rdi, %rdx
 	movq	%r9 , %rsi
 	addq	%rdx, %rsi
-	movq	%rsi, %rdx
-	addq	%r8 , %rdx
-	movq	%rdx, %rax
+	movq	%rsi, %rdi
+	addq	%r8 , %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
