@@ -1,13 +1,108 @@
-	.data
-	.globl	arr
-arr:
-	.quad	0
 	.text
 	.globl	program
 program:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	movq	$17, %rax
+	subq	$120, %rsp
+	subq	$8, %rsp
+	movq	%rsp, -8(%rbp)
+	movq	$10, %rdi
+	callq	oat_alloc_array
+	movq	%rax, -16(%rbp)
+	movq	-16(%rbp), %rax
+	movq	%rax, -24(%rbp)
+	movq	-24(%rbp), %rax
+	addq	$0, %rax
+	addq	$8, %rax
+	addq	$0, %rax
+	movq	%rax, -32(%rbp)
+	movq	$126, %rax
+	movq	-32(%rbp), %rcx
+	movq	%rax, (%rcx)
+	movq	-24(%rbp), %rax
+	addq	$0, %rax
+	addq	$8, %rax
+	addq	$8, %rax
+	movq	%rax, -40(%rbp)
+	movq	$125, %rax
+	movq	-40(%rbp), %rcx
+	movq	%rax, (%rcx)
+	movq	-24(%rbp), %rax
+	addq	$0, %rax
+	addq	$8, %rax
+	addq	$16, %rax
+	movq	%rax, -48(%rbp)
+	movq	$124, %rax
+	movq	-48(%rbp), %rcx
+	movq	%rax, (%rcx)
+	movq	-24(%rbp), %rax
+	addq	$0, %rax
+	addq	$8, %rax
+	addq	$24, %rax
+	movq	%rax, -56(%rbp)
+	movq	$123, %rax
+	movq	-56(%rbp), %rcx
+	movq	%rax, (%rcx)
+	movq	-24(%rbp), %rax
+	addq	$0, %rax
+	addq	$8, %rax
+	addq	$32, %rax
+	movq	%rax, -64(%rbp)
+	movq	$122, %rax
+	movq	-64(%rbp), %rcx
+	movq	%rax, (%rcx)
+	movq	-24(%rbp), %rax
+	addq	$0, %rax
+	addq	$8, %rax
+	addq	$40, %rax
+	movq	%rax, -72(%rbp)
+	movq	$121, %rax
+	movq	-72(%rbp), %rcx
+	movq	%rax, (%rcx)
+	movq	-24(%rbp), %rax
+	addq	$0, %rax
+	addq	$8, %rax
+	addq	$48, %rax
+	movq	%rax, -80(%rbp)
+	movq	$120, %rax
+	movq	-80(%rbp), %rcx
+	movq	%rax, (%rcx)
+	movq	-24(%rbp), %rax
+	addq	$0, %rax
+	addq	$8, %rax
+	addq	$56, %rax
+	movq	%rax, -88(%rbp)
+	movq	$119, %rax
+	movq	-88(%rbp), %rcx
+	movq	%rax, (%rcx)
+	movq	-24(%rbp), %rax
+	addq	$0, %rax
+	addq	$8, %rax
+	addq	$64, %rax
+	movq	%rax, -96(%rbp)
+	movq	$118, %rax
+	movq	-96(%rbp), %rcx
+	movq	%rax, (%rcx)
+	movq	-24(%rbp), %rax
+	addq	$0, %rax
+	addq	$8, %rax
+	addq	$72, %rax
+	movq	%rax, -104(%rbp)
+	movq	$117, %rax
+	movq	-104(%rbp), %rcx
+	movq	%rax, (%rcx)
+	movq	-24(%rbp), %rax
+	movq	-8(%rbp), %rcx
+	movq	%rax, (%rcx)
+	movq	-8(%rbp), %rax
+	movq	(%rax), %rax
+	movq	%rax, -112(%rbp)
+	movq	-112(%rbp), %rdi
+	callq	string_of_array
+	movq	%rax, -120(%rbp)
+	movq	-120(%rbp), %rdi
+	callq	print_string
+	movq	$0, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

@@ -1,50 +1,46 @@
+	.data
+	.globl	hd
+hd:
+	.quad	1
+	.quad	md
+	.data
+	.globl	md
+md:
+	.quad	2
+	.quad	tl
+	.data
+	.globl	tl
+tl:
+	.quad	3
+	.quad	0
 	.text
-	.globl	program
-program:
+	.globl	main
+main:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	subq	$8, %rsp
-	movq	%rsp, %rdi
-	pushq	%rdi
-	movq	$2, %rdi
-	callq	oat_alloc_array
-	popq	%rdi
-	movq	%rax, %rsi
-	movq	%rsi, %rax
-	movq	%rax, %rdx
-	movq	%rdx, %rax
+	subq	$48, %rsp
+	leaq	hd(%rip), %rax
 	addq	$0, %rax
 	addq	$8, %rax
-	addq	$0, %rax
-	movq	%rax, %rsi
-	movq	$99, %rax
-	movq	%rsi, %rcx
-	movq	%rax, (%rcx)
-	movq	%rdx, %rax
-	addq	$0, %rax
-	addq	$8, %rax
-	addq	$8, %rax
-	movq	%rax, %rsi
-	movq	$0, %rax
-	movq	%rsi, %rcx
-	movq	%rax, (%rcx)
-	movq	%rdx, (%rdi)
-	movq	(%rdi), %rsi
-	movq	%rsi, %rax
-	movq	%rax, %rdi
-	pushq	%rdi
-	pushq	%rsi
-	movq	$0, %rsi
-	callq	oat_assert_array_length
-	popq	%rsi
-	popq	%rdi
-	movq	%rsi, %rax
+	movq	%rax, -8(%rbp)
+	movq	-8(%rbp), %rax
+	movq	(%rax), %rax
+	movq	%rax, -16(%rbp)
+	movq	-16(%rbp), %rax
 	addq	$0, %rax
 	addq	$8, %rax
+	movq	%rax, -24(%rbp)
+	movq	-24(%rbp), %rax
+	movq	(%rax), %rax
+	movq	%rax, -32(%rbp)
+	movq	-32(%rbp), %rax
 	addq	$0, %rax
-	movq	%rax, %rdi
-	movq	(%rdi), %rsi
-	movq	%rsi, %rax
+	addq	$0, %rax
+	movq	%rax, -40(%rbp)
+	movq	-40(%rbp), %rax
+	movq	(%rax), %rax
+	movq	%rax, -48(%rbp)
+	movq	-48(%rbp), %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

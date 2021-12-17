@@ -11,12 +11,15 @@ tmp:
 main:
 	pushq	%rbp
 	movq	%rsp, %rbp
+	subq	$16, %rsp
 	leaq	tmp(%rip), %rax
 	addq	$0, %rax
 	addq	$24, %rax
-	movq	%rax, %rdi
-	movq	(%rdi), %rsi
-	movq	%rsi, %rax
+	movq	%rax, -8(%rbp)
+	movq	-8(%rbp), %rax
+	movq	(%rax), %rax
+	movq	%rax, -16(%rbp)
+	movq	-16(%rbp), %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

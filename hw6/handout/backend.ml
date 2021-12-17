@@ -741,6 +741,15 @@ let greedy_layout (f:Ll.fdecl) (live:liveness) : layout =
 
 module UidMap = Datastructures.UidM
 
+(*L: helper take, stupid it's not in list library*)
+let rec take (i:int) (ls: 'a list) : 'a list = 
+  begin match i with
+    | 0 -> []
+    | i -> begin match ls with
+            | [] -> []
+            | h::tl -> h :: take (i-1) tl
+           end
+  end 
 
 let better_layout (f:Ll.fdecl) (live:liveness) : layout =
   (* print_endline("entering better_layout"); *)
@@ -768,8 +777,37 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
                     |> remove (Alloc.LReg Rcx)
                    )
   in
+
   (* module RegSet = MakeSet (X86.reg) in *)
-  let regs = List.map (fun x -> Some x) [ Rdi; Rsi; Rdx; R09; R08; R10; R11 ] in
+  let regs = List.map (fun x -> Some x) [ Rdi; Rsi; Rdx; R08; R09; R10; R11 ] in
+
+  let params_with_regs = 
+    let arg_regs = take 5 regs in
+    let short_param_ls = take 5 f.f_param in
+    if (List.length f.f_param >= 5) then
+      List.combine short_param_ls arg_regs
+    else 
+      let short_reg_ls = take (List.length f.f_param) arg_regs in
+      List.combine f.f_param short_reg_ls
+    in
+
+  let reg_usage =
+    let init_reg_usage =
+      List.fold_left (fun acc x -> (x,0)::acc) [] regs in 
+    (* let param_len = List.length f.f_param in *)
+    let param_len = List.length params_with_regs in
+    let incr = fun (x,c) -> (x,c+1) in
+    List.map incr (take param_len init_reg_usage)
+    in
+  
+  let sort_func (x,y) (a,b) : int =
+    if (y<b) then -1 
+    else 
+      if (y>b) then 1
+      else 0
+    in
+
+
   (* print_endline("start making uid list"); *)
   let uids =
     let uids_from_block (b:Ll.block) : Ll.uid list =
@@ -777,30 +815,47 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
     (* f.f_param @  *)uids_from_block (fst f.f_cfg) @ 
     List.concat (List.map (fun x -> uids_from_block (snd x)) (snd f.f_cfg)) in
 
-  let fold_func (map:(Ll.uid * X86.reg option) list) (uid:Ll.uid) : (Ll.uid * X86.reg option) list =
+  let fold_func (map,ru:((Ll.uid * X86.reg option) list * (X86.reg option * int) list)) (uid:Ll.uid) : ((Ll.uid * X86.reg option) list) * ((X86.reg option * int) list) =
     let live_in = live.live_in uid in 
     let req_regs = UidSet.cardinal live_in in
-    if (req_regs > 7) then (uid, None) :: map
+    if (req_regs > 7) then (uid, None) :: map, ru
     else
       let map_func x =
         try
           List.assoc x map
         with
-          | Not_found -> None
+          | Not_found -> (* print_endline("uid: " ^ x ^ "not in reg map"); *)
+                         None
       in
       let live_regs = List.map map_func (UidSet.elements live_in) in
       let diff l1 l2 = List.filter (fun x -> not (List.mem x l2)) l1 in
+      let reg_diff = diff live_regs regs in
 
-      let reg_diff = diff regs live_regs in
+      let sorted_ru = List.sort sort_func ru in
+
       let designated_reg =
+        let rec get_min_loc curr_ru =
+          begin match curr_ru with
+          | [] -> None
+          | (h,cnt)::tl -> 
+            let h_in_map = List.exists (fun x -> x=h) reg_diff in
+            if h_in_map then h
+            else get_min_loc tl 
+          end 
+        in 
+        get_min_loc sorted_ru 
+      in
+      let new_ru = List.map (fun (x,c) -> if (x=designated_reg) then (x,c+1) else (x,c)) ru in
+
+      (* let designated_reg =
         begin match reg_diff with
         | [] -> None
         | h::tl -> h
-        end in
-      (uid, designated_reg)::map
+        end in *)
+      (uid, designated_reg)::map, new_ru
   in
   (* print_endline("start folding over uids to get reg alloc tuples"); *)
-  let mapping = List.fold_left fold_func [] uids in
+  let mapping, _ = List.fold_left fold_func (params_with_regs, reg_usage) uids in (*F: changed empty list to mapping with args and regs*)
   (* print_endline("start allocating regs from tuples"); *)
   let allocate lo uid =
     let loc =

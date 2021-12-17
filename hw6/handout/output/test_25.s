@@ -3,24 +3,30 @@
 baz:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	subq	$16, %rsp
+	subq	$64, %rsp
 	movq	%rcx, -8(%rbp)
 	movq	%rdi, %rax
 	addq	%rsi, %rax
 	movq	%rax, -16(%rbp)
-	movq	-16(%rbp), %rdi
-	addq	%rdx, %rdi
-	movq	%rdi, %rsi
-	addq	-8(%rbp), %rsi
-	movq	%rsi, %rdi
-	addq	%r8 , %rdi
-	movq	%rdi, %rsi
-	addq	%r9 , %rsi
-	movq	%rsi, %rdi
-	addq	16(%rbp), %rdi
-	movq	%rdi, %rsi
-	addq	24(%rbp), %rsi
-	movq	%rsi, %rax
+	movq	-16(%rbp), %rax
+	addq	%rdx, %rax
+	movq	%rax, -24(%rbp)
+	movq	-24(%rbp), %rax
+	addq	-8(%rbp), %rax
+	movq	%rax, -32(%rbp)
+	movq	-32(%rbp), %rax
+	addq	%r8 , %rax
+	movq	%rax, -40(%rbp)
+	movq	-40(%rbp), %rax
+	addq	%r9 , %rax
+	movq	%rax, -48(%rbp)
+	movq	-48(%rbp), %rax
+	addq	16(%rbp), %rax
+	movq	%rax, -56(%rbp)
+	movq	-56(%rbp), %rax
+	addq	24(%rbp), %rax
+	movq	%rax, -64(%rbp)
+	movq	-64(%rbp), %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -29,45 +35,46 @@ baz:
 bar:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	subq	$24, %rsp
+	subq	$80, %rsp
 	movq	%rcx, -8(%rbp)
 	movq	%rdi, %rax
 	addq	%rsi, %rax
 	movq	%rax, -16(%rbp)
-	movq	-16(%rbp), %rdi
-	addq	%rdx, %rdi
-	movq	%rdi, %rsi
-	addq	-8(%rbp), %rsi
-	movq	%rsi, %rdx
-	addq	%r8 , %rdx
+	movq	-16(%rbp), %rax
+	addq	%rdx, %rax
+	movq	%rax, -24(%rbp)
+	movq	-24(%rbp), %rax
+	addq	-8(%rbp), %rax
+	movq	%rax, -32(%rbp)
+	movq	-32(%rbp), %rax
+	addq	%r8 , %rax
+	movq	%rax, -40(%rbp)
 	pushq	%r9 
 	pushq	%r8 
-	pushq	%rdi
-	pushq	%rsi
-	pushq	%rdx
 	pushq	24(%rbp)
 	pushq	16(%rbp)
-	movq	%rdx, %rcx
-	movq	%rsi, %rdx
-	movq	%rdi, %rsi
+	movq	-40(%rbp), %rcx
+	movq	-32(%rbp), %rdx
+	movq	-24(%rbp), %rsi
 	movq	-16(%rbp), %rdi
 	callq	baz
 	addq	$16, %rsp
-	popq	%rdx
-	popq	%rsi
-	popq	%rdi
 	popq	%r8 
 	popq	%r9 
-	movq	%rax, -24(%rbp)
-	movq	%rdx, %rdi
-	addq	%r9 , %rdi
-	movq	%rdi, %rsi
-	addq	16(%rbp), %rsi
-	movq	%rsi, %rdi
-	addq	24(%rbp), %rdi
-	movq	%rdi, %rsi
-	addq	-24(%rbp), %rsi
-	movq	%rsi, %rax
+	movq	%rax, -48(%rbp)
+	movq	-40(%rbp), %rax
+	addq	%r9 , %rax
+	movq	%rax, -56(%rbp)
+	movq	-56(%rbp), %rax
+	addq	16(%rbp), %rax
+	movq	%rax, -64(%rbp)
+	movq	-64(%rbp), %rax
+	addq	24(%rbp), %rax
+	movq	%rax, -72(%rbp)
+	movq	-72(%rbp), %rax
+	addq	-48(%rbp), %rax
+	movq	%rax, -80(%rbp)
+	movq	-80(%rbp), %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -76,6 +83,8 @@ bar:
 foo:
 	pushq	%rbp
 	movq	%rsp, %rbp
+	subq	$8, %rsp
+	pushq	%rdi
 	pushq	%rdi
 	pushq	%rdi
 	movq	%rdi, %r9 
@@ -85,8 +94,9 @@ foo:
 	movq	%rdi, %rsi
 	callq	bar
 	addq	$16, %rsp
-	movq	%rax, %rdi
-	movq	%rdi, %rax
+	popq	%rdi
+	movq	%rax, -8(%rbp)
+	movq	-8(%rbp), %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -95,10 +105,11 @@ foo:
 main:
 	pushq	%rbp
 	movq	%rsp, %rbp
+	subq	$8, %rsp
 	movq	$1, %rdi
 	callq	foo
-	movq	%rax, %rdi
-	movq	%rdi, %rax
+	movq	%rax, -8(%rbp)
+	movq	-8(%rbp), %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

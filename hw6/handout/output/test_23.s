@@ -3,8 +3,11 @@
 bar:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	addq	%rsi, %rdi
+	subq	$8, %rsp
 	movq	%rdi, %rax
+	addq	%rsi, %rax
+	movq	%rax, -8(%rbp)
+	movq	-8(%rbp), %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -13,10 +16,13 @@ bar:
 foo:
 	pushq	%rbp
 	movq	%rsp, %rbp
+	subq	$8, %rsp
+	pushq	%rdi
 	movq	%rdi, %rsi
 	callq	bar
-	movq	%rax, %rdi
-	movq	%rdi, %rax
+	popq	%rdi
+	movq	%rax, -8(%rbp)
+	movq	-8(%rbp), %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -25,10 +31,11 @@ foo:
 main:
 	pushq	%rbp
 	movq	%rsp, %rbp
+	subq	$8, %rsp
 	movq	$17, %rdi
 	callq	foo
-	movq	%rax, %rdi
-	movq	%rdi, %rax
+	movq	%rax, -8(%rbp)
+	movq	-8(%rbp), %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

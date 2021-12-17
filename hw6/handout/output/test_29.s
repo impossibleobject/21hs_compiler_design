@@ -21,23 +21,22 @@ gstr:
 main:
 	pushq	%rbp
 	movq	%rsp, %rbp
+	subq	$24, %rsp
 	leaq	v2(%rip), %rax
 	addq	$0, %rax
 	addq	$0, %rax
-	movq	%rax, %rdi
+	movq	%rax, -8(%rbp)
 	movq	$5, %rax
-	movq	%rdi, %rcx
+	movq	-8(%rbp), %rcx
 	movq	%rax, (%rcx)
 	leaq	v2(%rip), %rax
-	movq	%rax, %rsi
-	pushq	%rdi
-	pushq	%rsi
-	movq	%rsi, %rdi
+	movq	%rax, -16(%rbp)
+	movq	-16(%rbp), %rdi
 	callq	foo
-	popq	%rsi
-	popq	%rdi
-	movq	(%rdi), %rsi
-	movq	%rsi, %rax
+	movq	-8(%rbp), %rax
+	movq	(%rax), %rax
+	movq	%rax, -24(%rbp)
+	movq	-24(%rbp), %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -46,12 +45,13 @@ main:
 foo:
 	pushq	%rbp
 	movq	%rsp, %rbp
+	subq	$8, %rsp
 	movq	%rdi, %rax
 	addq	$0, %rax
 	addq	$0, %rax
-	movq	%rax, %rdi
+	movq	%rax, -8(%rbp)
 	movq	$6, %rax
-	movq	%rdi, %rcx
+	movq	-8(%rbp), %rcx
 	movq	%rax, (%rcx)
 	movq	%rbp, %rsp
 	popq	%rbp

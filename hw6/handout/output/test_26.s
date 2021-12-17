@@ -14,6 +14,7 @@ bar:
 main:
 	pushq	%rbp
 	movq	%rsp, %rbp
+	subq	$8, %rsp
 	pushq	$8
 	pushq	$7
 	movq	$6, %r9 
@@ -24,8 +25,8 @@ main:
 	movq	$1, %rdi
 	callq	bar
 	addq	$16, %rsp
-	movq	%rax, %rdi
-	movq	%rdi, %rax
+	movq	%rax, -8(%rbp)
+	movq	-8(%rbp), %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
