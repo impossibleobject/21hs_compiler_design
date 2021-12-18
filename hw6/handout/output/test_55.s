@@ -1,18 +1,35 @@
 	.text
-	.globl	foo
-foo:
+	.globl	factorial
+factorial:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	movq	$42, %rax
+	subq	$8, %rsp
+	cmpq	$0, %rdi
+	sete	%r11b
+	andq	$1, %r11
+	cmpq	$0, %r11
+	jne	ret1
+	jmp	recurse
+	.text
+recurse:
+	movq	%rdi, %r11
+	subq	$1, %r11
+	pushq	%r11
+	pushq	%rdi
+	movq	%r11, %rdi
+	callq	factorial
+	popq	%rdi
+	popq	%r11
+	movq	%rax, -8(%rbp)
+	movq	%rdi, %r11
+	imulq	-8(%rbp), %r11
+	movq	%r11, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
 	.text
-	.globl	bar
-bar:
-	pushq	%rbp
-	movq	%rsp, %rbp
-	movq	$0, %rax
+ret1:
+	movq	$1, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -21,49 +38,10 @@ bar:
 main:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	subq	$56, %rsp
-	subq	$8, %rsp
-	movq	%rsp, -8(%rbp)
-	subq	$8, %rsp
-	movq	%rsp, -16(%rbp)
-	movq	$0, %rax
-	movq	-8(%rbp), %rcx
-	movq	%rax, (%rcx)
-	movq	$100, %rax
-	movq	-16(%rbp), %rcx
-	movq	%rax, (%rcx)
-	movq	-16(%rbp), %rax
-	movq	(%rax), %rax
-	movq	%rax, -24(%rbp)
-	movq	-24(%rbp), %rax
-	cmpq	$0, %rax
-	setne	-32(%rbp)
-	andq	$1, -32(%rbp)
-	cmpq	$0, -32(%rbp)
-	jne	then
-	jmp	else
-	.text
-else:
-	callq	bar
-	movq	%rax, -40(%rbp)
-	movq	-40(%rbp), %rax
-	movq	-8(%rbp), %rcx
-	movq	%rax, (%rcx)
-	jmp	end
-	.text
-end:
-	movq	-8(%rbp), %rax
-	movq	(%rax), %rax
-	movq	%rax, -48(%rbp)
-	movq	-48(%rbp), %rax
+	movq	$5, %rdi
+	callq	factorial
+	movq	%rax, %r11
+	movq	%r11, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
-	.text
-then:
-	callq	foo
-	movq	%rax, -56(%rbp)
-	movq	-56(%rbp), %rax
-	movq	-8(%rbp), %rcx
-	movq	%rax, (%rcx)
-	jmp	end

@@ -3,22 +3,13 @@
 program:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	jmp	_then8282
-	.text
-_else8281:
-	movq	$2, %rax
-	movq	%rbp, %rsp
-	popq	%rbp
-	retq	
-	.text
-_merge8280:
-	movq	$0, %rax
-	movq	%rbp, %rsp
-	popq	%rbp
-	retq	
-	.text
-_then8282:
-	movq	$-96, %rax
+	subq	$8, %rsp
+	movq	%rsp, %r11
+	movq	$99, %rax
+	movq	%r11, %rcx
+	movq	%rax, (%rcx)
+	movq	(%r11), %r10
+	movq	%r10, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

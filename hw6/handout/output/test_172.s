@@ -1,32 +1,19 @@
-	.text
-	.globl	f
-f:
-	pushq	%rbp
-	movq	%rsp, %rbp
-	subq	$16, %rsp
-	subq	$8, %rsp
-	movq	%rsp, -8(%rbp)
-	movq	%rdi, %rax
-	movq	-8(%rbp), %rcx
-	movq	%rax, (%rcx)
-	movq	-8(%rbp), %rax
-	movq	(%rax), %rax
-	movq	%rax, -16(%rbp)
-	movq	-16(%rbp), %rax
-	movq	%rbp, %rsp
-	popq	%rbp
-	retq	
+	.data
+	.globl	i
+i:
+	.quad	3
 	.text
 	.globl	program
 program:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	subq	$8, %rsp
-	movq	$2, %rsi
-	movq	$1, %rdi
-	callq	f
-	movq	%rax, -8(%rbp)
-	movq	-8(%rbp), %rax
+	movq	$341, %rax
+	leaq	i(%rip), %rcx
+	movq	%rax, (%rcx)
+	leaq	i(%rip), %rax
+	movq	(%rax), %rax
+	movq	%rax, %r10
+	movq	%r10, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

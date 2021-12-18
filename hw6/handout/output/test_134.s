@@ -1,33 +1,16 @@
-	.data
-	.globl	x
-x:
-	.quad	add
 	.text
-	.globl	add
-add:
+	.globl	id
+id:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	subq	$40, %rsp
 	subq	$8, %rsp
-	movq	%rsp, -8(%rbp)
 	subq	$8, %rsp
-	movq	%rsp, -16(%rbp)
-	movq	%rdi, %rax
-	movq	-8(%rbp), %rcx
-	movq	%rax, (%rcx)
-	movq	%rsi, %rax
-	movq	-16(%rbp), %rcx
-	movq	%rax, (%rcx)
+	movq	%rsp, %r11
+	movq	%rdi, (%r11)
+	movq	%r11, %rax
+	movq	(%rax), %rax
+	movq	%rax, -8(%rbp)
 	movq	-8(%rbp), %rax
-	movq	(%rax), %rax
-	movq	%rax, -24(%rbp)
-	movq	-16(%rbp), %rax
-	movq	(%rax), %rax
-	movq	%rax, -32(%rbp)
-	movq	-24(%rbp), %rax
-	addq	-32(%rbp), %rax
-	movq	%rax, -40(%rbp)
-	movq	-40(%rbp), %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -36,15 +19,18 @@ add:
 program:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	subq	$16, %rsp
-	leaq	x(%rip), %rax
-	movq	(%rax), %rax
-	movq	%rax, -8(%rbp)
-	movq	$4, %rsi
-	movq	$3, %rdi
-	callq	*-8(%rbp)
-	movq	%rax, -16(%rbp)
-	movq	-16(%rbp), %rax
+	subq	$8, %rsp
+	movq	%rsp, %r11
+	leaq	id(%rip), %rax
+	movq	%r11, %rcx
+	movq	%rax, (%rcx)
+	movq	(%r11), %r10
+	pushq	%r10
+	movq	$1, %rdi
+	callq	*%r10
+	popq	%r10
+	movq	%rax, %r11
+	movq	%r11, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

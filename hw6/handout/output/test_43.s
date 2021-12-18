@@ -1,96 +1,85 @@
-	.data
-	.globl	test1
-test1:
-	.quad	0
-	.quad	0
-	.quad	100
-	.data
-	.globl	test2
-test2:
-	.quad	test1
-	.quad	0
-	.quad	10
-	.data
-	.globl	test3
-test3:
-	.quad	0
-	.quad	0
-	.quad	1
-	.data
-	.globl	test
-test:
-	.quad	test2
-	.quad	test3
-	.quad	5
-	.text
-	.globl	sum_tree
-sum_tree:
-	pushq	%rbp
-	movq	%rsp, %rbp
-	subq	$88, %rsp
-	cmpq	$0, %rdi
-	sete	-8(%rbp)
-	andq	$1, -8(%rbp)
-	cmpq	$0, -8(%rbp)
-	jne	then
-	jmp	else
-	.text
-else:
-	movq	%rdi, %rax
-	addq	$0, %rax
-	addq	$16, %rax
-	movq	%rax, -16(%rbp)
-	movq	-16(%rbp), %rax
-	movq	(%rax), %rax
-	movq	%rax, -24(%rbp)
-	movq	%rdi, %rax
-	addq	$0, %rax
-	addq	$8, %rax
-	movq	%rax, -32(%rbp)
-	movq	-32(%rbp), %rax
-	movq	(%rax), %rax
-	movq	%rax, -40(%rbp)
-	pushq	%rdi
-	movq	-40(%rbp), %rdi
-	callq	sum_tree
-	popq	%rdi
-	movq	%rax, -48(%rbp)
-	movq	-24(%rbp), %rax
-	addq	-48(%rbp), %rax
-	movq	%rax, -56(%rbp)
-	movq	%rdi, %rax
-	addq	$0, %rax
-	addq	$0, %rax
-	movq	%rax, -64(%rbp)
-	movq	-64(%rbp), %rax
-	movq	(%rax), %rax
-	movq	%rax, -72(%rbp)
-	movq	-72(%rbp), %rdi
-	callq	sum_tree
-	movq	%rax, -80(%rbp)
-	movq	-56(%rbp), %rax
-	addq	-80(%rbp), %rax
-	movq	%rax, -88(%rbp)
-	movq	-88(%rbp), %rax
-	movq	%rbp, %rsp
-	popq	%rbp
-	retq	
-	.text
-then:
-	movq	$0, %rax
-	movq	%rbp, %rsp
-	popq	%rbp
-	retq	
 	.text
 	.globl	main
 main:
 	pushq	%rbp
 	movq	%rsp, %rbp
+	subq	$64, %rsp
 	subq	$8, %rsp
-	leaq	test(%rip), %rdi
-	callq	sum_tree
+	movq	%rsp, %r11
+	subq	$8, %rsp
+	movq	%rsp, %r10
+	movq	$8, %rax
+	movq	%r11, %rcx
+	movq	%rax, (%rcx)
+	movq	$10, %rax
+	movq	%r10, %rcx
+	movq	%rax, (%rcx)
+	jmp	gcd
+	.text
+continue_loop:
+	movq	%r11, %rax
+	movq	(%rax), %rax
 	movq	%rax, -8(%rbp)
 	movq	-8(%rbp), %rax
+	cmpq	-56(%rbp), %rax
+	setg	-16(%rbp)
+	andq	$1, -16(%rbp)
+	cmpq	$0, -16(%rbp)
+	jne	if
+	jmp	else
+	.text
+else:
+	movq	-56(%rbp), %rax
+	subq	-8(%rbp), %rax
+	movq	%rax, -24(%rbp)
+	movq	-24(%rbp), %rax
+	movq	%r10, %rcx
+	movq	%rax, (%rcx)
+	jmp	loop
+	.text
+gcd:
+	movq	%r11, %rax
+	movq	(%rax), %rax
+	movq	%rax, -32(%rbp)
+	movq	$0, %rax
+	cmpq	-32(%rbp), %rax
+	sete	-40(%rbp)
+	andq	$1, -40(%rbp)
+	cmpq	$0, -40(%rbp)
+	jne	ret_b
+	jmp	loop
+	.text
+if:
+	movq	-8(%rbp), %rax
+	subq	-56(%rbp), %rax
+	movq	%rax, -48(%rbp)
+	movq	-48(%rbp), %rax
+	movq	%r11, %rcx
+	movq	%rax, (%rcx)
+	jmp	loop
+	.text
+loop:
+	movq	%r10, %rax
+	movq	(%rax), %rax
+	movq	%rax, -56(%rbp)
+	movq	$0, %rax
+	cmpq	-56(%rbp), %rax
+	sete	-64(%rbp)
+	andq	$1, -64(%rbp)
+	cmpq	$0, -64(%rbp)
+	jne	ret_a
+	jmp	continue_loop
+	.text
+ret_a:
+	movq	(%r11), %r10
+	movq	%r10, %rax
+	movq	%rbp, %rsp
+	popq	%rbp
+	retq	
+	.text
+ret_b:
+	movq	(%r10), %r11
+	movq	%r11, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

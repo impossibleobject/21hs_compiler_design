@@ -12,14 +12,13 @@ foo:
 main:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	subq	$16, %rsp
 	movq	$17, %rdi
 	callq	foo
-	movq	%rax, -8(%rbp)
+	movq	%rax, %r11
 	movq	$19, %rdi
 	callq	foo
-	movq	%rax, -16(%rbp)
-	movq	-16(%rbp), %rax
+	movq	%rax, %r10
+	movq	%r10, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

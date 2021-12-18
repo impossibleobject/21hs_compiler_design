@@ -811,34 +811,45 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
   (* print_endline("start making uid list"); *)
   let uids =
     let uids_from_block (b:Ll.block) : Ll.uid list =
-      fst b.term :: (List.map fst b.insns) in 
+      (List.map fst b.insns) @ [fst b.term] in 
     (* f.f_param @  *)uids_from_block (fst f.f_cfg) @ 
     List.concat (List.map (fun x -> uids_from_block (snd x)) (snd f.f_cfg)) in
 
   let fold_func (map,ru:((Ll.uid * X86.reg option) list * (X86.reg option * int) list)) (uid:Ll.uid) : ((Ll.uid * X86.reg option) list) * ((X86.reg option * int) list) =
-    let live_in = live.live_in uid in 
-    let req_regs = UidSet.cardinal live_in in
-    if (req_regs > 7) then (uid, None) :: map, ru
-    else
+    let live_in = UidSet.elements (live.live_in uid) in 
+    let new_map = map (* List.filter (fun (u, r) -> List.mem u live_in) map *) in
+    let req_regs = List.length live_in in
+    if (req_regs > 7) then (uid, None) :: new_map, ru
+    else 
+      ((* print_endline("trying to map uid: " ^ uid ^ " to a reg"); *)
       let map_func x =
         try
-          List.assoc x map
+          let res = List.assoc x new_map in
+          begin match res with
+            | None -> res
+            | Some r -> (* print_endline("allocated uid: " ^ uid ^ " to reg " ^ string_of_reg r); *)
+                        res
+          end
         with
           | Not_found -> (* print_endline("uid: " ^ x ^ "not in reg map"); *)
                          None
       in
-      let live_regs = List.map map_func (UidSet.elements live_in) in
+      let live_regs = List.map map_func live_in in
       let diff l1 l2 = List.filter (fun x -> not (List.mem x l2)) l1 in
-      let reg_diff = diff live_regs regs in
+      let usable_regs = diff regs live_regs in
+      (* print_endline("number of available regs: " ^ string_of_int (List.length usable_regs)); *)
+
 
       let sorted_ru = List.sort sort_func ru in
 
       let designated_reg =
         let rec get_min_loc curr_ru =
           begin match curr_ru with
-          | [] -> None
+          | [] -> (* print_endline("reg utilization empty"); *)
+                  None
           | (h,cnt)::tl -> 
-            let h_in_map = List.exists (fun x -> x=h) reg_diff in
+            (*L: check if h is in list of available regs*)
+            let h_in_map = List.exists (fun x -> x=h) usable_regs in
             if h_in_map then h
             else get_min_loc tl 
           end 
@@ -852,7 +863,7 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
         | [] -> None
         | h::tl -> h
         end in *)
-      (uid, designated_reg)::map, new_ru
+      (uid, designated_reg)::new_map, new_ru)
   in
   (* print_endline("start folding over uids to get reg alloc tuples"); *)
   let mapping, _ = List.fold_left fold_func (params_with_regs, reg_usage) uids in (*F: changed empty list to mapping with args and regs*)
@@ -866,7 +877,8 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
         | Not_found -> failwith "our list failed, Leon you dumbass"
         in
       begin match reg_loc with
-      | Some r -> Alloc.LReg r
+      | Some r -> (* print_endline("successfully allocated reg: " ^ X86.string_of_reg r); *)
+                  Alloc.LReg r
       | None -> spill ()
     end in
     Platform.verb @@ Printf.sprintf "allocated: %s <- %s\n" (Alloc.str_loc loc) uid; loc

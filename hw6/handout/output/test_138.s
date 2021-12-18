@@ -1,29 +1,39 @@
+	.data
+	.globl	_str_arr7211
+_str_arr7211:
+	.asciz	"ab"
 	.text
-	.globl	add
-add:
+	.globl	run2
+run2:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	subq	$40, %rsp
+	subq	$24, %rsp
 	subq	$8, %rsp
-	movq	%rsp, -8(%rbp)
+	movq	%rsp, %r11
 	subq	$8, %rsp
-	movq	%rsp, -16(%rbp)
-	movq	%rdi, %rax
-	movq	-8(%rbp), %rcx
-	movq	%rax, (%rcx)
-	movq	%rsi, %rax
-	movq	-16(%rbp), %rcx
-	movq	%rax, (%rcx)
-	movq	-8(%rbp), %rax
+	movq	%rsp, %r10
+	movq	%rdi, (%r11)
+	movq	%rsi, (%r10)
+	movq	%r11, %rax
+	movq	(%rax), %rax
+	movq	%rax, -8(%rbp)
+	movq	%r10, %rax
+	movq	(%rax), %rax
+	movq	%rax, -16(%rbp)
+	pushq	%r11
+	pushq	%r10
+	movq	-16(%rbp), %rdi
+	callq	*-8(%rbp)
+	popq	%r10
+	popq	%r11
+	movq	%r11, %rax
 	movq	(%rax), %rax
 	movq	%rax, -24(%rbp)
-	movq	-16(%rbp), %rax
-	movq	(%rax), %rax
-	movq	%rax, -32(%rbp)
-	movq	-24(%rbp), %rax
-	addq	-32(%rbp), %rax
-	movq	%rax, -40(%rbp)
-	movq	-40(%rbp), %rax
+	movq	(%r10), %r11
+	pushq	%r11
+	movq	%r11, %rdi
+	callq	*-24(%rbp)
+	popq	%r11
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
@@ -32,28 +42,16 @@ add:
 program:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	subq	$40, %rsp
-	subq	$8, %rsp
-	movq	%rsp, -8(%rbp)
-	subq	$8, %rsp
-	movq	%rsp, -16(%rbp)
-	leaq	add(%rip), %rax
-	movq	-8(%rbp), %rcx
-	movq	%rax, (%rcx)
-	movq	-8(%rbp), %rax
-	movq	(%rax), %rax
-	movq	%rax, -24(%rbp)
-	movq	-24(%rbp), %rax
-	movq	-16(%rbp), %rcx
-	movq	%rax, (%rcx)
-	movq	-16(%rbp), %rax
-	movq	(%rax), %rax
-	movq	%rax, -32(%rbp)
-	movq	$3, %rsi
-	movq	$2, %rdi
-	callq	*-32(%rbp)
-	movq	%rax, -40(%rbp)
-	movq	-40(%rbp), %rax
+	leaq	_str_arr7211(%rip), %rax
+	addq	$0, %rax
+	addq	$0, %rax
+	movq	%rax, %r11
+	pushq	%r11
+	movq	%r11, %rsi
+	leaq	print_string(%rip), %rdi
+	callq	run2
+	popq	%r11
+	movq	$0, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
