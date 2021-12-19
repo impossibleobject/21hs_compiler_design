@@ -9,8 +9,8 @@ main:
 	movq	%rsp, %rbp
 	leaq	gbl(%rip), %rax
 	movq	(%rax), %rax
-	movq	%rax, %rdi
-	movq	%rdi, %rax
+	movq	%rax, %rsi
+	movq	%rsi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

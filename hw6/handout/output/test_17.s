@@ -4,16 +4,16 @@ main:
 	pushq	%rbp
 	movq	%rsp, %rbp
 	subq	$8, %rsp
-	movq	%rsp, %rdi
+	movq	%rsp, %rdx
 	movq	$17, %rax
-	movq	%rdi, %rcx
+	movq	%rdx, %rcx
 	movq	%rax, (%rcx)
 	subq	$8, %rsp
-	movq	%rsp, %rdi
-	movq	%rdi, (%rdi)
-	movq	(%rdi), %rdi
-	movq	(%rdi), %rdi
-	movq	%rdi, %rax
+	movq	%rsp, %rsi
+	movq	%rdx, (%rsi)
+	movq	(%rsi), %rdi
+	movq	(%rdi), %rsi
+	movq	%rsi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

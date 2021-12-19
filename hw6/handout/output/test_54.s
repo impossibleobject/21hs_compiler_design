@@ -1,16 +1,39 @@
 	.data
-	.globl	x
-x:
-	.quad	42
+	.globl	hd
+hd:
+	.quad	1
+	.quad	md
+	.data
+	.globl	md
+md:
+	.quad	2
+	.quad	tl
+	.data
+	.globl	tl
+tl:
+	.quad	3
+	.quad	0
 	.text
-	.globl	program
-program:
+	.globl	main
+main:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	leaq	x(%rip), %rax
-	movq	(%rax), %rax
+	leaq	hd(%rip), %rax
+	addq	$0, %rax
+	addq	$8, %rax
 	movq	%rax, %rdi
-	movq	%rdi, %rax
+	movq	(%rdi), %rsi
+	movq	%rsi, %rax
+	addq	$0, %rax
+	addq	$8, %rax
+	movq	%rax, %rdi
+	movq	(%rdi), %rsi
+	movq	%rsi, %rax
+	addq	$0, %rax
+	addq	$0, %rax
+	movq	%rax, %rdi
+	movq	(%rdi), %rsi
+	movq	%rsi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

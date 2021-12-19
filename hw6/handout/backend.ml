@@ -779,7 +779,7 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
     (* drop 5 f.f_param @  *)uids_from_block (fst f.f_cfg) @ 
     List.concat (List.map (fun x -> uids_from_block (snd x)) (snd f.f_cfg)) in
   let graph = List.map (fun u -> (u, live.live_in u)) uids in
-  (* let graph = List.fold_left (fun map (u,ns) -> UidMap.add u ns map) UidMap.empty uids_ns in *)
+  (* let graph = List.fold_left (fun map (u,ns) -> UidMap.add u ns map) UidMap.empty graph in *)
 
   (*F: first part: break down graph*)
   
@@ -817,12 +817,34 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
     List.combine (take safe_num_param f.f_param) (take safe_num_param regs) 
     @ List.map (fun u -> (u, None)) ((drop safe_num_param f.f_param) @ uids) in
 
+  let params_sets = List.map (fun x -> (x, UidSet.empty)) f.f_param in
+  let uidmap = List.fold_left (fun map (u,ns) -> UidMap.add u ns map) UidMap.empty (graph @ params_sets) in
+
+  let sym_sets =
+    let fold_func f_acc uid =
+      let uid_live_in = live.live_in uid in
+      let rec set_rec uidset acc =
+        begin match UidSet.cardinal uidset with
+        | 0 -> acc
+        | _ -> 
+          let chosen = UidSet.choose uidset in
+          let chosen_set = UidMap.find chosen acc in
+          let new_chosen_set = UidSet.add uid chosen_set in
+          let new_acc = UidMap.add chosen new_chosen_set acc in
+          let new_uidset = UidSet.remove chosen uidset in
+          set_rec new_uidset new_acc
+        end in
+      let new_f_acc = set_rec uid_live_in f_acc in
+      new_f_acc in
+
+    List.fold_left fold_func uidmap uids in
+
     
   let rec coloring ((stack,map) : (Ll.uid list * (Ll.uid * X86.reg option) list)) : (Ll.uid * X86.reg option) list =
     begin match stack with
     | [] -> map
     | h::tl ->
-      let hd_live_in = live.live_in h in
+      let hd_live_in = UidMap.find h sym_sets in
       let unpack (u,r) =
         let u_is_live = UidSet.mem u hd_live_in in
         begin match r with
