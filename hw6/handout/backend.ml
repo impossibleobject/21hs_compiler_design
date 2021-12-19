@@ -842,7 +842,7 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
 
       let sorted_ru = List.sort sort_func ru in
 
-      let designated_reg =
+      let designated_reg = 
         let rec get_min_loc curr_ru =
           begin match curr_ru with
           | [] -> (* print_endline("reg utilization empty"); *)
