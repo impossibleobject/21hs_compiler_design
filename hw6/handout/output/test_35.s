@@ -16,10 +16,10 @@ main:
 	leaq	gbl(%rip), %rax
 	addq	$0, %rax
 	addq	$8, %rax
-	addq	$40, %rax
-	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
+	addq	$24, %rax
+	movq	%rax, %rdi
+	movq	(%rdi), %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

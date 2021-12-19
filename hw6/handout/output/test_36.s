@@ -13,13 +13,17 @@ gbl:
 main:
 	pushq	%rbp
 	movq	%rsp, %rbp
+	addq	$0, %rdi
 	leaq	gbl(%rip), %rax
 	addq	$0, %rax
 	addq	$8, %rax
-	addq	$0, %rax
-	movq	%rax, %rdx
-	movq	(%rdx), %rsi
-	movq	%rsi, %rax
+	movq	%rax, %rcx
+	movq	%rdi, %rax
+	imulq	$8, %rax
+	addq	%rcx, %rax
+	movq	%rax, %rdi
+	movq	(%rdi), %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

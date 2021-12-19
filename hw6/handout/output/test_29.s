@@ -1,58 +1,24 @@
 	.data
-	.globl	gint
-gint:
-	.quad	42
-	.data
-	.globl	v1
-v1:
-	.quad	0
-	.quad	gint
-	.data
-	.globl	v2
-v2:
+	.globl	gbl
+gbl:
 	.quad	1
-	.quad	0
-	.data
-	.globl	gstr
-gstr:
-	.asciz	"hello, world!"
+	.quad	2
+	.quad	3
+	.quad	4
+	.quad	5
+	.quad	6
+	.quad	7
 	.text
 	.globl	main
 main:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	leaq	v2(%rip), %rax
+	leaq	gbl(%rip), %rax
 	addq	$0, %rax
 	addq	$0, %rax
-	movq	%rax, %rdx
-	movq	$5, %rax
-	movq	%rdx, %rcx
-	movq	%rax, (%rcx)
-	leaq	v2(%rip), %rax
-	movq	%rax, %rsi
-	pushq	%rsi
-	pushq	%rdx
-	movq	%rsi, %rdi
-	callq	foo
-	popq	%rdx
-	popq	%rsi
-	movq	(%rdx), %rdi
+	movq	%rax, %rdi
+	movq	(%rdi), %rdi
 	movq	%rdi, %rax
-	movq	%rbp, %rsp
-	popq	%rbp
-	retq	
-	.text
-	.globl	foo
-foo:
-	pushq	%rbp
-	movq	%rsp, %rbp
-	movq	%rdi, %rax
-	addq	$0, %rax
-	addq	$0, %rax
-	movq	%rax, %rdx
-	movq	$6, %rax
-	movq	%rdx, %rcx
-	movq	%rax, (%rcx)
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

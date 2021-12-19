@@ -1,21 +1,19 @@
 	.data
-	.globl	_str_arr763
-_str_arr763:
-	.asciz	"abcde"
+	.globl	i
+i:
+	.quad	3
 	.text
 	.globl	program
 program:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	leaq	_str_arr763(%rip), %rax
-	addq	$0, %rax
-	addq	$0, %rax
-	movq	%rax, %rdx
-	pushq	%rdx
-	movq	%rdx, %rdi
-	callq	print_string
-	popq	%rdx
-	movq	$0, %rax
+	movq	$341, %rax
+	leaq	i(%rip), %rcx
+	movq	%rax, (%rcx)
+	leaq	i(%rip), %rax
+	movq	(%rax), %rax
+	movq	%rax, %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

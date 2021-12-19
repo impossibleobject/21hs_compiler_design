@@ -14,8 +14,8 @@ main:
 	movq	%rsp, %rbp
 	movq	$17, %rdi
 	callq	foo
-	movq	%rax, %rdx
-	movq	%rdx, %rax
+	movq	%rax, %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	

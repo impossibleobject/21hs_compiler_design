@@ -13,8 +13,8 @@ main:
 	pushq	%rbp
 	movq	%rsp, %rbp
 	callq	foo
-	movq	%rax, %rdx
-	movq	%rdx, %rax
+	movq	%rax, %rdi
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
