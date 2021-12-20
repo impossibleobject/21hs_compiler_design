@@ -808,7 +808,7 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
   
   (*F: second part: rebuild graph with coloring*)
 
-  let regs = List.map (fun x -> Some x) [ Rdi; Rsi; Rdx; R08; R09; R10; R11 ] in
+  let regs = List.map (fun x -> Some x) [ Rdi; Rsi; Rdx; R08; R09; R10; R11(* ; R12 *)] in
 
   let mapping : (Ll.uid * X86.reg option) list = 
     let safe_num_param = 
@@ -856,7 +856,7 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
       let diff l1 l2 = List.filter (fun x -> not (List.mem x l2)) l1 in
       let free_regs = diff regs taken_regs in
       
-      print_endline("free_regs : " ^ String.concat " " (List.map string_of_reg_opt free_regs));
+      (* print_endline("free_regs : " ^ String.concat " " (List.map string_of_reg_opt free_regs)); *)
       
       let hd_color =
         begin match free_regs with
@@ -895,7 +895,7 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
         in
       begin match reg_loc with
       | Some Rax | None -> spill ()
-      | Some r -> print_endline("alloced uid: " ^ uid ^ " to reg: " ^ string_of_reg r);
+      | Some r -> (* print_endline("alloced uid: " ^ uid ^ " to reg: " ^ string_of_reg r); *)
                   Alloc.LReg r
       end in
     Platform.verb @@ Printf.sprintf "allocated: %s <- %s\n" (Alloc.str_loc loc) uid; loc
@@ -989,11 +989,13 @@ let compile_fdecl tdecls (g:gid) (f:Ll.fdecl) : x86stream =
   let _ = check_layout layout liveness f in 
   let afdecl = alloc_fdecl layout liveness f in
   [L (Platform.mangle g, true)]
+  (* >@ lift Asm.[ Pushq, [~%R12] ] *)
   >@ lift Asm.[ Pushq, [~%Rbp]
               ; Movq,  [~%Rsp; ~%Rbp] ]
   >@ (if layout.spill_bytes <= 0 then [] else
       lift Asm.[ Subq,  [~$(layout.spill_bytes); ~%Rsp] ])
   >@ (compile_fbody tdecls afdecl)
+  (* >@ lift Asm.[ Popq, [~%R12] ] *)
 
 (* compile_gdecl ------------------------------------------------------------ *)
 
