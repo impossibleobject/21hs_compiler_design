@@ -772,7 +772,7 @@ let string_of_reg_opt (r : X86.reg option) : string =
 
 
 let better_layout (f:Ll.fdecl) (live:liveness) : layout =
-
+ 
   let uids =
     let uids_from_block (b:Ll.block) : Ll.uid list =
       fst b.term :: (List.map fst b.insns) in 
