@@ -803,12 +803,12 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
       build_stack (new_stack, new_graph)
     end in
   
-  let stack = build_stack ([], graph) in
+  let stack = (build_stack ([], graph)) in
 
   
   (*F: second part: rebuild graph with coloring*)
 
-  let regs = List.map (fun x -> Some x) [ Rdi; Rsi; Rdx; R08; R09; R10; R11(* ; R12 *)] in
+  let regs = List.map (fun x -> Some x) [ Rdi; Rsi; Rdx; R08; R09; R10; R11; R12 ] in
 
   let mapping : (Ll.uid * X86.reg option) list = 
     let safe_num_param = 
@@ -820,6 +820,7 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
   let params_sets = List.map (fun x -> (x, UidSet.empty)) f.f_param in
   let uidmap = List.fold_left (fun map (u,ns) -> UidMap.add u ns map) UidMap.empty (graph @ params_sets) in
 
+  (*F: fold to make edges bidirectional so we have undirected graph*)
   let sym_sets =
     let fold_func f_acc uid =
       let uid_live_in = live.live_in uid in
@@ -990,7 +991,7 @@ let compile_fdecl tdecls (g:gid) (f:Ll.fdecl) : x86stream =
   let afdecl = alloc_fdecl layout liveness f in
   [L (Platform.mangle g, true)]
   (* >@ lift Asm.[ Pushq, [~%R12] ] *)
-  >@ lift Asm.[ Pushq, [~%Rbp]
+  >@ lift Asm.[ Pushq, [~%Rbp] 
               ; Movq,  [~%Rsp; ~%Rbp] ]
   >@ (if layout.spill_bytes <= 0 then [] else
       lift Asm.[ Subq,  [~$(layout.spill_bytes); ~%Rsp] ])
