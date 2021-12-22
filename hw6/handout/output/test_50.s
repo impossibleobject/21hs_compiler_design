@@ -1,101 +1,247 @@
+	.data
+	.globl	red
+red:
+	.quad	_global_struct6793
+	.data
+	.globl	_global_struct6793
+_global_struct6793:
+	.quad	255
+	.quad	0
+	.quad	0
+	.data
+	.globl	green
+green:
+	.quad	_global_struct6792
+	.data
+	.globl	_global_struct6792
+_global_struct6792:
+	.quad	0
+	.quad	255
+	.quad	0
+	.data
+	.globl	blue
+blue:
+	.quad	_global_struct6791
+	.data
+	.globl	_global_struct6791
+_global_struct6791:
+	.quad	0
+	.quad	0
+	.quad	255
+	.data
+	.globl	points
+points:
+	.quad	_global_arr6790
+	.data
+	.globl	_global_arr6790
+_global_arr6790:
+	.quad	1
+	.quad	_global_struct6789
+	.data
+	.globl	_global_struct6789
+_global_struct6789:
+	.quad	_global_struct6788
+	.quad	_global_struct6787
+	.quad	_global_struct6786
+	.data
+	.globl	_global_struct6788
+_global_struct6788:
+	.quad	255
+	.quad	0
+	.quad	0
+	.data
+	.globl	_global_struct6787
+_global_struct6787:
+	.quad	0
+	.quad	255
+	.quad	0
+	.data
+	.globl	_global_struct6786
+_global_struct6786:
+	.quad	0
+	.quad	0
+	.quad	255
 	.text
-	.globl	naive_mod
-naive_mod:
+	.globl	program
+program:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	subq	$8, %rsp
-	movq	%rsp, %r10
-	movq	$0, %rax
-	movq	%r10, %rcx
+	leaq	points(%rip), %rax
+	movq	(%rax), %rax
+	movq	%rax, %rdx
+	movq	%rdx, %rax
+	movq	%rax, %rdi
+	pushq	%rdi
+	pushq	%rdx
+	movq	$0, %rsi
+	callq	oat_assert_array_length
+	popq	%rdx
+	popq	%rdi
+	movq	%rdx, %rax
+	addq	$0, %rax
+	addq	$8, %rax
+	addq	$0, %rax
+	movq	%rax, %rsi
+	movq	(%rsi), %rdi
+	movq	%rdi, %rax
+	addq	$0, %rax
+	addq	$0, %rax
+	movq	%rax, %rsi
+	movq	(%rsi), %rdi
+	movq	%rdi, %rax
+	addq	$0, %rax
+	addq	$0, %rax
+	movq	%rax, %rsi
+	movq	$3, %rax
+	movq	%rsi, %rcx
 	movq	%rax, (%rcx)
-	jmp	start
-	.text
-final:
-	movq	(%r10), %r8 
-	movq	%r8 , %rdx
-	subq	%rsi, %rdx
-	movq	%rdi, %rsi
-	subq	%rdx, %rsi
-	movq	%rsi, %rax
-	movq	%rbp, %rsp
-	popq	%rbp
-	retq	
-	.text
-start:
-	movq	(%r10), %rdx
-	movq	%rsi, %r9 
-	addq	%rdx, %r9 
-	movq	%r9 , (%r10)
-	cmpq	%rdi, %r9 
-	setg	%r8b
-	andq	$1, %r8 
-	cmpq	$0, %r8 
-	jne	final
-	jmp	start
-	.text
-	.globl	naive_prime
-naive_prime:
-	pushq	%rbp
-	movq	%rsp, %rbp
-	subq	$8, %rsp
-	movq	%rsp, %r10
+	leaq	points(%rip), %rax
+	movq	(%rax), %rax
+	movq	%rax, %rdx
+	movq	%rdx, %rax
+	movq	%rax, %rdi
+	pushq	%rdi
+	pushq	%rdx
+	movq	$0, %rsi
+	callq	oat_assert_array_length
+	popq	%rdx
+	popq	%rdi
+	movq	%rdx, %rax
+	addq	$0, %rax
+	addq	$8, %rax
+	addq	$0, %rax
+	movq	%rax, %rsi
+	movq	(%rsi), %rdi
+	movq	%rdi, %rax
+	addq	$0, %rax
+	addq	$0, %rax
+	movq	%rax, %rsi
+	movq	(%rsi), %rdi
+	movq	%rdi, %rax
+	addq	$0, %rax
+	addq	$8, %rax
+	movq	%rax, %rsi
 	movq	$2, %rax
-	movq	%r10, %rcx
+	movq	%rsi, %rcx
 	movq	%rax, (%rcx)
-	jmp	loop
-	.text
-final_false:
-	movq	$0, %rax
-	movq	%rbp, %rsp
-	popq	%rbp
-	retq	
-	.text
-final_true:
-	movq	$1, %rax
-	movq	%rbp, %rsp
-	popq	%rbp
-	retq	
-	.text
-inc:
-	movq	(%r10), %r8 
-	movq	$1, %rdx
-	addq	%r9 , %rdx
-	movq	%rdx, (%r10)
-	pushq	%r10
+	leaq	points(%rip), %rax
+	movq	(%rax), %rax
+	movq	%rax, %rdx
+	movq	%rdx, %rax
+	movq	%rax, %rdi
+	pushq	%rdi
+	pushq	%rdx
+	movq	$0, %rsi
+	callq	oat_assert_array_length
+	popq	%rdx
+	popq	%rdi
+	movq	%rdx, %rax
+	addq	$0, %rax
+	addq	$8, %rax
+	addq	$0, %rax
+	movq	%rax, %rsi
+	movq	(%rsi), %rdi
+	movq	%rdi, %rax
+	addq	$0, %rax
+	addq	$0, %rax
+	movq	%rax, %rsi
+	movq	(%rsi), %rdi
+	movq	%rdi, %rax
+	addq	$0, %rax
+	addq	$16, %rax
+	movq	%rax, %rsi
+	movq	$4, %rax
+	movq	%rsi, %rcx
+	movq	%rax, (%rcx)
+	leaq	points(%rip), %rax
+	movq	(%rax), %rax
+	movq	%rax, %rsi
+	movq	%rsi, %rax
+	movq	%rax, %rdi
+	pushq	%rdi
+	pushq	%rsi
+	movq	$0, %rsi
+	callq	oat_assert_array_length
+	popq	%rsi
+	popq	%rdi
+	movq	%rsi, %rax
+	addq	$0, %rax
+	addq	$8, %rax
+	addq	$0, %rax
+	movq	%rax, %rdi
+	movq	(%rdi), %rsi
+	movq	%rsi, %rax
+	addq	$0, %rax
+	addq	$0, %rax
+	movq	%rax, %rdi
+	movq	(%rdi), %rsi
+	movq	%rsi, %rax
+	addq	$0, %rax
+	addq	$0, %rax
+	movq	%rax, %rdi
+	movq	(%rdi), %r9 
+	leaq	points(%rip), %rax
+	movq	(%rax), %rax
+	movq	%rax, %rdx
+	movq	%rdx, %rax
+	movq	%rax, %rdi
+	pushq	%r9 
+	pushq	%rdi
+	pushq	%rdx
+	movq	$0, %rsi
+	callq	oat_assert_array_length
+	popq	%rdx
+	popq	%rdi
+	popq	%r9 
+	movq	%rdx, %rax
+	addq	$0, %rax
+	addq	$8, %rax
+	addq	$0, %rax
+	movq	%rax, %rsi
+	movq	(%rsi), %rdi
+	movq	%rdi, %rax
+	addq	$0, %rax
+	addq	$0, %rax
+	movq	%rax, %rsi
+	movq	(%rsi), %rdi
+	movq	%rdi, %rax
+	addq	$0, %rax
+	addq	$8, %rax
+	movq	%rax, %rsi
+	movq	(%rsi), %rdi
+	movq	%r9 , %r8 
+	imulq	%rdi, %r8 
+	leaq	points(%rip), %rax
+	movq	(%rax), %rax
+	movq	%rax, %rdx
+	movq	%rdx, %rax
+	movq	%rax, %rdi
 	pushq	%r8 
 	pushq	%rdi
-	movq	%r8 , %rsi
-	callq	naive_mod
+	pushq	%rdx
+	movq	$0, %rsi
+	callq	oat_assert_array_length
+	popq	%rdx
 	popq	%rdi
 	popq	%r8 
-	popq	%r10
+	movq	%rdx, %rax
+	addq	$0, %rax
+	addq	$8, %rax
+	addq	$0, %rax
 	movq	%rax, %rsi
-	movq	$0, %rax
-	cmpq	%rsi, %rax
-	sete	%dl
-	andq	$1, %rdx
-	cmpq	$0, %rdx
-	jne	final_false
-	jmp	loop
-	.text
-loop:
-	movq	(%r10), %r9 
-	movq	%r9 , %rsi
-	imulq	%r9 , %rsi
-	cmpq	%rdi, %rsi
-	setg	%dl
-	andq	$1, %rdx
-	cmpq	$0, %rdx
-	jne	final_true
-	jmp	inc
-	.text
-	.globl	main
-main:
-	pushq	%rbp
-	movq	%rsp, %rbp
-	movq	$19, %rdi
-	callq	naive_prime
+	movq	(%rsi), %rdi
+	movq	%rdi, %rax
+	addq	$0, %rax
+	addq	$0, %rax
 	movq	%rax, %rsi
+	movq	(%rsi), %rdi
+	movq	%rdi, %rax
+	addq	$0, %rax
+	addq	$16, %rax
+	movq	%rax, %rsi
+	movq	(%rsi), %rdi
+	movq	%r8 , %rsi
+	addq	%rdi, %rsi
 	movq	%rsi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp

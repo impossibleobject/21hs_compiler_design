@@ -778,10 +778,11 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
   let safe_num_param = 
     let num_param = List.length f.f_param in
     if(num_param < 5) then num_param else 5 in
+
   let init_param_regs : regmap = 
     List.combine (take safe_num_param f.f_param) (take safe_num_param regs) in
 
-  let uid_regs =
+  let uid_regs : regmap =
     let block_into_mapping (old_mapping:regmap) (b:Ll.block) : regmap =
       let ins_into_mapping (curr_mapping:regmap) ((u, i):(Ll.uid * Ll.insn)) : regmap =
         begin match i with
@@ -811,19 +812,17 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
                     let argreg = List.nth param_regs argpos in
                     [(argu, argreg)]
             in
-            List.concat (List.mapi uid_mapping reg_arg_uids) @ curr_mapping
-          | _ -> (u, None) :: curr_mapping
+            curr_mapping @ List.concat (List.mapi uid_mapping reg_arg_uids)
+          | _ -> curr_mapping @ [(u, None)]
         end in
       List.fold_left ins_into_mapping old_mapping b.insns @ [(fst b.term, None)] in 
     List.fold_left block_into_mapping init_param_regs (fst f.f_cfg :: List.map snd (snd f.f_cfg)) in
 
-    (* init_param_regs @ uids_from_block (fst f.f_cfg) @ 
-    List.concat (List.map (fun x -> uids_from_block (snd x)) (snd f.f_cfg)) in *)
-
+    
   let graph = 
-    List.map (fun ur -> (ur, UidSet.empty)) (List.filter (fun (u,r) -> List.mem u f.f_param) uid_regs) @
-    List.map (fun ur -> (ur, live.live_in (fst ur))) (List.filter (fun (u,r) -> not (List.mem u f.f_param)) uid_regs) in
-  (* let graph = List.fold_left (fun map (u,ns) -> UidMap.add u ns map) UidMap.empty graph in *)
+    List.map (fun ur -> (ur, UidSet.empty)) (take safe_num_param uid_regs 
+    @ List.map (fun x -> (x, None)) (drop safe_num_param f.f_param)) @
+    List.map (fun ur -> (ur, live.live_in (fst ur))) (drop safe_num_param uid_regs) in
 
   (*F: first part: break down graph*)
   
@@ -860,13 +859,18 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
   (*F: fold to make edges bidirectional so we have undirected graph*)
   let symm_sets =
     let fold_func f_acc (uid, ureg) =
-      let uid_live_in = live.live_in uid in
+      let uid_live_in = UidMap.find uid f_acc (* live.live_in uid *) in
       let rec set_rec uidset acc =
         begin match UidSet.cardinal uidset with
         | 0 -> acc
         | _ -> 
           let chosen = UidSet.choose uidset in
-          let chosen_set = UidMap.find chosen acc in
+          let chosen_set = 
+            try
+              UidMap.find chosen acc 
+            with
+              | Not_found -> failwith "symm_sets can't get symmetric connections"
+          in
           let new_chosen_set = UidSet.add uid chosen_set in
           let new_acc = UidMap.add chosen new_chosen_set acc in
           let new_uidset = UidSet.remove chosen uidset in
@@ -875,21 +879,26 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
       let new_f_acc = set_rec uid_live_in f_acc in
       new_f_acc in
 
-    List.fold_left fold_func uidmap uid_regs in
+    List.fold_left fold_func uidmap ((* drop safe_num_param *) (List.map (fun x -> (x, None)) (drop safe_num_param f.f_param)) @ uid_regs) in
 
     
-  let rec coloring ((stack,map) : (regmap * regmap)) : regmap =
+  let rec coloring ((stack,map) : (regmap * ((Ll.uid * X86.reg option) * UidSet.t) list)) : ((Ll.uid * X86.reg option) * UidSet.t) list =
     begin match stack with
     | [] -> map
     | h::tl ->
-      let hd_live_in = UidMap.find (fst h) symm_sets in
+      let hd_live_in =
+        try
+          UidMap.find (fst h) symm_sets
+        with 
+        | Not_found -> failwith "did not find in coloring function"
+      in
       let u_neighbor_reg_used (u,r) =
         let u_is_live = UidSet.mem u hd_live_in in
         begin match r with
         | None   -> false
         | Some r -> u_is_live
         end in
-      let find_col_neighbors = List.filter u_neighbor_reg_used map in
+      let find_col_neighbors = List.filter u_neighbor_reg_used (List.map fst map) in
       let taken_regs = List.map snd find_col_neighbors  in
       let diff l1 l2 = List.filter (fun x -> not (List.mem x l2)) l1 in
       let free_regs = diff regs taken_regs in
@@ -901,11 +910,11 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
         | [] -> Some Rax (*L: placeholder to filter out regs we have to spill*)
         | r::rtl -> r
       end in 
-      let new_map = List.map (fun (x,y) -> if (x = (fst h)) then (x,hd_color) else (x,y)) map in
+      let new_map = List.map (fun ((x,y),set) -> if (x = (fst h)) then ((x,hd_color),set) else ((x,y),set)) map in
       coloring (tl, new_map) 
     end in
   
-  let coloring_map = coloring (stack,uidmap) in
+  let coloring_map = List.map fst (coloring (stack,graph)) in
 
   (*F: third part: allocating, mostly copied from greedy except for spill cond*)
 
