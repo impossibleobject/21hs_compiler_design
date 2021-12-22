@@ -808,7 +808,7 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
   
   (*F: second part: rebuild graph with coloring*)
 
-  let regs = List.map (fun x -> Some x) [ Rdi; Rsi; Rdx; R08; R09; R10; R11; R12 ] in
+  let regs = List.map (fun x -> Some x) [ Rdi; Rsi; Rdx; R08; R09; R10; R11 ] in
 
   let mapping : (Ll.uid * X86.reg option) list = 
     let safe_num_param = 
