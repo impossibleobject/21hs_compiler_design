@@ -769,21 +769,65 @@ let string_of_reg_opt (r : X86.reg option) : string =
   | Some reg -> string_of_reg reg
   end
 
-
+type regmap = (Ll.uid * X86.reg option) list
 
 let better_layout (f:Ll.fdecl) (live:liveness) : layout =
- 
-  let uids =
-    let uids_from_block (b:Ll.block) : Ll.uid list =
-      fst b.term :: (List.map fst b.insns) in 
-    (* drop 5 f.f_param @  *)uids_from_block (fst f.f_cfg) @ 
-    List.concat (List.map (fun x -> uids_from_block (snd x)) (snd f.f_cfg)) in
-  let graph = List.map (fun u -> (u, live.live_in u)) uids in
+  let regs = List.map (fun x -> Some x) [ Rdi; Rsi; Rdx; R08; R09; R10; R11 ] in
+  let param_regs = [ Some Rdi; Some Rsi; None; Some Rdx; Some R08; Some R09 ] in
+
+  let safe_num_param = 
+    let num_param = List.length f.f_param in
+    if(num_param < 5) then num_param else 5 in
+  let init_param_regs : regmap = 
+    List.combine (take safe_num_param f.f_param) (take safe_num_param regs) in
+
+  let uid_regs =
+    let block_into_mapping (old_mapping:regmap) (b:Ll.block) : regmap =
+      let ins_into_mapping (curr_mapping:regmap) ((u, i):(Ll.uid * Ll.insn)) : regmap =
+        begin match i with
+          | Call (_, _, ls) ->
+            let unpack_uid ((ty, op):(Ll.ty * Ll.operand)) : Ll.uid =
+              begin match op with
+                | Id uid | Gid uid -> uid
+                | _ -> "dummystring_from_f_and_l" (*L: hope this does not overlap with var name*)
+              end in
+            let ls_ops = List.map unpack_uid ls in
+
+            let reg_arg_uids = 
+              let safe_num_param = 
+                let num_param = List.length ls_ops in
+                if(num_param < 5) then num_param else 5 in
+              take safe_num_param ls_ops in
+            let uid_mapping argpos argu =
+              try 
+                (*L: if we already mapped uid don't change mapping*)
+                ignore (List.assoc argu curr_mapping);
+                [] 
+              with 
+                (*L: otherwise choose appropriate param reg by cc *)
+                | Not_found -> 
+                  if (argu = "dummystring_from_f_and_l") then [] 
+                  else
+                    let argreg = List.nth param_regs argpos in
+                    [(argu, argreg)]
+            in
+            List.concat (List.mapi uid_mapping reg_arg_uids) @ curr_mapping
+          | _ -> (u, None) :: curr_mapping
+        end in
+      List.fold_left ins_into_mapping old_mapping b.insns @ [(fst b.term, None)] in 
+    List.fold_left block_into_mapping init_param_regs (fst f.f_cfg :: List.map snd (snd f.f_cfg)) in
+
+    (* init_param_regs @ uids_from_block (fst f.f_cfg) @ 
+    List.concat (List.map (fun x -> uids_from_block (snd x)) (snd f.f_cfg)) in *)
+
+  let graph = 
+    List.map (fun ur -> (ur, UidSet.empty)) (take safe_num_param uid_regs) @
+    List.map (fun ur -> (ur, live.live_in (fst ur))) (drop safe_num_param uid_regs) in
   (* let graph = List.fold_left (fun map (u,ns) -> UidMap.add u ns map) UidMap.empty graph in *)
 
   (*F: first part: break down graph*)
   
-  let rec build_stack ((stack, graph):Ll.uid list * (Ll.uid * UidSet.t) list) : Ll.uid list =
+  let rec build_stack ((stack, graph): regmap * ((Ll.uid * X86.reg option) * UidSet.t) list) : regmap =
     let sorted_graph =
       let cmp_nodes (a,b) (x,y) =
         let b_card = UidSet.cardinal b in
@@ -799,7 +843,7 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
     | [] -> stack
     | h::tl -> 
       let new_stack = fst h::stack in 
-      let new_graph = List.map (fun (u, ns) -> (u, UidSet.remove (fst h) ns)) tl in
+      let new_graph = List.map (fun (ur, ns) -> (ur, UidSet.remove (fst (fst h)) ns)) tl in
       build_stack (new_stack, new_graph)
     end in
   
@@ -808,20 +852,13 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
   
   (*F: second part: rebuild graph with coloring*)
 
-  let regs = List.map (fun x -> Some x) [ Rdi; Rsi; Rdx; R08; R09; R10; R11 ] in
 
-  let mapping : (Ll.uid * X86.reg option) list = 
-    let safe_num_param = 
-      let num_param = List.length f.f_param in
-      if(num_param < 5) then num_param else 5 in
-    List.combine (take safe_num_param f.f_param) (take safe_num_param regs) 
-    @ List.map (fun u -> (u, None)) ((drop safe_num_param f.f_param) @ uids) in
 
   let params_sets = List.map (fun x -> (x, UidSet.empty)) f.f_param in
-  let uidmap = List.fold_left (fun map (u,ns) -> UidMap.add u ns map) UidMap.empty (graph @ params_sets) in
+  let uidmap = List.fold_left (fun map ((u, r),ns) -> UidMap.add u ns map) UidMap.empty (graph @ params_sets) in
 
   (*F: fold to make edges bidirectional so we have undirected graph*)
-  let sym_sets =
+  let symm_sets =
     let fold_func f_acc uid =
       let uid_live_in = live.live_in uid in
       let rec set_rec uidset acc =
@@ -845,14 +882,14 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
     begin match stack with
     | [] -> map
     | h::tl ->
-      let hd_live_in = UidMap.find h sym_sets in
-      let unpack (u,r) =
+      let hd_live_in = UidMap.find h symm_sets in
+      let u_neighbor_reg_used (u,r) =
         let u_is_live = UidSet.mem u hd_live_in in
         begin match r with
         | None   -> false
         | Some r -> u_is_live
         end in
-      let find_col_neighbors = List.filter unpack map in
+      let find_col_neighbors = List.filter u_neighbor_reg_used map in
       let taken_regs = List.map snd find_col_neighbors  in
       let diff l1 l2 = List.filter (fun x -> not (List.mem x l2)) l1 in
       let free_regs = diff regs taken_regs in
