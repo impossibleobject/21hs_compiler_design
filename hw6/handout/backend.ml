@@ -821,8 +821,8 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
     List.concat (List.map (fun x -> uids_from_block (snd x)) (snd f.f_cfg)) in *)
 
   let graph = 
-    List.map (fun ur -> (ur, UidSet.empty)) (take safe_num_param uid_regs) @
-    List.map (fun ur -> (ur, live.live_in (fst ur))) (drop safe_num_param uid_regs) in
+    List.map (fun ur -> (ur, UidSet.empty)) (List.filter (fun (u,r) -> List.mem u f.f_param) uid_regs) @
+    List.map (fun ur -> (ur, live.live_in (fst ur))) (List.filter (fun (u,r) -> not (List.mem u f.f_param)) uid_regs) in
   (* let graph = List.fold_left (fun map (u,ns) -> UidMap.add u ns map) UidMap.empty graph in *)
 
   (*F: first part: break down graph*)
@@ -854,12 +854,12 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
 
 
 
-  let params_sets = List.map (fun x -> (x, UidSet.empty)) f.f_param in
-  let uidmap = List.fold_left (fun map ((u, r),ns) -> UidMap.add u ns map) UidMap.empty (graph @ params_sets) in
+  (* let params_sets = List.map (fun x -> (x, UidSet.empty)) f.f_param in *)
+  let uidmap = List.fold_left (fun map ((u, r),ns) -> UidMap.add u ns map) UidMap.empty (graph(*  @ params_sets *)) in
 
   (*F: fold to make edges bidirectional so we have undirected graph*)
   let symm_sets =
-    let fold_func f_acc uid =
+    let fold_func f_acc (uid, ureg) =
       let uid_live_in = live.live_in uid in
       let rec set_rec uidset acc =
         begin match UidSet.cardinal uidset with
@@ -875,14 +875,14 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
       let new_f_acc = set_rec uid_live_in f_acc in
       new_f_acc in
 
-    List.fold_left fold_func uidmap uids in
+    List.fold_left fold_func uidmap uid_regs in
 
     
-  let rec coloring ((stack,map) : (Ll.uid list * (Ll.uid * X86.reg option) list)) : (Ll.uid * X86.reg option) list =
+  let rec coloring ((stack,map) : (regmap * regmap)) : regmap =
     begin match stack with
     | [] -> map
     | h::tl ->
-      let hd_live_in = UidMap.find h symm_sets in
+      let hd_live_in = UidMap.find (fst h) symm_sets in
       let u_neighbor_reg_used (u,r) =
         let u_is_live = UidSet.mem u hd_live_in in
         begin match r with
@@ -901,11 +901,11 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
         | [] -> Some Rax (*L: placeholder to filter out regs we have to spill*)
         | r::rtl -> r
       end in 
-      let new_map = List.map (fun (x,y) -> if (x = h) then (x,hd_color) else (x,y)) map in
+      let new_map = List.map (fun (x,y) -> if (x = (fst h)) then (x,hd_color) else (x,y)) map in
       coloring (tl, new_map) 
     end in
   
-  let coloring_map = coloring (stack,mapping) in
+  let coloring_map = coloring (stack,uidmap) in
 
   (*F: third part: allocating, mostly copied from greedy except for spill cond*)
 
