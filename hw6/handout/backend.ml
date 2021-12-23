@@ -774,7 +774,7 @@ type regmap = (Ll.uid * X86.reg option) list
 let better_layout (f:Ll.fdecl) (live:liveness) : layout =
   let regs = List.map (fun x -> Some x) [ Rdi; Rsi; Rdx; R08; R09; R10; R11 ] in
   let param_regs = [ Some Rdi; Some Rsi; None; Some Rdx; Some R08; Some R09 ] in
-
+  (*L: this none above does not seem to make a difference*)
   let safe_num_param = 
     let num_param = List.length f.f_param in
     if(num_param < 5) then num_param else 5 in
@@ -803,22 +803,22 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
               try 
                 (*L: if we already mapped uid don't change mapping*)
                 ignore (List.assoc argu curr_mapping);
-                [] 
+                []
               with 
                 (*L: otherwise choose appropriate param reg by cc *)
                 | Not_found -> 
-                  if (argu = "dummystring_from_f_and_l") then [] 
+                  if (argu = "dummystring_from_f_and_l") then []
                   else
                     let argreg = List.nth param_regs argpos in
                     [(argu, argreg)]
             in
-            curr_mapping @ List.concat (List.mapi uid_mapping reg_arg_uids)
+            curr_mapping @ List.concat (List.mapi uid_mapping reg_arg_uids) @ [(u, None)]
           | _ -> curr_mapping @ [(u, None)]
         end in
       List.fold_left ins_into_mapping old_mapping b.insns @ [(fst b.term, None)] in 
     List.fold_left block_into_mapping init_param_regs (fst f.f_cfg :: List.map snd (snd f.f_cfg)) in
 
-    
+  
   let graph = 
     List.map (fun ur -> (ur, UidSet.empty)) (take safe_num_param uid_regs 
     @ List.map (fun x -> (x, None)) (drop safe_num_param f.f_param)) @
@@ -859,17 +859,23 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
   (*F: fold to make edges bidirectional so we have undirected graph*)
   let symm_sets =
     let fold_func f_acc (uid, ureg) =
-      let uid_live_in = UidMap.find uid f_acc (* live.live_in uid *) in
+      
+      let uid_live_in = 
+        try
+          UidMap.find uid f_acc (* live.live_in uid *) 
+        with 
+          | Not_found -> failwith "failed to find uid in acc of symm_sets"
+        in
       let rec set_rec uidset acc =
         begin match UidSet.cardinal uidset with
         | 0 -> acc
         | _ -> 
-          let chosen = UidSet.choose uidset in
+          let chosen = UidSet.choose uidset in (*L: literally can not fail -> card > 0*)
           let chosen_set = 
             try
               UidMap.find chosen acc 
             with
-              | Not_found -> failwith "symm_sets can't get symmetric connections"
+              | Not_found -> failwith ("do not find chosen: " ^ chosen ^ " in uidmap of Length: " ^ string_of_int (UidMap.cardinal uidmap) )
           in
           let new_chosen_set = UidSet.add uid chosen_set in
           let new_acc = UidMap.add chosen new_chosen_set acc in

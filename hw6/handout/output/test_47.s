@@ -1,76 +1,101 @@
 	.text
-	.globl	program
-program:
+	.globl	naive_mod
+naive_mod:
 	pushq	%rbp
 	movq	%rsp, %rbp
 	subq	$8, %rsp
-	movq	%rsp, %r11
+	movq	%rsp, %r10
+	movq	$0, %rax
+	movq	%r10, %rcx
+	movq	%rax, (%rcx)
+	jmp	start
+	.text
+final:
+	movq	(%r10), %r8 
+	movq	%r8 , %rdx
+	subq	%rsi, %rdx
+	movq	%rdi, %rsi
+	subq	%rdx, %rsi
+	movq	%rsi, %rax
+	movq	%rbp, %rsp
+	popq	%rbp
+	retq	
+	.text
+start:
+	movq	(%r10), %rdx
+	movq	%rsi, %r9 
+	addq	%rdx, %r9 
+	movq	%r9 , (%r10)
+	cmpq	%rdi, %r9 
+	setg	%r8b
+	andq	$1, %r8 
+	cmpq	$0, %r8 
+	jne	final
+	jmp	start
+	.text
+	.globl	naive_prime
+naive_prime:
+	pushq	%rbp
+	movq	%rsp, %rbp
 	subq	$8, %rsp
 	movq	%rsp, %r10
-	subq	$8, %rsp
-	movq	%rsp, %r9 
-	movq	%rdi, (%r11)
-	movq	%rsi, (%r10)
-	movq	$1, %rax
-	movq	%r9 , %rcx
+	movq	$2, %rax
+	movq	%r10, %rcx
 	movq	%rax, (%rcx)
-	jmp	_cond2358
+	jmp	loop
 	.text
-_body2357:
+final_false:
+	movq	$0, %rax
+	movq	%rbp, %rsp
+	popq	%rbp
+	retq	
+	.text
+final_true:
+	movq	$1, %rax
+	movq	%rbp, %rsp
+	popq	%rbp
+	retq	
+	.text
+inc:
 	movq	(%r10), %r8 
-	movq	(%r9 ), %rdx
-	movq	%r8 , %rax
-	movq	%rax, %rdi
-	pushq	%r11
+	movq	$1, %rdx
+	addq	%r9 , %rdx
+	movq	%rdx, (%r10)
 	pushq	%r10
-	pushq	%r9 
 	pushq	%r8 
 	pushq	%rdi
-	pushq	%rdx
-	movq	%rdx, %rsi
-	callq	oat_assert_array_length
-	popq	%rdx
+	movq	%r8 , %rsi
+	callq	naive_mod
 	popq	%rdi
 	popq	%r8 
-	popq	%r9 
 	popq	%r10
-	popq	%r11
-	movq	%r8 , %rax
-	addq	$0, %rax
-	addq	$8, %rax
-	movq	%rax, %rcx
-	movq	%rdx, %rax
-	imulq	$8, %rax
-	addq	%rcx, %rax
 	movq	%rax, %rsi
-	movq	(%rsi), %rdi
-	pushq	%r11
-	pushq	%r10
-	pushq	%r9 
-	pushq	%rdi
-	callq	print_string
-	popq	%rdi
-	popq	%r9 
-	popq	%r10
-	popq	%r11
-	movq	(%r9 ), %rdi
-	movq	%rdi, %rsi
-	addq	$1, %rsi
-	movq	%rsi, (%r9 )
-	jmp	_cond2358
+	movq	$0, %rax
+	cmpq	%rsi, %rax
+	sete	%dl
+	andq	$1, %rdx
+	cmpq	$0, %rdx
+	jne	final_false
+	jmp	loop
 	.text
-_cond2358:
-	movq	(%r9 ), %rdx
-	movq	(%r11), %rdi
-	cmpq	%rdi, %rdx
-	setl	%sil
-	andq	$1, %rsi
-	cmpq	$0, %rsi
-	jne	_body2357
-	jmp	_post2356
+loop:
+	movq	(%r10), %r9 
+	movq	%r9 , %rsi
+	imulq	%r9 , %rsi
+	cmpq	%rdi, %rsi
+	setg	%dl
+	andq	$1, %rdx
+	cmpq	$0, %rdx
+	jne	final_true
+	jmp	inc
 	.text
-_post2356:
-	movq	(%r11), %rsi
+	.globl	main
+main:
+	pushq	%rbp
+	movq	%rsp, %rbp
+	movq	$19, %rdi
+	callq	naive_prime
+	movq	%rax, %rsi
 	movq	%rsi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp

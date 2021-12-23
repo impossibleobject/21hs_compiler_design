@@ -1,23 +1,27 @@
 	.data
-	.globl	s
-s:
-	.quad	_str774
-	.data
-	.globl	_str774
-_str774:
-	.asciz	"341"
+	.globl	gbl
+gbl:
+	.quad	1
+	.quad	2
+	.quad	3
+	.quad	0
+	.quad	0
+	.quad	0
+	.quad	0
 	.text
-	.globl	program
-program:
+	.globl	main
+main:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	leaq	s(%rip), %rax
-	movq	(%rax), %rax
+	leaq	gbl(%rip), %rax
+	addq	$0, %rax
+	addq	$0, %rax
+	addq	$0, %rax
+	addq	$8, %rax
+	addq	$8, %rax
 	movq	%rax, %rdi
-	pushq	%rdi
-	callq	print_string
-	popq	%rdi
-	movq	$0, %rax
+	movq	(%rdi), %rsi
+	movq	%rsi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
