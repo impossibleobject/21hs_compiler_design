@@ -1,33 +1,20 @@
-	.text
-	.globl	add
-add:
-	pushq	%rbp
-	movq	%rsp, %rbp
-	subq	$8, %rsp
-	movq	%rsp, %r9 
-	subq	$8, %rsp
-	movq	%rsp, %r8 
-	movq	%rdi, (%r9 )
-	movq	%rsi, (%r8 )
-	movq	(%r9 ), %rdx
-	movq	(%r8 ), %rdi
-	movq	%rdx, %rsi
-	addq	%rdi, %rsi
-	movq	%rsi, %rax
-	movq	%rbp, %rsp
-	popq	%rbp
-	retq	
+	.data
+	.globl	white
+white:
+	.quad	_global_struct6723
+	.data
+	.globl	_global_struct6723
+_global_struct6723:
+	.quad	255
+	.quad	254
+	.quad	253
 	.text
 	.globl	program
 program:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	subq	$8, %rsp
-	movq	%rsp, %r9 
-	pushq	%r9 
 	movq	$24, %rdi
 	callq	oat_malloc
-	popq	%r9 
 	movq	%rax, %rdi
 	movq	%rdi, %rax
 	movq	%rax, %rdx
@@ -42,47 +29,26 @@ program:
 	addq	$0, %rax
 	addq	$8, %rax
 	movq	%rax, %rsi
-	movq	$4, %rax
+	movq	$5, %rax
 	movq	%rsi, %rcx
 	movq	%rax, (%rcx)
 	movq	%rdx, %rax
 	addq	$0, %rax
 	addq	$16, %rax
 	movq	%rax, %rsi
-	leaq	add(%rip), %rax
+	movq	$7, %rax
 	movq	%rsi, %rcx
 	movq	%rax, (%rcx)
-	movq	%rdx, (%r9 )
-	movq	(%r9 ), %rsi
-	movq	%rsi, %rax
-	addq	$0, %rax
-	addq	$16, %rax
+	leaq	white(%rip), %rax
+	movq	(%rax), %rax
 	movq	%rax, %rdi
-	movq	(%rdi), %r8 
-	movq	(%r9 ), %rsi
-	movq	%rsi, %rax
-	addq	$0, %rax
-	addq	$8, %rax
-	movq	%rax, %rdi
-	movq	(%rdi), %rdx
-	movq	(%r9 ), %rdi
 	movq	%rdi, %rax
 	addq	$0, %rax
-	addq	$0, %rax
+	addq	$16, %rax
 	movq	%rax, %rsi
 	movq	(%rsi), %rdi
-	pushq	%r15
-	movq	%r8 , %r15
-	pushq	%r8 
-	pushq	%rdi
-	pushq	%rdx
-	movq	%rdx, %rsi
-	callq	*%r15
-	popq	%rdx
-	popq	%rdi
-	popq	%r8 
-	popq	%r15
-	movq	%rax, %rsi
+	movq	%rdi, %rsi
+	addq	$1, %rsi
 	movq	%rsi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp

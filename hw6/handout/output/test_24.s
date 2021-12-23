@@ -5,9 +5,9 @@ bar:
 	movq	%rsp, %rbp
 	subq	$8, %rsp
 	movq	%rcx, -8(%rbp)
-	movq	%rdi, %r10
-	addq	%rsi, %r10
-	movq	%r10, %rdi
+	movq	%rdi, %r11
+	addq	%rsi, %r11
+	movq	%r11, %rdi
 	addq	%rdx, %rdi
 	movq	%rdi, %rsi
 	addq	-8(%rbp), %rsi

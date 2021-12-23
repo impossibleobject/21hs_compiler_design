@@ -1,100 +1,70 @@
+	.data
+	.globl	glist
+glist:
+	.quad	1
+	.quad	2
+	.quad	3
+	.quad	4
+	.quad	5
 	.text
-	.globl	naive_mod
-naive_mod:
+	.globl	search
+search:
 	pushq	%rbp
 	movq	%rsp, %rbp
 	subq	$8, %rsp
-	movq	%rsp, %r10
+	movq	%rsp, %r11
 	movq	$0, %rax
-	movq	%r10, %rcx
-	movq	%rax, (%rcx)
-	jmp	start
-	.text
-final:
-	movq	(%r10), %r8 
-	movq	%r8 , %rdx
-	subq	%rsi, %rdx
-	movq	%rdi, %rsi
-	subq	%rdx, %rsi
-	movq	%rsi, %rax
-	movq	%rbp, %rsp
-	popq	%rbp
-	retq	
-	.text
-start:
-	movq	(%r10), %rdx
-	movq	%rsi, %r9 
-	addq	%rdx, %r9 
-	movq	%r9 , (%r10)
-	cmpq	%rdi, %r9 
-	setg	%r8b
-	andq	$1, %r8 
-	cmpq	$0, %r8 
-	jne	final
-	jmp	start
-	.text
-	.globl	naive_prime
-naive_prime:
-	pushq	%rbp
-	movq	%rsp, %rbp
-	subq	$8, %rsp
-	movq	%rsp, %r10
-	movq	$2, %rax
-	movq	%r10, %rcx
+	movq	%r11, %rcx
 	movq	%rax, (%rcx)
 	jmp	loop
 	.text
-final_false:
+check:
+	movq	%rsi, %rax
+	addq	$0, %rax
+	movq	%rax, %rcx
+	movq	%r10, %rax
+	imulq	$8, %rax
+	addq	%rcx, %rax
+	movq	%rax, %r8 
+	movq	(%r8 ), %rdx
+	cmpq	%rdx, %rdi
+	sete	%r9b
+	andq	$1, %r9 
+	movq	$1, %r8 
+	addq	%r10, %r8 
+	movq	%r8 , (%r11)
+	cmpq	$0, %r9 
+	jne	true
+	jmp	loop
+	.text
+false:
 	movq	$0, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
 	.text
-final_true:
+loop:
+	movq	(%r11), %r10
+	cmpq	$5, %r10
+	sete	%r8b
+	andq	$1, %r8 
+	cmpq	$0, %r8 
+	jne	false
+	jmp	check
+	.text
+true:
 	movq	$1, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
 	.text
-inc:
-	movq	(%r10), %r8 
-	movq	$1, %rdx
-	addq	%r9 , %rdx
-	movq	%rdx, (%r10)
-	pushq	%r10
-	pushq	%r8 
-	pushq	%rdi
-	movq	%r8 , %rsi
-	callq	naive_mod
-	popq	%rdi
-	popq	%r8 
-	popq	%r10
-	movq	%rax, %rsi
-	movq	$0, %rax
-	cmpq	%rsi, %rax
-	sete	%dl
-	andq	$1, %rdx
-	cmpq	$0, %rdx
-	jne	final_false
-	jmp	loop
-	.text
-loop:
-	movq	(%r10), %r9 
-	movq	%r9 , %rsi
-	imulq	%r9 , %rsi
-	cmpq	%rdi, %rsi
-	setg	%dl
-	andq	$1, %rdx
-	cmpq	$0, %rdx
-	jne	final_true
-	jmp	inc
-	.text
 	.globl	main
 main:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	movq	$100, %rdi
-	callq	naive_prime
+	leaq	glist(%rip), %rsi
+	movq	$3, %rdi
+	callq	search
 	movq	%rax, %rsi
 	movq	%rsi, %rax
 	movq	%rbp, %rsp

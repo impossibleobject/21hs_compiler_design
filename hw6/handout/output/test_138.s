@@ -1,111 +1,46 @@
 	.text
+	.globl	add
+add:
+	pushq	%rbp
+	movq	%rsp, %rbp
+	subq	$8, %rsp
+	movq	%rsp, %r9 
+	subq	$8, %rsp
+	movq	%rsp, %r8 
+	movq	%rdi, (%r9 )
+	movq	%rsi, (%r8 )
+	movq	(%r9 ), %rdx
+	movq	(%r8 ), %rdi
+	movq	%rdx, %rsi
+	addq	%rdi, %rsi
+	movq	%rsi, %rax
+	movq	%rbp, %rsp
+	popq	%rbp
+	retq	
+	.text
 	.globl	program
 program:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	subq	$24, %rsp
 	subq	$8, %rsp
-	movq	%rsp, -8(%rbp)
+	movq	%rsp, %r8 
 	subq	$8, %rsp
-	movq	%rsp, -16(%rbp)
-	movq	$3, %rdi
-	callq	oat_alloc_array
-	movq	%rax, %rdi
-	movq	%rdi, %rax
-	movq	%rax, -24(%rbp)
-	subq	$8, %rsp
-	movq	%rsp, %r11
-	movq	$3, %rax
-	movq	%r11, %rcx
+	movq	%rsp, %rdx
+	leaq	add(%rip), %rax
+	movq	%r8 , %rcx
 	movq	%rax, (%rcx)
-	subq	$8, %rsp
-	movq	%rsp, %r10
-	movq	-24(%rbp), %rax
-	movq	%r10, %rcx
-	movq	%rax, (%rcx)
-	movq	$0, %rax
-	movq	-8(%rbp), %rcx
-	movq	%rax, (%rcx)
-	jmp	_cond7322
-	.text
-_body7321:
-	movq	(%r10), %r9 
-	movq	-8(%rbp), %rax
-	movq	(%rax), %rax
-	movq	%rax, %r8 
-	movq	%r9 , %rax
-	movq	%rax, %rsi
-	pushq	%r11
-	pushq	%r10
-	pushq	%r9 
-	pushq	%r8 
-	pushq	%rsi
-	movq	%rsi, %rdi
-	movq	%r8 , %rsi
-	callq	oat_assert_array_length
-	popq	%rsi
-	popq	%r8 
-	popq	%r9 
-	popq	%r10
-	popq	%r11
-	movq	%r9 , %rax
-	addq	$0, %rax
-	addq	$8, %rax
-	movq	%rax, %rcx
-	movq	%r8 , %rax
-	imulq	$8, %rax
-	addq	%rcx, %rax
-	movq	%rax, %rdx
-	movq	-8(%rbp), %rax
-	movq	(%rax), %rax
-	movq	%rax, %rdi
-	movq	%rdi, %rsi
-	addq	$1, %rsi
+	movq	(%r8 ), %rsi
 	movq	%rsi, (%rdx)
-	movq	-8(%rbp), %rax
-	movq	(%rax), %rax
-	movq	%rax, %rdi
-	movq	%rdi, %rsi
-	addq	$1, %rsi
-	movq	%rsi, %rax
-	movq	-8(%rbp), %rcx
-	movq	%rax, (%rcx)
-	jmp	_cond7322
-	.text
-_cond7322:
-	movq	-8(%rbp), %rax
-	movq	(%rax), %rax
-	movq	%rax, %rdx
-	movq	(%r11), %rdi
-	cmpq	%rdi, %rdx
-	setl	%sil
-	andq	$1, %rsi
-	cmpq	$0, %rsi
-	jne	_body7321
-	jmp	_post7320
-	.text
-_post7320:
-	movq	-24(%rbp), %rax
-	movq	-16(%rbp), %rcx
-	movq	%rax, (%rcx)
-	movq	-16(%rbp), %rax
-	movq	(%rax), %rax
-	movq	%rax, %rdx
-	movq	%rdx, %rax
+	movq	(%rdx), %rdi
+	pushq	%r15
+	movq	%rdi, %r15
+	pushq	%rdi
+	movq	$3, %rsi
+	movq	$2, %rdi
+	callq	*%r15
+	popq	%rdi
+	popq	%r15
 	movq	%rax, %rsi
-	pushq	%rsi
-	pushq	%rdx
-	movq	%rsi, %rdi
-	movq	$0, %rsi
-	callq	oat_assert_array_length
-	popq	%rdx
-	popq	%rsi
-	movq	%rdx, %rax
-	addq	$0, %rax
-	addq	$8, %rax
-	addq	$0, %rax
-	movq	%rax, %rdi
-	movq	(%rdi), %rsi
 	movq	%rsi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp

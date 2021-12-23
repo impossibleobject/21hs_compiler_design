@@ -1,100 +1,195 @@
 	.text
-	.globl	naive_mod
-naive_mod:
+	.globl	binary_gcd
+binary_gcd:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	subq	$8, %rsp
-	movq	%rsp, %r10
-	movq	$0, %rax
-	movq	%r10, %rcx
-	movq	%rax, (%rcx)
-	jmp	start
+	cmpq	%rsi, %rdi
+	sete	%r8b
+	andq	$1, %r8 
+	cmpq	$0, %r8 
+	jne	ret_u
+	jmp	term1
 	.text
-final:
-	movq	(%r10), %r8 
-	movq	%r8 , %rdx
-	subq	%rsi, %rdx
-	movq	%rdi, %rsi
-	subq	%rdx, %rsi
+both_even:
+	movq	%rdi, %rax
+	movq	$1, %rcx
+	shrq	%cl, %rax
+	movq	%rax, %r8 
+	movq	%rsi, %rax
+	movq	$1, %rcx
+	shrq	%cl, %rax
+	movq	%rax, %rdx
+	pushq	%r8 
+	pushq	%rdx
+	movq	%rdx, %rsi
+	movq	%r8 , %rdi
+	callq	binary_gcd
+	popq	%rdx
+	popq	%r8 
+	movq	%rax, %rdi
+	movq	%rdi, %rax
+	movq	$1, %rcx
+	shlq	%cl, %rax
+	movq	%rax, %rsi
 	movq	%rsi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
 	.text
-start:
-	movq	(%r10), %rdx
-	movq	%rsi, %r9 
-	addq	%rdx, %r9 
-	movq	%r9 , (%r10)
-	cmpq	%rdi, %r9 
+gcd:
+	movq	$-1, %r8 
+	xorq	%rdi, %r8 
+	movq	$1, %rdx
+	andq	%r8 , %rdx
+	movq	$0, %rax
+	cmpq	%rdx, %rax
+	setne	%r8b
+	andq	$1, %r8 
+	cmpq	$0, %r8 
+	jne	u_even
+	jmp	u_odd
+	.text
+ret_u:
+	movq	%rdi, %rax
+	movq	%rbp, %rsp
+	popq	%rbp
+	retq	
+	.text
+ret_v:
+	movq	%rsi, %rax
+	movq	%rbp, %rsp
+	popq	%rbp
+	retq	
+	.text
+term1:
+	movq	$0, %rax
+	cmpq	%rdi, %rax
+	sete	%r8b
+	andq	$1, %r8 
+	cmpq	$0, %r8 
+	jne	ret_v
+	jmp	term2
+	.text
+term2:
+	movq	$0, %rax
+	cmpq	%rsi, %rax
+	sete	%r8b
+	andq	$1, %r8 
+	cmpq	$0, %r8 
+	jne	ret_u
+	jmp	gcd
+	.text
+u_even:
+	movq	%rsi, %rdx
+	andq	$1, %rdx
+	movq	$0, %rax
+	cmpq	%rdx, %rax
+	setne	%r8b
+	andq	$1, %r8 
+	cmpq	$0, %r8 
+	jne	ue_vo
+	jmp	both_even
+	.text
+u_gt:
+	movq	%rdi, %rdx
+	subq	%rsi, %rdx
+	movq	%rdx, %rax
+	movq	$1, %rcx
+	shrq	%cl, %rax
+	movq	%rax, %rdi
+	pushq	%rdi
+	pushq	%rsi
+	callq	binary_gcd
+	popq	%rsi
+	popq	%rdi
+	movq	%rax, %rdx
+	movq	%rdx, %rax
+	movq	%rbp, %rsp
+	popq	%rbp
+	retq	
+	.text
+u_odd:
+	movq	$-1, %r8 
+	xorq	%rsi, %r8 
+	movq	$1, %rdx
+	andq	%r8 , %rdx
+	movq	$0, %rax
+	cmpq	%rdx, %rax
+	setne	%r8b
+	andq	$1, %r8 
+	cmpq	$0, %r8 
+	jne	v_even
+	jmp	v_odd
+	.text
+ue_vo:
+	movq	%rdi, %rax
+	movq	$1, %rcx
+	shrq	%cl, %rax
+	movq	%rax, %r8 
+	pushq	%r8 
+	pushq	%rsi
+	movq	%r8 , %rdi
+	callq	binary_gcd
+	popq	%rsi
+	popq	%r8 
+	movq	%rax, %rdx
+	movq	%rdx, %rax
+	movq	%rbp, %rsp
+	popq	%rbp
+	retq	
+	.text
+v_even:
+	movq	%rsi, %rax
+	movq	$1, %rcx
+	shrq	%cl, %rax
+	movq	%rax, %rdx
+	pushq	%rdi
+	pushq	%rdx
+	movq	%rdx, %rsi
+	callq	binary_gcd
+	popq	%rdx
+	popq	%rdi
+	movq	%rax, %rsi
+	movq	%rsi, %rax
+	movq	%rbp, %rsp
+	popq	%rbp
+	retq	
+	.text
+v_gt:
+	movq	%rsi, %r8 
+	subq	%rdi, %r8 
+	movq	%r8 , %rax
+	movq	$1, %rcx
+	shrq	%cl, %rax
+	movq	%rax, %rdx
+	pushq	%rdi
+	pushq	%rdx
+	movq	%rdi, %rsi
+	movq	%rdx, %rdi
+	callq	binary_gcd
+	popq	%rdx
+	popq	%rdi
+	movq	%rax, %rsi
+	movq	%rsi, %rax
+	movq	%rbp, %rsp
+	popq	%rbp
+	retq	
+	.text
+v_odd:
+	cmpq	%rsi, %rdi
 	setg	%r8b
 	andq	$1, %r8 
 	cmpq	$0, %r8 
-	jne	final
-	jmp	start
-	.text
-	.globl	naive_prime
-naive_prime:
-	pushq	%rbp
-	movq	%rsp, %rbp
-	subq	$8, %rsp
-	movq	%rsp, %r10
-	movq	$2, %rax
-	movq	%r10, %rcx
-	movq	%rax, (%rcx)
-	jmp	loop
-	.text
-final_false:
-	movq	$0, %rax
-	movq	%rbp, %rsp
-	popq	%rbp
-	retq	
-	.text
-final_true:
-	movq	$1, %rax
-	movq	%rbp, %rsp
-	popq	%rbp
-	retq	
-	.text
-inc:
-	movq	(%r10), %r8 
-	movq	$1, %rdx
-	addq	%r9 , %rdx
-	movq	%rdx, (%r10)
-	pushq	%r10
-	pushq	%r8 
-	pushq	%rdi
-	movq	%r8 , %rsi
-	callq	naive_mod
-	popq	%rdi
-	popq	%r8 
-	popq	%r10
-	movq	%rax, %rsi
-	movq	$0, %rax
-	cmpq	%rsi, %rax
-	sete	%dl
-	andq	$1, %rdx
-	cmpq	$0, %rdx
-	jne	final_false
-	jmp	loop
-	.text
-loop:
-	movq	(%r10), %r9 
-	movq	%r9 , %rsi
-	imulq	%r9 , %rsi
-	cmpq	%rdi, %rsi
-	setg	%dl
-	andq	$1, %rdx
-	cmpq	$0, %rdx
-	jne	final_true
-	jmp	inc
+	jne	u_gt
+	jmp	v_gt
 	.text
 	.globl	main
 main:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	movq	$19, %rdi
-	callq	naive_prime
+	movq	$15, %rsi
+	movq	$21, %rdi
+	callq	binary_gcd
 	movq	%rax, %rsi
 	movq	%rsi, %rax
 	movq	%rbp, %rsp

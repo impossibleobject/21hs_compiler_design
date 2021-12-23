@@ -773,11 +773,11 @@ type regmap = (Ll.uid * X86.reg option) list
 
 let better_layout (f:Ll.fdecl) (live:liveness) : layout =
   let regs = List.map (fun x -> Some x) [ Rdi; Rsi; Rdx; R08; R09; R10; R11 ] in
-  let param_regs = [ Some Rdi; Some Rsi; None; Some Rdx; Some R08; Some R09 ] in
+  let param_regs = [ Some Rdi; Some Rsi; Some Rcx; Some Rdx; Some R08; Some R09 ] in
   (*L: this none above does not seem to make a difference*)
   let safe_num_param = 
     let num_param = List.length f.f_param in
-    if(num_param < 5) then num_param else 5 in
+    if(num_param < 6) then num_param else 6 in
 
   let init_param_regs : regmap = 
     List.combine (take safe_num_param f.f_param) (take safe_num_param regs) in
@@ -789,16 +789,16 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
           | Call (_, _, ls) ->
             let unpack_uid ((ty, op):(Ll.ty * Ll.operand)) : Ll.uid =
               begin match op with
-                | Id uid | Gid uid -> uid
+                | Id uid (* | Gid uid *) -> uid
                 | _ -> "dummystring_from_f_and_l" (*L: hope this does not overlap with var name*)
               end in
-            let ls_ops = List.map unpack_uid ls in
+            let arg_uids = List.map unpack_uid ls in
 
             let reg_arg_uids = 
               let safe_num_param = 
-                let num_param = List.length ls_ops in
-                if(num_param < 5) then num_param else 5 in
-              take safe_num_param ls_ops in
+                let num_param = List.length arg_uids in
+                if(num_param < 6) then num_param else 6 in
+              take safe_num_param arg_uids in
             let uid_mapping argpos argu =
               try 
                 (*L: if we already mapped uid don't change mapping*)
@@ -815,7 +815,7 @@ let better_layout (f:Ll.fdecl) (live:liveness) : layout =
             curr_mapping @ List.concat (List.mapi uid_mapping reg_arg_uids) @ [(u, None)]
           | _ -> curr_mapping @ [(u, None)]
         end in
-      List.fold_left ins_into_mapping old_mapping b.insns @ [(fst b.term, None)] in 
+      (List.fold_left ins_into_mapping old_mapping b.insns) @ [(fst b.term, None)] in 
     List.fold_left block_into_mapping init_param_regs (fst f.f_cfg :: List.map snd (snd f.f_cfg)) in
 
   

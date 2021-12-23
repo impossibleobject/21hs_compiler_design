@@ -1,52 +1,57 @@
 	.text
-	.globl	factorial
-factorial:
+	.globl	gcd_rec
+gcd_rec:
 	pushq	%rbp
 	movq	%rsp, %rbp
 	subq	$8, %rsp
 	movq	%rsp, %r9 
-	subq	$8, %rsp
-	movq	%rsp, %r8 
 	movq	%rdi, (%r9 )
-	movq	$1, %rax
-	movq	%r8 , %rcx
-	movq	%rax, (%rcx)
-	jmp	start
+	cmpq	$0, %rsi
+	setne	%r8b
+	andq	$1, %r8 
+	cmpq	$0, %r8 
+	jne	neq0
+	jmp	eq0
 	.text
-end:
-	movq	(%r8 ), %rsi
-	movq	%rsi, %rax
+eq0:
+	movq	%rdi, %rax
 	movq	%rbp, %rsp
 	popq	%rbp
 	retq	
 	.text
-start:
+neq0:
 	movq	(%r9 ), %rdi
-	cmpq	$0, %rdi
-	setg	%sil
-	andq	$1, %rsi
-	cmpq	$0, %rsi
-	jne	then
-	jmp	end
+	movq	%rdi, %r8 
+	subq	%rsi, %r8 
+	movq	%r8 , (%r9 )
+	cmpq	%rsi, %r8 
+	setg	%dl
+	andq	$1, %rdx
+	cmpq	$0, %rdx
+	jne	neq0
+	jmp	recurse
 	.text
-then:
-	movq	(%r8 ), %rdx
-	movq	(%r9 ), %rdi
-	movq	%rdx, %rsi
-	imulq	%rdi, %rsi
-	movq	%rsi, (%r8 )
-	movq	(%r9 ), %rdi
-	movq	%rdi, %rsi
-	subq	$1, %rsi
-	movq	%rsi, (%r9 )
-	jmp	start
+recurse:
+	pushq	%r8 
+	pushq	%rsi
+	movq	%rsi, %rdi
+	movq	%r8 , %rsi
+	callq	gcd_rec
+	popq	%rsi
+	popq	%r8 
+	movq	%rax, %rdx
+	movq	%rdx, %rax
+	movq	%rbp, %rsp
+	popq	%rbp
+	retq	
 	.text
 	.globl	main
 main:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	movq	$5, %rdi
-	callq	factorial
+	movq	$34, %rsi
+	movq	$424, %rdi
+	callq	gcd_rec
 	movq	%rax, %rsi
 	movq	%rsi, %rax
 	movq	%rbp, %rsp
