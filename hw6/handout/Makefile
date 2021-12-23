@@ -30,7 +30,6 @@ main.native: $(SUBMIT) ast.ml astlib.ml backend.ml driver.ml main.ml runtime.c
 printanalysis.native: $(SUBMIT) ast.ml astlib.ml backend.ml driver.ml main.ml runtime.c
 	ocamlbuild -Is $(INCLUDES) $(PKGS) -libs $(LIBS) printanalysis.native -use-menhir -yaccflag --explain
 
-
 zip: $(SUBMIT)
 	zip '$(ZIPNAME)' $(SUBMIT)
 
